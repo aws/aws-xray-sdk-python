@@ -1,0 +1,4 @@
+include aws_xray_sdk/ext/botocore/*.json
+include aws_xray_sdk/core/sampling/*.json
+include README.md
+include LICENSE
