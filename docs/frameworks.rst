@@ -82,3 +82,35 @@ To generate segment based on incoming requests, you need to instantiate the X-Ra
 
 Flask built-in template rendering will be wrapped into subsegments.
 You can configure the recorder, see :ref:`Configure Global Recorder <configurations>` for more details.
+
+aiohttp Server
+==============
+
+For X-Ray to create a segment based on an incoming request, you need register some middleware with aiohttp. As aiohttp
+is an asyncronous framework, X-Ray will also need to be configured with an ``AsyncContext`` compared to the default threadded
+version.::
+
+    import asyncio
+
+    from aiohttp import web
+
+    from aws_xray_sdk.ext.aiohttp.middleware import middleware
+    from aws_xray_sdk.core.async_context import AsyncContext
+    from aws_xray_sdk.core import xray_recorder
+    # Configure X-Ray to use AsyncContext
+    xray_recorder.configure(service='service_name', context=AsyncContext())
+
+
+    async def handler(request):
+        return web.Response(body='Hello World')
+
+    loop = asyncio.get_event_loop()
+    # Use X-Ray SDK middleware, its crucial the X-Ray middleware comes first
+    app = web.Application(middlewares=[middleware])
+    app.router.add_get("/", handler)
+
+    web.run_app(app)
+
+There are two things to note from the example above. Firstly a middleware corountine from aws-xray-sdk is provided during the creation
+of an aiohttp server app. Lastly the ``xray_recorder`` has also been configured with a name and an ``AsyncContext``. See
+:ref:`Configure Global Recorder <configurations>` for more information about configuring the ``xray_recorder``.

@@ -11,7 +11,8 @@ setup(
     name='aws-xray-sdk',
     version='0.93',
 
-    description='The AWS X-Ray SDK for Python (the SDK) enables Python developers to record and emit information from within their applications to the AWS X-Ray service.',
+    description='The AWS X-Ray SDK for Python (the SDK) enables Python developers to record'
+                ' and emit information from within their applications to the AWS X-Ray service.',
     long_description=long_description,
 
     url='https://github.com/aws/aws-xray-sdk-python',
