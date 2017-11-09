@@ -37,6 +37,10 @@ class XRayTracedCursor(wrapt.ObjectProxy):
     def execute(self, query, *args, **kwargs):
 
         add_sql_meta(self._xray_meta)
+        subsegment = xray_recorder.current_subsegment()
+        if subsegment:
+            subsegment.put_metadata("SQL Statement", query, "memrise")
+
         return self.__wrapped__.execute(query, *args, **kwargs)
 
     @xray_recorder.capture()
