@@ -30,7 +30,9 @@ class AWSXRayRecorder(object):
     A global AWS X-Ray recorder that will begin/end segments/subsegments
     and send them to the X-Ray daemon. This recorder is initialized during
     loading time so you can use::
+
         from aws_xray_sdk.core import xray_recorder
+
     in your module to access it
     """
     def __init__(self):
@@ -312,15 +314,16 @@ class AWSXRayRecorder(object):
 
         subsegment = self.begin_subsegment(name, namespace)
 
+        exception = None
+        stack = None
+        return_value = None
+
         try:
             return_value = wrapped(*args, **kwargs)
-            exception = None
-            stack = None
             return return_value
         except Exception as e:
             exception = e
             stack = traceback.extract_stack(limit=self._max_trace_back)
-            return_value = None
             raise
         finally:
             end_time = time.time()

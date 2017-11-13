@@ -3,7 +3,7 @@
 Third Party Library Support
 ===========================
 
-The SDK supports boto3, botocore, requests, sqlite3 and mysql-connector.
+The SDK supports aioboto3, aiobotocore, boto3, botocore, requests, sqlite3 and mysql-connector.
 
 To patch, use code like the following in the main app::
     
@@ -23,6 +23,8 @@ To patch specific modules::
 The following modules are availble to patch::
 
     SUPPORTED_MODULES = (
+        'aioboto3',
+        'aiobotocore',
         'boto3',
         'botocore',
         'requests',
@@ -45,3 +47,18 @@ code like the following to generate a subsegment for an SQL query::
         )
 
         conn.cursor().execute('SHOW TABLES')
+
+Patching aioboto3 and aiobotocore
+---------------------------------
+
+On top of patching aioboto3 or aiobotocore, the xray_recorder also needs to be
+configured to use the ``AsyncContext``. The following snippet shows how to set
+up the X-Ray SDK with an Async Context, bear in mind this requires Python 3.5+::
+
+    from aws_xray_sdk.core.async_context import AsyncContext
+    from aws_xray_sdk.core import xray_recorder
+    # Configure X-Ray to use AsyncContext
+    xray_recorder.configure(service='service_name', context=AsyncContext())
+
+See :ref:`Configure Global Recorder <configurations>` for more information about
+configuring the ``xray_recorder``.

@@ -2,6 +2,7 @@ import pytest
 from flask import Flask, render_template_string
 
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
+from aws_xray_sdk.core.context import Context
 from tests.util import get_new_stubbed_recorder
 
 
@@ -31,7 +32,7 @@ def template():
 
 # add X-Ray middleware to flask app
 recorder = get_new_stubbed_recorder()
-recorder.configure(service='test', sampling=False)
+recorder.configure(service='test', sampling=False, context=Context())
 XRayMiddleware(app, recorder)
 
 # enable testing mode
