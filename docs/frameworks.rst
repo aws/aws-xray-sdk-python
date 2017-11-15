@@ -87,7 +87,7 @@ aiohttp Server
 ==============
 
 For X-Ray to create a segment based on an incoming request, you need register some middleware with aiohttp. As aiohttp
-is an asyncronous framework, X-Ray will also need to be configured with an ``AsyncContext`` compared to the default threadded
+is an asyncronous framework, X-Ray will also need to be configured with an ``AsyncContext`` compared to the default threaded
 version.::
 
     import asyncio

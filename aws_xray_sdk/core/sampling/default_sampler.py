@@ -2,13 +2,12 @@ import os
 import json
 from random import Random
 
+from pkg_resources import resource_filename
 from .sampling_rule import SamplingRule
 from ..exceptions.exceptions import InvalidSamplingManifestError
 
-__location__ = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-with open(os.path.join(__location__, 'default_sampling_rule.json')) as f:
+with open(resource_filename(__name__, 'default_sampling_rule.json')) as f:
     default_sampling_rule = json.load(f)
 
 
