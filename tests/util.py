@@ -3,6 +3,7 @@ import threading
 
 from aws_xray_sdk.core.recorder import AWSXRayRecorder
 from aws_xray_sdk.core.emitters.udp_emitter import UDPEmitter
+from aws_xray_sdk.core.utils.compat import PY35
 
 
 class StubbedEmitter(UDPEmitter):
@@ -28,7 +29,12 @@ def get_new_stubbed_recorder():
     """
     Returns a new AWSXRayRecorder object with emitter stubbed
     """
-    recorder = AWSXRayRecorder()
+    if not PY35:
+        recorder = AWSXRayRecorder()
+    else:
+        from aws_xray_sdk.core.async_recorder import AsyncAWSXRayRecorder
+        recorder = AsyncAWSXRayRecorder()
+
     recorder.emitter = StubbedEmitter()
     return recorder
 
