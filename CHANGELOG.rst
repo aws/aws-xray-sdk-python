@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+0.94
+====
+* Added aiohttp support. `PR3 <https://github.com/aws/aws-xray-sdk-python/pull/3>`_
+
 0.93
 ====
 * The X-Ray SDK for Python is now an open source project. You can follow the project and submit issues and pull requests on GitHub: https://github.com/aws/aws-xray-sdk-python

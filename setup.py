@@ -9,7 +9,7 @@ with codecs.open(path.join(CURRENT_DIR, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='aws-xray-sdk',
-    version='0.93',
+    version='0.94',
 
     description='The AWS X-Ray SDK for Python (the SDK) enables Python developers to record'
                 ' and emit information from within their applications to the AWS X-Ray service.',
