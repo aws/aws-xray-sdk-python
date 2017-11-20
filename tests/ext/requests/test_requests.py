@@ -3,6 +3,7 @@ import requests
 
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core.context import Context
 
 
 patch(('requests',))
@@ -18,6 +19,7 @@ def construct_ctx():
     so that later subsegment can be attached. After each test run
     it cleans up context storage again.
     """
+    xray_recorder.configure(service='test', sampling=False, context=Context())
     xray_recorder.clear_trace_entities()
     xray_recorder.begin_segment('name')
     yield

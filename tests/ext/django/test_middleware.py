@@ -3,12 +3,14 @@ from django.core.urlresolvers import reverse
 from django.test import TestCase
 
 from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core.context import Context
 
 
 class XRayTestCase(TestCase):
 
     def setUp(self):
         django.setup()
+        xray_recorder.configure(service='test', sampling=False, context=Context())
         xray_recorder.clear_trace_entities()
 
     def tearDown(self):

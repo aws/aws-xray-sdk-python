@@ -93,6 +93,17 @@ def myfunc():
 myfunc()
 ```
 
+```python
+from aws_xray_sdk.core import xray_recorder
+
+@xray_recorder.capture_async('subsegment_name')
+async def myfunc():
+    # Do something here
+
+async def main():
+    await myfunc()
+```
+
 **Trace AWS Lambda functions**
 
 ```python
@@ -147,6 +158,22 @@ app = Flask(__name__)
 
 xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
+```
+
+**Add aiohttp middleware**
+```python
+from aiohttp import web
+
+from aws_xray_sdk.ext.aiohttp.middleware import middleware
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core.async_context import AsyncContext
+
+xray_recorder.configure(service='fallback_name', context=AsyncContext())
+
+app = web.Application(middlewares=[middleware])
+app.router.add_get("/", handler)
+
+web.run_app(app)
 ```
 
 ## License

@@ -4,6 +4,7 @@ import importlib
 log = logging.getLogger(__name__)
 
 SUPPORTED_MODULES = (
+    'aiobotocore',
     'botocore',
     'requests',
     'sqlite3',
@@ -23,9 +24,13 @@ def patch(modules_to_patch, raise_errors=True):
 
 
 def _patch_module(module_to_patch, raise_errors=True):
-    # boto3 depends on botocore and patch botocore is sufficient
+    # boto3 depends on botocore and patching botocore is sufficient
     if module_to_patch == 'boto3':
         module_to_patch = 'botocore'
+
+    # aioboto3 depends on aiobotocore and patching aiobotocore is sufficient
+    if module_to_patch == 'aioboto3':
+        module_to_patch = 'aiobotocore'
 
     if module_to_patch not in SUPPORTED_MODULES:
         raise Exception('module %s is currently not supported for patching'
