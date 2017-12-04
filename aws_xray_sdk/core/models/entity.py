@@ -2,6 +2,7 @@ import logging
 import os
 import binascii
 import time
+import string
 
 import jsonpickle
 
@@ -13,19 +14,26 @@ from ..exceptions.exceptions import AlreadyEndedException
 
 log = logging.getLogger(__name__)
 
+# List of valid characters found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
+_valid_name_characters = string.ascii_letters + string.digits + '_.:/%&#=+\-@ '
+
 
 class Entity(object):
     """
     The parent class for segment/subsegment. It holds common properties
     and methods on segment and subsegment.
     """
+
     def __init__(self, name):
 
         # required attributes
         self.id = self._generate_random_id()
-        self.name = name
+        self.name = ''.join([c for c in name if c in _valid_name_characters])
         self.start_time = time.time()
         self.parent_id = None
+
+        if self.name != name:
+            log.warning("Removing Segment/Subsugment Name invalid characters.")
 
         # sampling
         self.sampled = True
