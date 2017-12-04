@@ -57,3 +57,11 @@ def test_structure_intact():
     subsegment.close()
     segment.close()
     assert segment.ready_to_send()
+
+
+def test_invalid_entity_name():
+    segment = DummySegment('DummySegment() Test?')
+    subsegment = DummySubsegment(segment, 'Dummy*Sub!segment$')
+
+    assert segment.name == 'DummySegment Test'
+    assert subsegment.name == 'DummySubsegment'
