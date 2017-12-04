@@ -19,6 +19,7 @@ class CustomStubbedEmitter(UDPEmitter):
     """
     Custom stubbed emitter which stores all segments instead of the last one
     """
+
     def __init__(self, daemon_address='127.0.0.1:2000'):
         super(CustomStubbedEmitter, self).__init__(daemon_address)
         self.local = []
@@ -37,6 +38,8 @@ class TestServer(object):
     """
     Simple class to hold a copy of the event loop
     """
+    __test__ = False
+
     def __init__(self, loop):
         self._loop = loop
 
