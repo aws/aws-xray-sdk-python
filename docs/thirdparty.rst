@@ -6,10 +6,11 @@ Third Party Library Support
 Patching Supported Libraries
 ----------------------------
 
-The SDK supports aioboto3, aiobotocore, boto3, botocore, requests, sqlite3 and mysql-connector.
+The SDK supports aioboto3, aiobotocore, boto3, botocore, pynamodb, requests, sqlite3 and
+mysql-connector.
 
 To patch, use code like the following in the main app::
-    
+
     from aws_xray_sdk.core import patch_all
 
     patch_all()
@@ -30,12 +31,16 @@ The following modules are availble to patch::
         'aiobotocore',
         'boto3',
         'botocore',
+        'pynamodb',
         'requests',
         'sqlite3',
         'mysql',
     )
 
-Patching boto3 and botocore are equivalent since boto3 depends on botocore
+Patching boto3 and botocore are equivalent since boto3 depends on botocore.
+
+Patching pynamodb applies the botocore patch as well, as it uses the logic from the botocore
+patch to apply the trace header.
 
 Patching mysql
 ----------------------------
