@@ -2,7 +2,7 @@ from __future__ import print_function
 from builtins import super
 from flask_sqlalchemy import BaseQuery
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.ext.sqlalchemy import XRayQuery
+from aws_xray_sdk.ext.sqlalchemy.query import XRayQuery
 
 from functools import wraps
 
