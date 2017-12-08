@@ -43,7 +43,6 @@ def xray_on_call(cls, func):
     
 @decorate_all_functions(xray_on_call)   
 class XRayBaseQuery(BaseQuery):
-    print(BaseQuery.__base__)
     BaseQuery.__bases__ = (XRayQuery,)
 
 class XRaySignallingSession(XRaySession):
