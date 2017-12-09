@@ -224,10 +224,10 @@ from aws_xray_sdk.ext.flask_sqlalchemy.query import XRayFlaskSqlAlchemy
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-db = XRayFlaskSqlAlchemy(app)
 
 xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
+db = XRayFlaskSqlAlchemy(app)
 
 ```
 ## License
