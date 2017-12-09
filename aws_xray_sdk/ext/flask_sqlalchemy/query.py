@@ -29,20 +29,18 @@ def decorate_all_functions(function_decorator):
 def xray_on_call(cls, func):
     def wrapper(*args, **kw):
         class_name = str(cls.__module__)
-        if xray_recorder.current_segment is None:
-            trace = xray_recorder.begin_segment(class_name+'.'+func.__name__)
-        else:
+        c = xray_recorder._context
+        if getattr(c._local, 'entities', None) is  not None:
              trace = xray_recorder.begin_subsegment(class_name+'.'+func.__name__)
-        res = func(*args, **kw)
-        if class_name == 'sqlalchemy.orm.query':
-            for arg in args:
-                if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRayQuery):
-                    trace.put_metadata("sql", str(arg));
-        c = Context()
-        if c._is_subsegment(trace):
-            xray_recorder.end_subsegment()
         else:
-            xray_recorder.end_segment()
+            trace = None
+        res = func(*args, **kw)
+        if trace is not None:
+            if class_name == 'sqlalchemy.orm.query':
+                for arg in args:
+                    if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRayQuery):
+                        trace.put_metadata("sql", str(arg));
+            xray_recorder.end_subsegment()
         return res
     return wrapper
     
@@ -95,21 +93,3 @@ class XRayFlaskSqlAlchemy(SQLAlchemy):
                      
     def create_session(self, options):
          return sessionmaker(class_=XRaySignallingSession, db=self, **options)
-
-# class XRayBaseQuery2(BaseQuery):
-#     # Start Flask SqlAlchemy BaseQuery
-#     BaseQuery.__bases__ = (XRayQuery,)
-#     @xray_recorder.capture('FlaskSQLAlchemy-get_or_404')
-#     def get_or_404(self, ident):
-#         xray_recorder.current_subsegment().put_metadata("sql", str(self));
-#         return super().get_or_404(ident)
-    
-#     @xray_recorder.capture('FlaskSQLAlchemy-first_or_404')
-#     def first_or_404(self):
-#         xray_recorder.current_subsegment().put_metadata("sql", str(self));
-#         return super().first_or_404()
-    
-#     @xray_recorder.capture('FlaskSQLAlchemy-paginate')
-#     def paginate(self, page=None, per_page=None, error_out=True, max_per_page=None):
-#         xray_recorder.current_subsegment().put_metadata("sql", str(self));
-#         return super().paginate(page, per_page, error_out, max_per_page)
