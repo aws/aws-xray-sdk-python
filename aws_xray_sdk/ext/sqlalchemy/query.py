@@ -38,7 +38,7 @@ def xray_on_call(cls, func):
                 for arg in args:
                     if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRayQuery):
                         trace.put_metadata("sql", str(arg));
-                xray_recorder.end_subsegment()
+            xray_recorder.end_subsegment()
         return res
     return wrapper
     
