@@ -69,11 +69,6 @@ def _aws_error_handler(exception, stack, subsegment, aws_meta):
     status_code = response_metadata.get('HTTPStatusCode')
 
     subsegment.put_http_meta(http.STATUS, status_code)
-    if status_code == 429:
-        subsegment.add_throttle_flag()
-    if status_code / 100 == 4:
-        subsegment.add_error_flag()
-
     subsegment.add_exception(exception, stack, True)
 
 
