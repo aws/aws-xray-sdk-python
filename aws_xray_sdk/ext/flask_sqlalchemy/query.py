@@ -1,52 +1,15 @@
-from __future__ import print_function
 from builtins import super
-import aws_xray_sdk
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core.context import Context
-from sqlalchemy.orm.base import _generative
-from sqlalchemy.orm.query import Query
 from flask_sqlalchemy.model import Model
-from sqlalchemy.orm.session import Session, sessionmaker
-from functools import wraps
+from sqlalchemy.orm.session import sessionmaker
 from flask_sqlalchemy import SQLAlchemy, BaseQuery, _SessionSignalEvents, get_state
 from aws_xray_sdk.ext.sqlalchemy.query import XRaySession, XRayQuery
+from aws_xray_sdk.ext.sqlalchemy.util.decerators import xray_on_call, decorate_all_functions
 
-def decorate_all_functions(function_decorator):
-    def decorator(cls):
-        for c in cls.__bases__:
-            for name, obj in vars(c).items():
-                if name.startswith("_"):
-                    continue
-                if callable(obj):
-                    try:
-                        obj = obj.__func__  # unwrap Python 2 unbound method
-                    except AttributeError:
-                        pass  # not needed in Python 3
-                    setattr(c, name, function_decorator(c, obj))
-        return cls
-    return decorator
 
-def xray_on_call(cls, func):
-    def wrapper(*args, **kw):
-        class_name = str(cls.__module__)
-        c = xray_recorder._context
-        if getattr(c._local, 'entities', None) is  not None:
-             trace = xray_recorder.begin_subsegment(class_name+'.'+func.__name__)
-        else:
-            trace = None
-        res = func(*args, **kw)
-        if trace is not None:
-            if class_name == 'sqlalchemy.orm.query':
-                for arg in args:
-                    if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRayQuery):
-                        trace.put_metadata("sql", str(arg));
-            xray_recorder.end_subsegment()
-        return res
-    return wrapper
-    
-@decorate_all_functions(xray_on_call)   
+@decorate_all_functions(xray_on_call)
 class XRayBaseQuery(BaseQuery):
     BaseQuery.__bases__ = (XRayQuery,)
+
 
 class XRaySignallingSession(XRaySession):
     """The signalling session is the default session that Flask-SQLAlchemy
@@ -85,11 +48,12 @@ class XRaySignallingSession(XRaySession):
                 return state.db.get_engine(self.app, bind=bind_key)
         return XRaySession.get_bind(self, mapper, clause)
 
+
 class XRayFlaskSqlAlchemy(SQLAlchemy):
     def __init__(self, app=None, use_native_unicode=True, session_options=None,
                  metadata=None, query_class=XRayBaseQuery, model_class=Model):
         super().__init__(app, use_native_unicode, session_options,
-              metadata, query_class, model_class)
-                     
+                         metadata, query_class, model_class)
+
     def create_session(self, options):
-         return sessionmaker(class_=XRaySignallingSession, db=self, **options)
+        return sessionmaker(class_=XRaySignallingSession, db=self, **options)

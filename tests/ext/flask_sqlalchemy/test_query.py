@@ -4,16 +4,16 @@ import jsonpickle
 import pytest
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.ext.sqlalchemy.query import XRayQuery, XRaySession
 from aws_xray_sdk.ext.flask_sqlalchemy.query import XRayFlaskSqlAlchemy
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
 db = XRayFlaskSqlAlchemy(app)
+
+
 class User(db.Model):
     __tablename__ = "users"
 
@@ -22,7 +22,7 @@ class User(db.Model):
     fullname = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
 
- 
+
 def _search_entity(entity, name):
     """Helper function to that recursivly looks at subentities
     Returns a serialized entity that matches the name given or None"""
@@ -33,19 +33,22 @@ def _search_entity(entity, name):
         else:
             if "subsegments" in entity:
                 for s in entity['subsegments']:
-                    result = _search_entity(s,name)
-                    if result != None:
+                    result = _search_entity(s, name)
+                    if result is not None:
                         return result
     return None
+
+
 def find_sub(segment, name):
     """Helper function to find a subsegment by name in the entity tree"""
     segment = jsonpickle.encode(segment, unpicklable=False)
     segment = json.loads(segment)
     for entity in segment['subsegments']:
         result = _search_entity(entity, name)
-        if result != None:
+        if result is not None:
             return result
     return None
+
 
 @pytest.fixture()
 def session():
@@ -58,22 +61,22 @@ def session():
     xray_recorder.end_segment()
     xray_recorder.clear_trace_entities()
 
+
 def test_all(capsys, session):
     """ Test calling all() on get all records.
     Verify that we capture trace of query and return the SQL as metdata"""
     # with capsys.disabled():
     User.query.all()
-    subsegment = find_sub(xray_recorder.current_segment(),'sqlalchemy.orm.query.all')
+    subsegment = find_sub(xray_recorder.current_segment(), 'sqlalchemy.orm.query.all')
     assert subsegment['name'] == 'sqlalchemy.orm.query.all'
     assert subsegment['metadata']['default']['sql']
+
 
 def test_add(capsys, session):
     """ Test calling add() on insert a row.
     Verify we that we capture trace for the add"""
     # with capsys.disabled():
-    john = User(name='John', fullname = "John Doe", password="password")
+    john = User(name='John', fullname="John Doe", password="password")
     db.session.add(john)
-    subsegment = find_sub(xray_recorder.current_segment(),'sqlalchemy.orm.session.add')
+    subsegment = find_sub(xray_recorder.current_segment(), 'sqlalchemy.orm.session.add')
     assert subsegment['name'] == 'sqlalchemy.orm.session.add'
-        
-        

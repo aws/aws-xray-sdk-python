@@ -175,18 +175,6 @@ app.router.add_get("/", handler)
 
 web.run_app(app)
 ```
-**Add Flask middleware**
-
-```python
-from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
-
-app = Flask(__name__)
-
-xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
-XRayMiddleware(app, xray_recorder)
-```
-
 
 **Use SQLAlchemy ORM**
 The SQLAlchemy integration requires you to override the Session and Query Classes for SQL Alchemy
@@ -194,15 +182,9 @@ The SQLAlchemy integration requires you to override the Session and Query Classe
 SQLAlchemy integration uses subsegments so you need to have a segment started before you make a query.
 
 ```python
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import *
-from sqlalchemy.orm import sessionmaker
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.ext.sqlalchemy.query import XRaySessionMaker
 
-xray_recorder.configure(service='test', sampling=False, context=Context())
-xray_recorder.clear_trace_entities()
 xray_recorder.begin_segment('SQLAlchemyTest')
 
 Session = XRaySessionMaker(bind=engine)
@@ -225,7 +207,6 @@ from aws_xray_sdk.ext.flask_sqlalchemy.query import XRayFlaskSqlAlchemy
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
 
-xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
 db = XRayFlaskSqlAlchemy(app)
 
