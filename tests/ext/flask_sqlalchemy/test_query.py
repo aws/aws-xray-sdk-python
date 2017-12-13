@@ -41,7 +41,7 @@ def test_all(capsys, session):
     User.query.all()
     subsegment = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.all')
     assert subsegment['name'] == 'sqlalchemy.orm.query.all'
-    assert subsegment['metadata']['default']['sql']
+    assert subsegment['sql']['sanitized_query']
 
 
 def test_add(capsys, session):

@@ -42,7 +42,7 @@ def test_all(capsys, session):
     session.query(User).all()
     sub = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.all')
     assert sub['name'] == 'sqlalchemy.orm.query.all'
-    assert sub['metadata']['default']['sql']
+    assert sub['sql']['sanitized_query']
 
 
 def test_add(capsys, session):
@@ -53,3 +53,15 @@ def test_add(capsys, session):
     session.add(john)
     sub = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.session.add')
     assert sub['name'] == 'sqlalchemy.orm.session.add'
+
+
+def test_filter(capsys, session):
+    """ Test calling all() on get all records.
+    Verify we run the query and return the SQL as metdata"""
+    # with capsys.disabled():
+    session.query(User).filter(User.password=="mypassword!")
+    sub = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.filter')
+    assert sub['name'] == 'sqlalchemy.orm.query.filter'
+    assert sub['sql']['sanitized_query']
+    assert "mypassword!" not in sub['sql']['sanitized_query']
+    
