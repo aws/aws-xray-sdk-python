@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+0.95
+====
+* **Breaking**: AWS API parameter whitelist json file is moved to path `aws_xray_sdk/ext/resources/aws_para_whitelist.json` in `PR6 <https://github.com/aws/aws-xray-sdk-python/pull/6>`_.
+* Added aiobotocore/aioboto3 support and async function capture. `PR6 <https://github.com/aws/aws-xray-sdk-python/pull/6>`_
+* Added logic to removing segment/subsegment name invalid characters. `PR9 <https://github.com/aws/aws-xray-sdk-python/pull/9>`_
+* Temporarily disabled tests run on Django2.0. `PR10 <https://github.com/aws/aws-xray-sdk-python/pull/10>`_
+* Code cleanup. `PR11 <https://github.com/aws/aws-xray-sdk-python/pull/11>`_
+
 0.94
 ====
 * Added aiohttp support. `PR3 <https://github.com/aws/aws-xray-sdk-python/pull/3>`_

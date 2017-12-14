@@ -16,6 +16,22 @@ Subpackages
 Submodules
 ----------
 
+aws\_xray\_sdk\.core\.async\_context module
+-------------------------------------------
+
+.. automodule:: aws_xray_sdk.core.async_context
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+aws\_xray\_sdk\.core\.async\_recorder module
+--------------------------------------------
+
+.. automodule:: aws_xray_sdk.core.async_recorder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 aws\_xray\_sdk\.core\.context module
 ------------------------------------
 

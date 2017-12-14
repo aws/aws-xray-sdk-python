@@ -12,14 +12,6 @@ aws\_xray\_sdk\.ext\.botocore\.patch module
     :undoc-members:
     :show-inheritance:
 
-aws\_xray\_sdk\.ext\.botocore\.resources module
------------------------------------------------
-
-.. automodule:: aws_xray_sdk.ext.botocore.resources
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -3,6 +3,9 @@
 Third Party Library Support
 ===========================
 
+Patching Supported Libraries
+----------------------------
+
 The SDK supports aioboto3, aiobotocore, boto3, botocore, requests, sqlite3 and mysql-connector.
 
 To patch, use code like the following in the main app::
@@ -33,6 +36,9 @@ The following modules are availble to patch::
     )
 
 Patching boto3 and botocore are equivalent since boto3 depends on botocore
+
+Patching mysql
+----------------------------
 
 For mysql, only the mysql-connector module is supported and you have to use
 code like the following to generate a subsegment for an SQL query::

@@ -6,6 +6,8 @@ Subpackages
 
 .. toctree::
 
+    aws_xray_sdk.ext.aiobotocore
+    aws_xray_sdk.ext.aiohttp
     aws_xray_sdk.ext.botocore
     aws_xray_sdk.ext.django
     aws_xray_sdk.ext.flask
@@ -15,6 +17,14 @@ Subpackages
 
 Submodules
 ----------
+
+aws\_xray\_sdk\.ext\.boto\_utils module
+---------------------------------------
+
+.. automodule:: aws_xray_sdk.ext.boto_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 aws\_xray\_sdk\.ext\.dbapi2 module
 ----------------------------------
