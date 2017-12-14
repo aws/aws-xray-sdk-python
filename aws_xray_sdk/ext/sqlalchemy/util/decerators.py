@@ -31,7 +31,9 @@ def xray_on_call(cls, func):
             if class_name == 'sqlalchemy.orm.query':
                 for arg in args:
                     if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRayQuery):
-                        trace.set_sql({"sanitized_query": str(arg)})
+                        pass
+                        # Removing for now, until further code remove
+                        # trace.set_sql({"sanitized_query": str(arg)})
             xray_recorder.end_subsegment()
         return res
     return wrapper
