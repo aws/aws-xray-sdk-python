@@ -1,6 +1,8 @@
 import aws_xray_sdk
+import sqlalchemy
+import re
 from aws_xray_sdk.core import xray_recorder
-
+# from sqlalchemy.ext.compiler import compiles
 
 def decorate_all_functions(function_decorator):
     def decorator(cls):
@@ -28,12 +30,29 @@ def xray_on_call(cls, func):
             trace = None
         res = func(*args, **kw)
         if trace is not None:
+            if class_name == "sqlalchemy.orm.session":
+                for arg in args:
+                    if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRaySession):
+                        m = re.match(r"Engine\((.*?)\)", str(arg.bind))
+                        if m != None:
+                            url = m.group(1)
+                            trace.set_sql({'url': url})
+                            # print(trace)
             if class_name == 'sqlalchemy.orm.query':
                 for arg in args:
                     if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRayQuery):
                         pass
+                        #"sql" : {
+                        #     "url": "jdbc:postgresql://aawijb5u25wdoy.cpamxznpdoq8.us-west-2.rds.amazonaws.com:5432/ebdb",
+                        #     "preparation": "statement",
+                        #     "database_type": "PostgreSQL",
+                        #     "database_version": "9.5.4",
+                        #     "driver_version": "PostgreSQL 9.4.1211.jre7",
+                        #     "user" : "dbuser",
+                        #     "sanitized_query" : "SELECT  *  FROM  customers  WHERE  customer_id=?;"
+                        #   }
                         # Removing for now, until further code remove
-                        # trace.set_sql({"sanitized_query": str(arg)})
+                        trace.set_sql({"sanitized_query": str(arg)})
             xray_recorder.end_subsegment()
         return res
     return wrapper

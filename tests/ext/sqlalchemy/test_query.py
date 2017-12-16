@@ -38,11 +38,11 @@ def session():
 def test_all(capsys, session):
     """ Test calling all() on get all records.
     Verify we run the query and return the SQL as metdata"""
-    # with capsys.disabled():
-    session.query(User).all()
-    sub = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.all')
-    assert sub['name'] == 'sqlalchemy.orm.query.all'
-    # assert sub['sql']['sanitized_query']
+    with capsys.disabled():
+        session.query(User).all()
+        sub = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.all')
+        assert sub['name'] == 'sqlalchemy.orm.query.all'
+        # assert sub['sql']['sanitized_query']
 
 
 def test_add(capsys, session):
