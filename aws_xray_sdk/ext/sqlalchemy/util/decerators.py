@@ -2,7 +2,7 @@ import re
 from aws_xray_sdk.core import xray_recorder
 from future.standard_library import install_aliases
 install_aliases()
-from urllib.parse import urlparse
+from urllib.parse import urlparse, uses_netloc
 
 
 
@@ -53,7 +53,7 @@ def xray_on_call(cls, func):
             xray_recorder.end_subsegment()
         return res
     return wrapper
-
+# URL Parse output
 # scheme	0	URL scheme specifier	scheme parameter
 # netloc	1	Network location part	empty string
 # path	2	Hierarchical path	empty string
@@ -63,6 +63,8 @@ def xray_on_call(cls, func):
 # password	 	Password	None
 # hostname	 	Host name (lower case)	None
 # port	 	Port number as integer, if present	None
+#
+# XRAY Trace SQL metaData Sample
 # "sql" : {
 #     "url": "jdbc:postgresql://aawijb5u25wdoy.cpamxznpdoq8.us-west-2.rds.amazonaws.com:5432/ebdb",
 #     "preparation": "statement",
@@ -73,11 +75,23 @@ def xray_on_call(cls, func):
 #     "sanitized_query" : "SELECT  *  FROM  customers  WHERE  customer_id=?;"
 #   }
 def parse_bind(bind):
+    """Parses a connection string and creates SQL trace metadata"""
     m = re.match(r"Engine\((.*?)\)", str(bind))
     if m is not None:
         u = urlparse(m.group(1))
+        # Add Scheme to uses_netloc or // will be missing from url.
+        uses_netloc.append(u.scheme)
+        safe_url = ""
+        if u.password is None:
+            safe_url = u.geturl()
+        else:
+            # String password from URL
+            host_info = u.netloc.rpartition('@')[-1]
+            parts = u._replace(netloc='{}@{}'.format(u.username, host_info))
+            safe_url = u.geturl()
         sql = {}
         sql['database_type'] = u.scheme
-        sql['url'] = "{}{}".format(u.netloc,u.path)
-        sql['user'] = "{}".format(u.username)
+        sql['url'] = safe_url
+        if u.username is not None:
+            sql['user'] = "{}".format(u.username)
     return sql
