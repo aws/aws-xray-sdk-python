@@ -1,8 +1,10 @@
-import aws_xray_sdk
-import sqlalchemy
 import re
 from aws_xray_sdk.core import xray_recorder
-# from sqlalchemy.ext.compiler import compiles
+from future.standard_library import install_aliases
+install_aliases()
+from urllib.parse import urlparse
+
+
 
 def decorate_all_functions(function_decorator):
     def decorator(cls):
@@ -22,6 +24,8 @@ def decorate_all_functions(function_decorator):
 
 def xray_on_call(cls, func):
     def wrapper(*args, **kw):
+        from ..query import XRayQuery, XRaySession
+        from ...flask_sqlalchemy.query import XRaySignallingSession
         class_name = str(cls.__module__)
         c = xray_recorder._context
         if getattr(c._local, 'entities', None) is not None:
@@ -32,27 +36,48 @@ def xray_on_call(cls, func):
         if trace is not None:
             if class_name == "sqlalchemy.orm.session":
                 for arg in args:
-                    if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRaySession):
-                        m = re.match(r"Engine\((.*?)\)", str(arg.bind))
-                        if m != None:
-                            url = m.group(1)
-                            trace.set_sql({'url': url})
-                            # print(trace)
+                    if isinstance(arg, XRaySession):
+                        sql = parse_bind(arg.bind)
+                        if sql is not None:
+                            trace.set_sql(sql)
+                    if isinstance(arg, XRaySignallingSession):
+                        sql = parse_bind(arg.bind)
+                        if sql is not None:
+                            trace.set_sql(sql)
             if class_name == 'sqlalchemy.orm.query':
                 for arg in args:
-                    if isinstance(arg, aws_xray_sdk.ext.sqlalchemy.query.XRayQuery):
-                        pass
-                        #"sql" : {
-                        #     "url": "jdbc:postgresql://aawijb5u25wdoy.cpamxznpdoq8.us-west-2.rds.amazonaws.com:5432/ebdb",
-                        #     "preparation": "statement",
-                        #     "database_type": "PostgreSQL",
-                        #     "database_version": "9.5.4",
-                        #     "driver_version": "PostgreSQL 9.4.1211.jre7",
-                        #     "user" : "dbuser",
-                        #     "sanitized_query" : "SELECT  *  FROM  customers  WHERE  customer_id=?;"
-                        #   }
-                        # Removing for now, until further code remove
-                        trace.set_sql({"sanitized_query": str(arg)})
+                    if isinstance(arg, XRayQuery):
+                        sql = parse_bind(arg.session.bind)
+                        sql['sanitized_query'] = str(arg)
+                        trace.set_sql(sql)
             xray_recorder.end_subsegment()
         return res
     return wrapper
+
+# scheme	0	URL scheme specifier	scheme parameter
+# netloc	1	Network location part	empty string
+# path	2	Hierarchical path	empty string
+# query	3	Query component	empty string
+# fragment	4	Fragment identifier	empty string
+# username	 	User name	None
+# password	 	Password	None
+# hostname	 	Host name (lower case)	None
+# port	 	Port number as integer, if present	None
+# "sql" : {
+#     "url": "jdbc:postgresql://aawijb5u25wdoy.cpamxznpdoq8.us-west-2.rds.amazonaws.com:5432/ebdb",
+#     "preparation": "statement",
+#     "database_type": "PostgreSQL",
+#     "database_version": "9.5.4",
+#     "driver_version": "PostgreSQL 9.4.1211.jre7",
+#     "user" : "dbuser",
+#     "sanitized_query" : "SELECT  *  FROM  customers  WHERE  customer_id=?;"
+#   }
+def parse_bind(bind):
+    m = re.match(r"Engine\((.*?)\)", str(bind))
+    if m is not None:
+        u = urlparse(m.group(1))
+        sql = {}
+        sql['database_type'] = u.scheme
+        sql['url'] = "{}{}".format(u.netloc,u.path)
+        sql['user'] = "{}".format(u.username)
+    return sql
