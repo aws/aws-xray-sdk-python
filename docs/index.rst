@@ -23,8 +23,9 @@ Currently supported web frameworks and libraries:
 * flask
 * boto3
 * botocore
+* pynamodb
 * requests
-* sqlite3 
+* sqlite3
 * mysql-connector
 
 You must have the X-Ray daemon running to use the SDK.
