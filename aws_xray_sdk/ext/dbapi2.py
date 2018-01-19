@@ -33,6 +33,13 @@ class XRayTracedCursor(wrapt.ObjectProxy):
             db_type = cursor.__class__.__module__.split('.')[0]
             self._xray_meta['database_type'] = db_type
 
+    def __enter__(self):
+        
+        value = self.__wrapped__.__enter__()
+        if value is not self.__wrapped__:
+            return value
+        return self
+
     @xray_recorder.capture()
     def execute(self, query, *args, **kwargs):
 
