@@ -1,4 +1,5 @@
 import wrapt
+from collections import namedtuple
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
@@ -8,19 +9,22 @@ import ssl
 
 
 _XRAY_PROP = '_xray_prop'
+_XRay_Data = namedtuple('xray_data', ['method', 'host', 'url'])
 
 
 def http_response_processor(wrapped, instance, args, kwargs, return_value,
                             exception, subsegment, stack):
-    method, host, url = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP)
 
-    subsegment.put_http_meta(http.METHOD, method)
-    subsegment.put_http_meta(http.URL, url)
+    subsegment.put_http_meta(http.METHOD, xray_data.method)
+    subsegment.put_http_meta(http.URL, xray_data.url)
 
     if return_value:
-        # propagate to response object
-        setattr(return_value, _XRAY_PROP, ('READ', host, url))
         subsegment.put_http_meta(http.STATUS, return_value.code)
+
+        # propagate to response object
+        xray_data = _XRay_Data('READ', xray_data.host, xray_data.url)
+        setattr(return_value, _XRAY_PROP, xray_data)
 
     if exception:
         subsegment.add_exception(exception, stack)
@@ -30,14 +34,26 @@ def _xray_traced_http_client(wrapped, instance, args, kwargs):
     if kwargs.get('buffering', False):
         return wrapped(*args, **kwargs)  # ignore py2 calls that fail as 'buffering` only exists in py2.
 
-    method, host, url = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP)
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=host,
+        name=xray_data.url,
         namespace='remote',
         meta_processor=http_response_processor,
     )
+
+
+def http_request_processor(wrapped, instance, args, kwargs, return_value,
+                        exception, subsegment, stack):
+    xray_data = getattr(instance, _XRAY_PROP)
+
+    # we don't delete the attr as we can have multiple reads
+    subsegment.put_http_meta(http.METHOD, xray_data.method)
+    subsegment.put_http_meta(http.URL, xray_data.url)
+
+    if exception:
+        subsegment.add_exception(exception, stack)
 
 
 def _prep_request(wrapped, instance, args, kwargs):
@@ -46,19 +62,27 @@ def _prep_request(wrapped, instance, args, kwargs):
 
         # we have to check against sock because urllib3's HTTPSConnection inherit's from http.client.HTTPConnection
         scheme = 'https' if isinstance(instance.sock, ssl.SSLSocket) else 'http'
-        setattr(instance, _XRAY_PROP, (method, instance.host, '{}://{}{}'.format(scheme, instance.host, url)))
-        return wrapped(*args, **kwargs)
+        xray_url = '{}://{}{}'.format(scheme, instance.host, url)
+        xray_data = _XRay_Data(method, instance.host, xray_url)
+        setattr(instance, _XRAY_PROP, xray_data)
+
+        return xray_recorder.record_subsegment(
+            wrapped, instance, args, kwargs,
+            name=xray_data.url,
+            namespace='remote',
+            meta_processor=http_request_processor
+        )
 
     return decompose_args(*args, **kwargs)
 
 
 def http_read_processor(wrapped, instance, args, kwargs, return_value,
                         exception, subsegment, stack):
-    method, host, url = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP)
 
     # we don't delete the attr as we can have multiple reads
-    subsegment.put_http_meta(http.METHOD, method)
-    subsegment.put_http_meta(http.URL, url)
+    subsegment.put_http_meta(http.METHOD, xray_data.method)
+    subsegment.put_http_meta(http.URL, xray_data.url)
     subsegment.put_http_meta(http.STATUS, instance.status)
     subsegment.apply_status_code(instance.status)
 
@@ -67,13 +91,13 @@ def http_read_processor(wrapped, instance, args, kwargs, return_value,
 
 
 def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
-    method, host, url = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP)
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=host,
+        name=xray_data.url,
         namespace='remote',
-        meta_processor=http_read_processor,
+        meta_processor=http_read_processor
     )
 
 

@@ -30,7 +30,7 @@ def test_ok():
     status_code = 200
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
     requests.get(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
 
     http_meta = subsegment.http
@@ -43,7 +43,7 @@ def test_error():
     status_code = 400
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
     requests.post(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
     assert subsegment.error
 
@@ -57,7 +57,7 @@ def test_throttle():
     status_code = 429
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
     requests.head(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
     assert subsegment.error
     assert subsegment.throttle
@@ -72,7 +72,7 @@ def test_fault():
     status_code = 500
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
     requests.put(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
     assert subsegment.fault
 
@@ -92,4 +92,4 @@ def test_invalid_url():
     assert subsegment.fault
 
     exception = subsegment.cause['exceptions'][0]
-    assert exception.type == 'ConnectionError'
+    assert exception.type == 'NewConnectionError'
