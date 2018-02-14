@@ -12,8 +12,7 @@ _XRAY_PROP = '_xray_prop'
 _XRay_Data = namedtuple('xray_data', ['method', 'host', 'url'])
 
 
-# TODO: this should apply to the requests module as well
-# ? is not a valid entity, and we don't want things after the ? anyways
+# ? is not a valid entity, and we don't want things after the ? for the segment name
 def _strip_url(url: str):
     return url.partition('?')[0]
 
