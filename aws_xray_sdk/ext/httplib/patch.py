@@ -12,6 +12,12 @@ _XRAY_PROP = '_xray_prop'
 _XRay_Data = namedtuple('xray_data', ['method', 'host', 'url'])
 
 
+# TODO: this should apply to the requests module as well
+# ? is not a valid entity, and we don't want things after the ? anyways
+def _strip_url(url: str):
+    return url.partition('?')[0]
+
+
 def http_response_processor(wrapped, instance, args, kwargs, return_value,
                             exception, subsegment, stack):
     xray_data = getattr(instance, _XRAY_PROP)
@@ -38,7 +44,7 @@ def _xray_traced_http_client(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=xray_data.url,
+        name=_strip_url(xray_data.url),
         namespace='remote',
         meta_processor=http_response_processor,
     )
@@ -68,7 +74,7 @@ def _prep_request(wrapped, instance, args, kwargs):
 
         return xray_recorder.record_subsegment(
             wrapped, instance, args, kwargs,
-            name=xray_data.url,
+            name=_strip_url(xray_data.url),
             namespace='remote',
             meta_processor=http_request_processor
         )
@@ -95,7 +101,7 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=xray_data.url,
+        name=_strip_url(xray_data.url),
         namespace='remote',
         meta_processor=http_read_processor
     )

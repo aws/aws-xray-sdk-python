@@ -28,7 +28,7 @@ def construct_ctx():
 
 def test_ok():
     status_code = 200
-    url = 'http://{}/status/{}'.format(BASE_URL, status_code)
+    url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
     requests.get(url)
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert subsegment.name == url
