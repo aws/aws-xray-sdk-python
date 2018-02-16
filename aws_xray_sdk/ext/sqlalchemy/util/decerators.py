@@ -21,35 +21,39 @@ def decorate_all_functions(function_decorator):
         return cls
     return decorator
 
-
 def xray_on_call(cls, func):
     def wrapper(*args, **kw):
         from ..query import XRayQuery, XRaySession
         from ...flask_sqlalchemy.query import XRaySignallingSession
         class_name = str(cls.__module__)
         c = xray_recorder._context
-        if getattr(c._local, 'entities', None) is not None:
-            trace = xray_recorder.begin_subsegment(class_name+'.'+func.__name__)
-        else:
-            trace = None
-        res = func(*args, **kw)
-        if trace is not None:
-            if class_name == "sqlalchemy.orm.session":
-                for arg in args:
-                    if isinstance(arg, XRaySession):
-                        sql = parse_bind(arg.bind)
-                        if sql is not None:
-                            trace.set_sql(sql)
-                    if isinstance(arg, XRaySignallingSession):
-                        sql = parse_bind(arg.bind)
-                        if sql is not None:
-                            trace.set_sql(sql)
-            if class_name == 'sqlalchemy.orm.query':
-                for arg in args:
-                    if isinstance(arg, XRayQuery):
+        sql = None
+        subsegment = None
+        if class_name == "sqlalchemy.orm.session":
+            for arg in args:
+                if isinstance(arg, XRaySession):
+                    sql = parse_bind(arg.bind)
+                if isinstance(arg, XRaySignallingSession):
+                    sql = parse_bind(arg.bind)
+        if class_name == 'sqlalchemy.orm.query':
+            for arg in args:
+                if isinstance(arg, XRayQuery):
+                    try:
                         sql = parse_bind(arg.session.bind)
-                        sql['sanitized_query'] = str(arg)
-                        trace.set_sql(sql)
+                        # Commented our for later PR
+                        # sql['sanitized_query'] = str(arg)
+                    except:
+                        sql = None
+        if sql is not None:
+            if getattr(c._local, 'entities', None) is not None:
+                subsegment = xray_recorder.begin_subsegment(sql['url'], namespace='remote')
+                # subsegment = xray_recorder.begin_subsegment(class_name+'.'+func.__name__, )
+            else:
+                subsegment = None
+        res = func(*args, **kw)
+        if subsegment is not None:
+            subsegment.set_sql(sql)
+            subsegment.put_annotation("sqlalchemy", class_name+'.'+func.__name__ );
             xray_recorder.end_subsegment()
         return res
     return wrapper
