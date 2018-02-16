@@ -6,6 +6,7 @@ log = logging.getLogger(__name__)
 SUPPORTED_MODULES = (
     'aiobotocore',
     'botocore',
+    'pynamodb',
     'requests',
     'sqlite3',
     'mysql',
@@ -19,23 +20,30 @@ def patch_all():
 
 
 def patch(modules_to_patch, raise_errors=True):
-    for m in modules_to_patch:
+    modules = set()
+    for module_to_patch in modules_to_patch:
+        # boto3 depends on botocore and patching botocore is sufficient
+        if module_to_patch == 'boto3':
+            modules.add('botocore')
+        # aioboto3 depends on aiobotocore and patching aiobotocore is sufficient
+        elif module_to_patch == 'aioboto3':
+            modules.add('aiobotocore')
+        # pynamodb requires botocore to be patched as well
+        elif module_to_patch == 'pynamodb':
+            modules.add('botocore')
+            modules.add(module_to_patch)
+        else:
+            modules.add(module_to_patch)
+    unsupported_modules = modules - set(SUPPORTED_MODULES)
+    if unsupported_modules:
+        raise Exception('modules %s are currently not supported for patching'
+                        % ', '.join(unsupported_modules))
+
+    for m in modules:
         _patch_module(m, raise_errors)
 
 
 def _patch_module(module_to_patch, raise_errors=True):
-    # boto3 depends on botocore and patching botocore is sufficient
-    if module_to_patch == 'boto3':
-        module_to_patch = 'botocore'
-
-    # aioboto3 depends on aiobotocore and patching aiobotocore is sufficient
-    if module_to_patch == 'aioboto3':
-        module_to_patch = 'aiobotocore'
-
-    if module_to_patch not in SUPPORTED_MODULES:
-        raise Exception('module %s is currently not supported for patching'
-                        % module_to_patch)
-
     try:
         _patch(module_to_patch)
     except Exception:
