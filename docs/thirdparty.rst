@@ -6,7 +6,7 @@ Third Party Library Support
 Patching Supported Libraries
 ----------------------------
 
-The SDK supports aioboto3, aiobotocore, boto3, botocore, pynamodb, requests, sqlite3 and
+The SDK supports aioboto3, aiobotocore, boto3, botocore, pynamodb, requests, sqlite3, httplib and
 mysql-connector.
 
 To patch, use code like the following in the main app::
@@ -35,6 +35,7 @@ The following modules are availble to patch::
         'requests',
         'sqlite3',
         'mysql',
+        'httplib',
     )
 
 Patching boto3 and botocore are equivalent since boto3 depends on botocore.
@@ -73,3 +74,10 @@ up the X-Ray SDK with an Async Context, bear in mind this requires Python 3.5+::
 
 See :ref:`Configure Global Recorder <configurations>` for more information about
 configuring the ``xray_recorder``.
+
+Patching httplib
+----------------
+
+httplib is a low-level python module which is used by several third party modules, so
+by enabling patching to this module you can gain patching of many modules "for free."
+Some examples of modules that depend on httplib: requests and httplib2
