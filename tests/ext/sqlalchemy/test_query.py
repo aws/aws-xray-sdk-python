@@ -5,7 +5,7 @@ from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.ext.sqlalchemy.query import XRaySessionMaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Column, Integer, String
-from ...util import find_subsegment
+from ...util import find_subsegment_by_annotation
 
 
 Base = declarative_base()
@@ -40,9 +40,9 @@ def test_all(capsys, session):
     Verify we run the query and return the SQL as metdata"""
     # with capsys.disabled():
     session.query(User).all()
-    subsegment = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.all')
-    assert subsegment['name'] == 'sqlalchemy.orm.query.all'
-    assert subsegment['sql']['sanitized_query']
+    subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.query.all')
+    assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.all'
+    # assert subsegment['sql']['sanitized_query']
     assert subsegment['sql']['url']
 
 
@@ -52,8 +52,8 @@ def test_add(capsys, session):
     # with capsys.disabled():
     john = User(name='John', fullname="John Doe", password="password")
     session.add(john)
-    subsegment = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.session.add')
-    assert subsegment['name'] == 'sqlalchemy.orm.session.add'
+    subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.session.add')
+    assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.session.add'
     assert subsegment['sql']['url']
 
 
@@ -63,8 +63,8 @@ def test_filter(capsys, session):
     # with capsys.disabled():
     with capsys.disabled():
         session.query(User).filter(User.password=="mypassword!")
-        subsegment = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.filter')
-        assert subsegment['name'] == 'sqlalchemy.orm.query.filter'
-        assert subsegment['sql']['sanitized_query']
-        assert "mypassword!" not in subsegment['sql']['sanitized_query']
+        subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.query.filter')
+        assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.filter'
+        # assert subsegment['sql']['sanitized_query']
+        # assert "mypassword!" not in subsegment['sql']['sanitized_query']
         assert subsegment['sql']['url']

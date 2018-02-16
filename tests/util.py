@@ -71,3 +71,31 @@ def find_subsegment(segment, name):
         if result is not None:
             return result
     return None
+
+
+def find_subsegment_by_annotation(segment, key, value):
+    """Helper function to find a subsegment by annoation key & value in the entity tree"""
+    segment = jsonpickle.encode(segment, unpicklable=False)
+    segment = json.loads(segment)
+    for entity in segment['subsegments']:
+        result = _search_entity_by_annotation(entity, key, value)
+        if result is not None:
+            return result
+    return None 
+
+
+def _search_entity_by_annotation(entity, key, value):
+    """Helper function to that recursivly looks at subentities
+    Returns a serialized entity that matches the annoation key & value given or None"""
+    if 'annotations' in entity:
+        if key in entity['annotations']:
+            my_value = entity['annotations'][key]
+            if my_value == value:
+                return entity
+        else:
+            if "subsegments" in entity:
+                for s in entity['subsegments']:
+                    result = _search_entity_by_annotation(s, key, value)
+                    if result is not None:
+                        return result
+    return None

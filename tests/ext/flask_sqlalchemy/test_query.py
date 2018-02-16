@@ -4,7 +4,7 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.ext.flask_sqlalchemy.query import XRayFlaskSqlAlchemy
 from flask import Flask
-from ...util import find_subsegment
+from ...util import find_subsegment_by_annotation
 
 
 app = Flask(__name__)
@@ -39,9 +39,9 @@ def test_all(capsys, session):
     Verify that we capture trace of query and return the SQL as metdata"""
     # with capsys.disabled():
     User.query.all()
-    subsegment = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.query.all')
-    assert subsegment['name'] == 'sqlalchemy.orm.query.all'
-    assert subsegment['sql']['sanitized_query']
+    subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.query.all')
+    assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.all'
+    # assert subsegment['sql']['sanitized_query']
     assert subsegment['sql']['url']
 
 
@@ -51,6 +51,6 @@ def test_add(capsys, session):
     # with capsys.disabled():
     john = User(name='John', fullname="John Doe", password="password")
     db.session.add(john)
-    subsegment = find_subsegment(xray_recorder.current_segment(), 'sqlalchemy.orm.session.add')
-    assert subsegment['name'] == 'sqlalchemy.orm.session.add'
+    subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.session.add')
+    assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.session.add'
     assert subsegment['sql']['url']
