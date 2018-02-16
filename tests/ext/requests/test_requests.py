@@ -4,6 +4,7 @@ import requests
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
+from aws_xray_sdk.ext.util import _strip_url
 
 
 patch(('requests',))
@@ -31,7 +32,7 @@ def test_ok():
     url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
     requests.get(url)
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == _strip_url(url)
 
     http_meta = subsegment.http
     assert http_meta['request']['url'] == url

@@ -10,7 +10,7 @@ SUPPORTED_MODULES = (
     'requests',
     'sqlite3',
     'mysql',
-    'httplib',  # TODO: perhaps requests should map to this below
+    'httplib',
 )
 
 _PATCHED_MODULES = set()

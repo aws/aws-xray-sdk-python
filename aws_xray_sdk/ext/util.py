@@ -89,3 +89,8 @@ def to_snake_case(name):
     s1 = first_cap_re.sub(r'\1_\2', name)
     # handle acronym words
     return all_cap_re.sub(r'\1_\2', s1).lower()
+
+
+# ? is not a valid entity, and we don't want things after the ? for the segment name
+def _strip_url(url: str):
+    return url.partition('?')[0]

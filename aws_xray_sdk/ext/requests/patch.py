@@ -2,8 +2,7 @@ import wrapt
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.ext.util import inject_trace_header
-from aws_xray_sdk.ext.httplib.patch import _strip_url
+from aws_xray_sdk.ext.util import inject_trace_header, _strip_url
 
 
 def patch():

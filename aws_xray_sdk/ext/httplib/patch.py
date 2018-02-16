@@ -1,20 +1,23 @@
-import wrapt
 from collections import namedtuple
+import sys
+import wrapt
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.ext.util import inject_trace_header
+from aws_xray_sdk.ext.util import inject_trace_header, _strip_url
 
 import ssl
+
+if sys.version_info >= (3, 0, 0):
+    httplib_client_module = 'http.client'
+    import http.client as httplib
+else:
+    httplib_client_module = 'httplib'
+    import httplib
 
 
 _XRAY_PROP = '_xray_prop'
 _XRay_Data = namedtuple('xray_data', ['method', 'host', 'url'])
-
-
-# ? is not a valid entity, and we don't want things after the ? for the segment name
-def _strip_url(url: str):
-    return url.partition('?')[0]
 
 
 def http_response_processor(wrapped, instance, args, kwargs, return_value,
@@ -71,6 +74,7 @@ def _prep_request(wrapped, instance, args, kwargs):
         xray_data = _XRay_Data(method, instance.host, xray_url)
         setattr(instance, _XRAY_PROP, xray_data)
 
+        # we add a segment here in case connect fails
         return xray_recorder.record_subsegment(
             wrapped, instance, args, kwargs,
             name=_strip_url(xray_data.url),
@@ -89,7 +93,6 @@ def http_read_processor(wrapped, instance, args, kwargs, return_value,
     subsegment.put_http_meta(http.METHOD, xray_data.method)
     subsegment.put_http_meta(http.URL, xray_data.url)
     subsegment.put_http_meta(http.STATUS, instance.status)
-    subsegment.apply_status_code(instance.status)
 
     if exception:
         subsegment.add_exception(exception, stack)
@@ -108,19 +111,19 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
 def patch():
     wrapt.wrap_function_wrapper(
-        'http.client',
+        httplib_client_module,
         'HTTPConnection._send_request',
         _prep_request
     )
 
     wrapt.wrap_function_wrapper(
-        'http.client',
+        httplib_client_module,
         'HTTPConnection.getresponse',
         _xray_traced_http_client
     )
 
     wrapt.wrap_function_wrapper(
-        'http.client',
+        httplib_client_module,
         'HTTPResponse.read',
         _xray_traced_http_client_read
     )
