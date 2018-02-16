@@ -4,7 +4,7 @@ import wrapt
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.ext.util import inject_trace_header, _strip_url
+from aws_xray_sdk.ext.util import inject_trace_header, strip_url
 
 import ssl
 
@@ -46,7 +46,7 @@ def _xray_traced_http_client(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=_strip_url(xray_data.url),
+        name=strip_url(xray_data.url),
         namespace='remote',
         meta_processor=http_response_processor,
     )
@@ -77,7 +77,7 @@ def _prep_request(wrapped, instance, args, kwargs):
         # we add a segment here in case connect fails
         return xray_recorder.record_subsegment(
             wrapped, instance, args, kwargs,
-            name=_strip_url(xray_data.url),
+            name=strip_url(xray_data.url),
             namespace='remote',
             meta_processor=http_request_processor
         )
@@ -103,7 +103,7 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=_strip_url(xray_data.url),
+        name=strip_url(xray_data.url),
         namespace='remote',
         meta_processor=http_read_processor
     )

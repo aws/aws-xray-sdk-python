@@ -92,5 +92,10 @@ def to_snake_case(name):
 
 
 # ? is not a valid entity, and we don't want things after the ? for the segment name
-def _strip_url(url: str):
-    return url.partition('?')[0]
+def strip_url(url: str):
+    """
+    Will generate a valid url string for use as a segment name
+    :param url: url to strip
+    :return: validated url string
+    """
+    return url.partition('?')[0] if url else url
