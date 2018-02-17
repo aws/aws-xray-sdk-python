@@ -51,7 +51,8 @@ You can add annotations and metadata to an active segment/subsegment.
 Annotations are simple key-value pairs that are indexed for use with
 `filter expressions <http://docs.aws.amazon.com/xray/latest/devguide/xray-console-filters.html>`_.
 Use annotations to record data that you want to use to group traces in the console,
-or when calling the GetTraceSummaries API.
+or when calling the GetTraceSummaries API. Annotation keys may only use ASCII letters and the underscore(_)
+character.
 
 Metadata are key-value pairs with values of any type, including objects and lists, but that are not indexed.
 Use metadata to record data you want to store in the trace but don't need to use for searching traces.

@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 # List of valid characters found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
 _valid_name_characters = string.ascii_letters + string.digits + '_.:/%&#=+\-@ '
+_valid_annotation_key_characters = string.ascii_letters + string.digits + '_'
 
 
 class Entity(object):
@@ -140,7 +141,12 @@ class Entity(object):
             log.warning("ignoring unsupported annotation value type %s.", type(value))
             return
 
-        self.annotations[key] = value
+        sanitized_key = ''.join([c for c in key if c in _valid_annotation_key_characters])
+        
+        if sanitized_key != key:
+            log.warning("ignoring unsupported characters in annotation key %s", key)
+
+        self.annotations[sanitized_key] = value
 
     def put_metadata(self, key, value, namespace='default'):
         """
