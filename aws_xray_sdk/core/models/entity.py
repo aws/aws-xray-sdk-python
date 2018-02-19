@@ -141,12 +141,11 @@ class Entity(object):
             log.warning("ignoring unsupported annotation value type %s.", type(value))
             return
 
-        sanitized_key = ''.join([c for c in key if c in _valid_annotation_key_characters])
-        
-        if sanitized_key != key:
-            log.warning("ignoring unsupported characters in annotation key %s", key)
+        if any(character not in _valid_annotation_key_characters for character in key):
+            log.warning("ignoring annnotation with unsupported characters in key: '%s'.", key)
+            return
 
-        self.annotations[sanitized_key] = value
+        self.annotations[key] = value
 
     def put_metadata(self, key, value, namespace='default'):
         """
