@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+Unreleased
+==========
+* bugfix: Fixed an issue that caused annotation keys with invalid characters to be silently ignored.
+
 0.95
 ====
 * **Breaking**: AWS API parameter whitelist json file is moved to path `aws_xray_sdk/ext/resources/aws_para_whitelist.json` in `PR6 <https://github.com/aws/aws-xray-sdk-python/pull/6>`_.
