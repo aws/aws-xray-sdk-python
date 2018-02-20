@@ -52,7 +52,8 @@ def test_put_annotation():
         'key2': 'value2',
     }
     # invalid annotation key-value pair should be dropped
-    segment.put_annotation('invalid', invalid)
+    segment.put_annotation('invalid_value', invalid)
+    segment.put_annotation('invalid-key', invalid)
     segment.put_annotation('number', 1)
 
     subsegment = Subsegment('sub', 'local', segment)
@@ -61,7 +62,8 @@ def test_put_annotation():
 
     doc = entity_to_dict(segment)
     assert doc['annotations']['number'] == 1
-    assert 'invalid' not in doc['annotations']
+    assert 'invalid-value' not in doc['annotations']
+    assert 'invalid-key' not in doc['annotations']
 
     sub_doc = doc['subsegments'][0]
     assert not sub_doc['annotations']['bool']
