@@ -47,7 +47,6 @@ def xray_on_call(cls, func):
         if sql is not None:
             if getattr(c._local, 'entities', None) is not None:
                 subsegment = xray_recorder.begin_subsegment(sql['url'], namespace='remote')
-                # subsegment = xray_recorder.begin_subsegment(class_name+'.'+func.__name__, )
             else:
                 subsegment = None
         res = func(*args, **kw)
@@ -89,7 +88,7 @@ def parse_bind(bind):
         if u.password is None:
             safe_url = u.geturl()
         else:
-            # String password from URL
+            # Strip password from URL
             host_info = u.netloc.rpartition('@')[-1]
             parts = u._replace(netloc='{}@{}'.format(u.username, host_info))
             safe_url = u.geturl()
