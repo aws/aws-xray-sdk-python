@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 
 # List of valid characters found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
 _valid_name_characters = string.ascii_letters + string.digits + '_.:/%&#=+\-@ '
+_valid_annotation_key_characters = string.ascii_letters + string.digits + '_'
 
 
 class Entity(object):
@@ -138,6 +139,10 @@ class Entity(object):
 
         if not isinstance(value, annotation_value_types):
             log.warning("ignoring unsupported annotation value type %s.", type(value))
+            return
+
+        if any(character not in _valid_annotation_key_characters for character in key):
+            log.warning("ignoring annnotation with unsupported characters in key: '%s'.", key)
             return
 
         self.annotations[key] = value
