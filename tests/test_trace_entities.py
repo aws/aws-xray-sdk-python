@@ -52,8 +52,8 @@ def test_put_annotation():
         'key2': 'value2',
     }
     # invalid annotation key-value pair should be dropped
-    segment.put_annotation('invalid_value', invalid)
-    segment.put_annotation('invalid-key', invalid)
+    segment.put_annotation('valid_key', invalid)
+    segment.put_annotation('invalid-key', 'validvalue')
     segment.put_annotation('number', 1)
 
     subsegment = Subsegment('sub', 'local', segment)

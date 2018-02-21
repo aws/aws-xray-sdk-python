@@ -2,6 +2,7 @@
 *.pyc
 .Python
 .cache
+.pytest_cache
 man
 
 build

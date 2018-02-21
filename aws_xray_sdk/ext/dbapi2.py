@@ -34,7 +34,7 @@ class XRayTracedCursor(wrapt.ObjectProxy):
             self._xray_meta['database_type'] = db_type
 
     def __enter__(self):
-        
+
         value = self.__wrapped__.__enter__()
         if value is not self.__wrapped__:
             return value
