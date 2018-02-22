@@ -38,7 +38,7 @@ def http_response_processor(wrapped, instance, args, kwargs, return_value,
         subsegment.add_exception(exception, stack)
 
 
-def _xray_traced_http_client(wrapped, instance, args, kwargs):
+def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
     if kwargs.get('buffering', False):
         return wrapped(*args, **kwargs)  # ignore py2 calls that fail as 'buffering` only exists in py2.
 
@@ -119,7 +119,7 @@ def patch():
     wrapt.wrap_function_wrapper(
         httplib_client_module,
         'HTTPConnection.getresponse',
-        _xray_traced_http_client
+        _xray_traced_http_getresponse
     )
 
     wrapt.wrap_function_wrapper(
