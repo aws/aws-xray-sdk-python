@@ -176,6 +176,41 @@ app.router.add_get("/", handler)
 web.run_app(app)
 ```
 
+**Use SQLAlchemy ORM**
+The SQLAlchemy integration requires you to override the Session and Query Classes for SQL Alchemy
+
+SQLAlchemy integration uses subsegments so you need to have a segment started before you make a query.
+
+```python
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.ext.sqlalchemy.query import XRaySessionMaker
+
+xray_recorder.begin_segment('SQLAlchemyTest')
+
+Session = XRaySessionMaker(bind=engine)
+session = Session()
+
+xray_recorder.end_segment()
+app = Flask(__name__)
+
+xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
+XRayMiddleware(app, xray_recorder)
+```
+
+**Add Flask-SQLAlchemy**
+
+```python
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
+from aws_xray_sdk.ext.flask_sqlalchemy.query import XRayFlaskSqlAlchemy
+
+app = Flask(__name__)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+
+XRayMiddleware(app, xray_recorder)
+db = XRayFlaskSqlAlchemy(app)
+
+```
 ## License
 
 The AWS X-Ray SDK for Python is licensed under the Apache 2.0 License. See LICENSE and NOTICE.txt for more information.

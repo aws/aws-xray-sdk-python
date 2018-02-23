@@ -2,7 +2,6 @@ import botocore.session
 import pytest
 from botocore.exceptions import ClientError
 from pynamodb.attributes import UnicodeAttribute
-from pynamodb.exceptions import VerboseClientError
 from pynamodb.models import Model
 
 from aws_xray_sdk.core import patch
@@ -36,7 +35,7 @@ def test_exception():
 
     try:
         SampleModel.describe_table()
-    except VerboseClientError:
+    except Exception:
         pass
 
     subsegments = xray_recorder.current_segment().subsegments

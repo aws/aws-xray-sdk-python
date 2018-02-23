@@ -35,7 +35,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
 
-    install_requires=['jsonpickle', 'wrapt', 'requests'],
+    install_requires=['jsonpickle', 'wrapt', 'requests', 'future'],
 
     keywords='aws xray sdk',
 
