@@ -1,13 +1,20 @@
 import pytest
-import requests
+import sys
 
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.ext.util import strip_url
 
+if sys.version_info >= (3, 0, 0):
+    import http.client as httplib
+    from urllib.parse import urlparse
+else:
+    import httplib
+    from urlparse import urlparse
 
-patch(('requests',))
+
+patch(('httplib',))
 
 # httpbin.org is created by the same author of requests to make testing http easy.
 BASE_URL = 'httpbin.org'
@@ -27,11 +34,23 @@ def construct_ctx():
     xray_recorder.clear_trace_entities()
 
 
+def _do_req(url, method='GET'):
+    parts = urlparse(url)
+    host, _, port = parts.netloc.partition(':')
+    if port == '':
+        port = None
+    conn = httplib.HTTPConnection(parts.netloc, port)
+
+    path = '{}?{}'.format(parts.path, parts.query) if parts.query else parts.path
+    conn.request(method, path)
+    resp = conn.getresponse()
+
+
 def test_ok():
     status_code = 200
-    url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
-    requests.get(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    url = 'http://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
+    _do_req(url)
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == strip_url(url)
 
     http_meta = subsegment.http
@@ -43,8 +62,8 @@ def test_ok():
 def test_error():
     status_code = 400
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
-    requests.post(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    _do_req(url, 'POST')
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
     assert subsegment.error
 
@@ -57,8 +76,8 @@ def test_error():
 def test_throttle():
     status_code = 429
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
-    requests.head(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    _do_req(url, 'HEAD')
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
     assert subsegment.error
     assert subsegment.throttle
@@ -72,8 +91,8 @@ def test_throttle():
 def test_fault():
     status_code = 500
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
-    requests.put(url)
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    _do_req(url, 'PUT')
+    subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
     assert subsegment.fault
 
@@ -85,7 +104,7 @@ def test_fault():
 
 def test_invalid_url():
     try:
-        requests.get('http://doesnt.exist')
+        _do_req('http://doesnt.exist')
     except Exception:
         # prevent uncatch exception from breaking test run
         pass
@@ -93,4 +112,4 @@ def test_invalid_url():
     assert subsegment.fault
 
     exception = subsegment.cause['exceptions'][0]
-    assert exception.type == 'ConnectionError'
+    assert exception.type == 'gaierror'

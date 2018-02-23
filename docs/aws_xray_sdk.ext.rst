@@ -14,6 +14,7 @@ Subpackages
     aws_xray_sdk.ext.mysql
     aws_xray_sdk.ext.requests
     aws_xray_sdk.ext.sqlite3
+    aws_xray_sdk.ext.httplib
 
 Submodules
 ----------

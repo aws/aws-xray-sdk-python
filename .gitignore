@@ -14,6 +14,7 @@ dist
 *.egg-info
 .tox
 .python-version
+.pytest_cache
 
 pip-selfcheck.json
 
