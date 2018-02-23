@@ -28,7 +28,7 @@ def http_response_processor(wrapped, instance, args, kwargs, return_value,
     subsegment.put_http_meta(http.URL, xray_data.url)
 
     if return_value:
-        subsegment.put_http_meta(http.STATUS, return_value.code)
+        subsegment.put_http_meta(http.STATUS, return_value.status)
 
         # propagate to response object
         xray_data = _XRay_Data('READ', xray_data.host, xray_data.url)
@@ -65,7 +65,7 @@ def http_request_processor(wrapped, instance, args, kwargs, return_value,
 
 
 def _prep_request(wrapped, instance, args, kwargs):
-    def decompose_args(method, url, body, headers, encode_chunked):
+    def decompose_args(method, url, body, headers, encode_chunked=False):
         inject_trace_header(headers, xray_recorder.current_subsegment())
 
         # we have to check against sock because urllib3's HTTPSConnection inherit's from http.client.HTTPConnection
