@@ -9,9 +9,11 @@ from aws_xray_sdk.ext.util import inject_trace_header, strip_url, unwrap
 import ssl
 
 if sys.version_info >= (3, 0, 0):
+    PY2 = False
     httplib_client_module = 'http.client'
     import http.client as httplib
 else:
+    PY2 = True
     httplib_client_module = 'httplib'
     import httplib
 
@@ -39,7 +41,7 @@ def http_response_processor(wrapped, instance, args, kwargs, return_value,
 
 
 def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
-    if kwargs.get('buffering', False):
+    if not PY2 and kwargs.get('buffering', False):
         return wrapped(*args, **kwargs)  # ignore py2 calls that fail as 'buffering` only exists in py2.
 
     xray_data = getattr(instance, _XRAY_PROP)
