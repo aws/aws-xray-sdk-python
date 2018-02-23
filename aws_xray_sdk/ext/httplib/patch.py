@@ -4,14 +4,16 @@ import wrapt
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.ext.util import inject_trace_header, strip_url
+from aws_xray_sdk.ext.util import inject_trace_header, strip_url, unwrap
 
 import ssl
 
 if sys.version_info >= (3, 0, 0):
+    PY2 = False
     httplib_client_module = 'http.client'
     import http.client as httplib
 else:
+    PY2 = True
     httplib_client_module = 'httplib'
     import httplib
 
@@ -39,7 +41,7 @@ def http_response_processor(wrapped, instance, args, kwargs, return_value,
 
 
 def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
-    if kwargs.get('buffering', False):
+    if not PY2 and kwargs.get('buffering', False):
         return wrapped(*args, **kwargs)  # ignore py2 calls that fail as 'buffering` only exists in py2.
 
     xray_data = getattr(instance, _XRAY_PROP)
@@ -52,8 +54,8 @@ def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
     )
 
 
-def http_request_processor(wrapped, instance, args, kwargs, return_value,
-                        exception, subsegment, stack):
+def http_send_request_processor(wrapped, instance, args, kwargs, return_value,
+                                exception, subsegment, stack):
     xray_data = getattr(instance, _XRAY_PROP)
 
     # we don't delete the attr as we can have multiple reads
@@ -64,7 +66,7 @@ def http_request_processor(wrapped, instance, args, kwargs, return_value,
         subsegment.add_exception(exception, stack)
 
 
-def _prep_request(wrapped, instance, args, kwargs):
+def _send_request(wrapped, instance, args, kwargs):
     def decompose_args(method, url, body, headers, encode_chunked=False):
         inject_trace_header(headers, xray_recorder.current_subsegment())
 
@@ -79,7 +81,7 @@ def _prep_request(wrapped, instance, args, kwargs):
             wrapped, instance, args, kwargs,
             name=strip_url(xray_data.url),
             namespace='remote',
-            meta_processor=http_request_processor
+            meta_processor=http_send_request_processor
         )
 
     return decompose_args(*args, **kwargs)
@@ -110,10 +112,17 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
 
 def patch():
+    """ patch the built-in urllib/httplib/httplib.client methods for tracing"""
+
+    # we set an attribute to avoid double unwrapping
+    if getattr(httplib, '__xray_patch', False):
+        return
+    setattr(httplib, '__xray_patch', True)
+
     wrapt.wrap_function_wrapper(
         httplib_client_module,
         'HTTPConnection._send_request',
-        _prep_request
+        _send_request
     )
 
     wrapt.wrap_function_wrapper(
@@ -127,3 +136,16 @@ def patch():
         'HTTPResponse.read',
         _xray_traced_http_client_read
     )
+
+
+def unpatch():
+    """ unpatch any previously patched modules """
+    if not getattr(httplib, '__xray_patch', False):
+        return
+    setattr(httplib, '__xray_patch', False)
+
+    # send_request encapsulates putrequest, putheader[s], and endheaders
+    # NOTE that requests
+    unwrap(httplib.HTTPConnection, '_send_request')
+    unwrap(httplib.HTTPConnection, 'getresponse')
+    unwrap(httplib.HTTPConnection, 'read')
