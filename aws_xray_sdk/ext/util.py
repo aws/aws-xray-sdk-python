@@ -3,6 +3,8 @@ import re
 from aws_xray_sdk.core.models.trace_header import TraceHeader
 from aws_xray_sdk.core.models import http
 
+import wrapt
+
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -99,3 +101,14 @@ def strip_url(url):
     :return: validated url string
     """
     return url.partition('?')[0] if url else url
+
+
+def unwrap(obj, attr):
+    """
+    Will unwrap a `wrapt` attribute
+    :param obj: base object
+    :param attr: attribute on `obj` to unwrap
+    """
+    f = getattr(obj, attr, None)
+    if f and isinstance(f, wrapt.ObjectProxy) and hasattr(f, '__wrapped__'):
+        setattr(obj, attr, f.__wrapped__)

@@ -4,6 +4,7 @@ import sys
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
+from aws_xray_sdk.ext.httplib import unpatch
 from aws_xray_sdk.ext.util import strip_url
 
 if sys.version_info >= (3, 0, 0):
@@ -13,8 +14,6 @@ else:
     import httplib
     from urlparse import urlparse
 
-
-patch(('httplib',))
 
 # httpbin.org is created by the same author of requests to make testing http easy.
 BASE_URL = 'httpbin.org'
@@ -27,11 +26,14 @@ def construct_ctx():
     so that later subsegment can be attached. After each test run
     it cleans up context storage again.
     """
+    patch(('httplib',))
     xray_recorder.configure(service='test', sampling=False, context=Context())
     xray_recorder.clear_trace_entities()
     xray_recorder.begin_segment('name')
+
     yield
     xray_recorder.clear_trace_entities()
+    unpatch()
 
 
 def _do_req(url, method='GET'):
