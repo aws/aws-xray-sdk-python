@@ -48,7 +48,7 @@ provides guidance for using the SDK and module-level documentation.
 
 ## Quick Start
 
-**Configuration**
+### Configuration
 
 ```python
 from aws_xray_sdk.core import xray_recorder
@@ -62,7 +62,7 @@ xray_recorder.configure(
 )
 ```
 
-**Start a custom segment/subsegment**
+### Start a custom segment/subsegment
 
 ```python
 from aws_xray_sdk.core import xray_recorder
@@ -81,7 +81,7 @@ xray_recorder.end_subsegment()
 xray_recorder.end_segment()
 ```
 
-**Capture**
+### Capture
 
 ```python
 from aws_xray_sdk.core import xray_recorder
@@ -104,7 +104,7 @@ async def main():
     await myfunc()
 ```
 
-**Trace AWS Lambda functions**
+### Trace AWS Lambda functions
 
 ```python
 from aws_xray_sdk.core import xray_recorder
@@ -123,7 +123,7 @@ def lambda_handler(event, context):
     # ... some other code
 ```
 
-**Patch third-party libraries**
+### Patch third-party libraries
 
 ```python
 from aws_xray_sdk.core import patch
@@ -132,7 +132,7 @@ libs_to_patch = ('boto3', 'mysql', 'requests')
 patch(libs_to_patch)
 ```
 
-**Add Django middleware**
+### Add Django middleware
 
 In django settings.py, use the following.
 
@@ -148,7 +148,7 @@ MIDDLEWARE = [
 ]
 ```
 
-**Add Flask middleware**
+### Add Flask middleware
 
 ```python
 from aws_xray_sdk.core import xray_recorder
@@ -160,7 +160,7 @@ xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
 ```
 
-**Add aiohttp middleware**
+### Add aiohttp middleware
 ```python
 from aiohttp import web
 
@@ -176,7 +176,7 @@ app.router.add_get("/", handler)
 web.run_app(app)
 ```
 
-**Use SQLAlchemy ORM**
+### Use SQLAlchemy ORM
 The SQLAlchemy integration requires you to override the Session and Query Classes for SQL Alchemy
 
 SQLAlchemy integration uses subsegments so you need to have a segment started before you make a query.
@@ -197,7 +197,7 @@ xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
 ```
 
-**Add Flask-SQLAlchemy**
+### Add Flask-SQLAlchemy
 
 ```python
 from aws_xray_sdk.core import xray_recorder
