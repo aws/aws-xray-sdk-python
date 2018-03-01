@@ -103,3 +103,25 @@ def test_map_parameter_grouping():
 
     aws_meta = subsegment.aws
     assert sorted(aws_meta['table_names']) == ['table1', 'table2']
+
+def test_pass_through_on_context_missing():
+    """
+    The built-in patcher or subsegment capture logic should not throw
+    any error when a `None` subsegment created from `LOG_ERROR` missing context.
+    """
+    xray_recorder.configure(context_missing='LOG_ERROR')
+    xray_recorder.clear_trace_entities()
+
+    ddb = session.create_client('dynamodb', region_name='us-west-2')
+    response = {
+        'ResponseMetadata': {
+            'RequestId': REQUEST_ID,
+            'HTTPStatusCode': 200,
+        }
+    }
+
+    with Stubber(ddb) as stubber:
+        stubber.add_response('describe_table', response, {'TableName': 'mytable'})
+        ddb.describe_table(TableName='mytable')
+
+    xray_recorder.configure(context_missing='RUNTIME_ERROR')

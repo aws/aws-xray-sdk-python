@@ -34,6 +34,7 @@ class XRayConfig(AppConfig):
             plugins=settings.PLUGINS,
             service=settings.AWS_XRAY_TRACING_NAME,
             dynamic_naming=settings.DYNAMIC_NAMING,
+            streaming_threshold=settings.STREAMING_THRESHOLD,
         )
 
         # if turned on subsegment will be generated on

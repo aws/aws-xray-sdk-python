@@ -57,7 +57,7 @@ class AWSXRayRecorder(object):
                   context_missing=None, sampling_rules=None,
                   daemon_address=None, service=None,
                   context=None, emitter=None,
-                  dynamic_naming=None):
+                  dynamic_naming=None, streaming_threshold=None):
         """Configure global X-Ray recorder.
 
         Configure needs to run before patching thrid party libraries
@@ -90,6 +90,9 @@ class AWSXRayRecorder(object):
         :param dynamic_naming: a string that defines a pattern that host names
             should match. Alternatively you can pass a module which
             overrides ``DefaultDynamicNaming`` module.
+        :param streaming_threshold: If breaks within a single segment it will
+            start streaming out children subsegments. By default it is the
+            maximum number of subsegments within a segment.
 
         Environment variables AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
         and AWS_XRAY_TRACING_NAME respectively overrides arguments
@@ -111,6 +114,8 @@ class AWSXRayRecorder(object):
             self.context.context_missing = os.getenv(CONTEXT_MISSING_KEY, context_missing)
         if dynamic_naming:
             self.dynamic_naming = dynamic_naming
+        if streaming_threshold:
+            self.streaming_threshold = streaming_threshold
 
         plugin_modules = None
         if plugins:
@@ -259,7 +264,7 @@ class AWSXRayRecorder(object):
         if not segment or not segment.sampled:
             return
 
-        if segment.get_total_subsegments_size() <= self._max_subsegments:
+        if segment.get_total_subsegments_size() <= self.streaming_threshold:
             return
 
         # find all subsegments that has no open child subsegments and
@@ -326,6 +331,10 @@ class AWSXRayRecorder(object):
             stack = traceback.extract_stack(limit=self._max_trace_back)
             raise
         finally:
+            # No-op if subsegment is `None` due to `LOG_ERROR`.
+            if subsegment is None:
+                return
+
             end_time = time.time()
             if callable(meta_processor):
                 meta_processor(
@@ -440,3 +449,11 @@ class AWSXRayRecorder(object):
     @emitter.setter
     def emitter(self, value):
         self._emitter = value
+
+    @property
+    def streaming_threshold(self):
+        return self._max_subsegments
+
+    @streaming_threshold.setter
+    def streaming_threshold(self, value):
+        self._max_subsegments = value

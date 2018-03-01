@@ -45,6 +45,7 @@ The default values are as follows::
         'SAMPLING_RULES': None,
         'AWS_XRAY_TRACING_NAME': None, # the segment name for segments generated from incoming requests
         'DYNAMIC_NAMING': None, # defines a pattern that host names should match
+        'STREAMING_THRESHOLD': None, # defines when a segment starts to stream out its children subsegments
     }
 
 Environment variables have higher precedence over user settings.

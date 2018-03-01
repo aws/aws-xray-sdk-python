@@ -20,6 +20,8 @@ else:
 
 _XRAY_PROP = '_xray_prop'
 _XRay_Data = namedtuple('xray_data', ['method', 'host', 'url'])
+# A flag indicates whether this module is X-Ray patched or not
+PATCH_FLAG = '__xray_patched'
 
 
 def http_response_processor(wrapped, instance, args, kwargs, return_value,
@@ -113,11 +115,10 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
 def patch():
     """ patch the built-in urllib/httplib/httplib.client methods for tracing"""
-
-    # we set an attribute to avoid double unwrapping
-    if getattr(httplib, '__xray_patch', False):
+    if getattr(httplib, PATCH_FLAG, False):
         return
-    setattr(httplib, '__xray_patch', True)
+    # we set an attribute to avoid multiple wrapping
+    setattr(httplib, PATCH_FLAG, True)
 
     wrapt.wrap_function_wrapper(
         httplib_client_module,
@@ -139,13 +140,12 @@ def patch():
 
 
 def unpatch():
-    """ unpatch any previously patched modules """
-    if not getattr(httplib, '__xray_patch', False):
-        return
-    setattr(httplib, '__xray_patch', False)
-
-    # send_request encapsulates putrequest, putheader[s], and endheaders
-    # NOTE that requests
+    """
+    Unpatch any previously patched modules.
+    This operation is idempotent.
+    """
+    setattr(httplib, PATCH_FLAG, False)
+    # _send_request encapsulates putrequest, putheader[s], and endheaders
     unwrap(httplib.HTTPConnection, '_send_request')
     unwrap(httplib.HTTPConnection, 'getresponse')
-    unwrap(httplib.HTTPConnection, 'read')
+    unwrap(httplib.HTTPResponse, 'read')

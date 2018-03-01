@@ -30,12 +30,13 @@ def test_subsegment_parenting():
 
 
 def test_subsegments_streaming():
-
+    xray_recorder.configure(streaming_threshold=10)
     segment = xray_recorder.begin_segment('name')
-    for i in range(0, 50):
+    for i in range(0, 11):
         xray_recorder.begin_subsegment(name=str(i))
-    for i in range(0, 40):
+    for i in range(0, 1):
+        # subsegment '10' will be streamed out upon close
         xray_recorder.end_subsegment()
 
-    assert segment.get_total_subsegments_size() < 50
+    assert segment.get_total_subsegments_size() == 10
     assert xray_recorder.current_subsegment().name == '9'
