@@ -7,7 +7,6 @@ Subpackages
 .. toctree::
 
     aws_xray_sdk.core
-    aws_xray_sdk.ext
 
 Module contents
 ---------------

@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.ext\.requests package
-=====================================
+aws\_xray\_sdk.ext.requests package
+===================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.ext\.requests\.patch module
--------------------------------------------
+aws\_xray\_sdk.ext.requests.patch module
+----------------------------------------
 
 .. automodule:: aws_xray_sdk.ext.requests.patch
     :members:

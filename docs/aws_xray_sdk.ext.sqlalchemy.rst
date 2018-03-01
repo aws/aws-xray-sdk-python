@@ -1,13 +1,13 @@
-aws\_xray\_sdk.ext.flask package
-================================
+aws\_xray\_sdk.ext.sqlalchemy package
+=====================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk.ext.flask.middleware module
+aws\_xray\_sdk.ext.sqlalchemy.query module
 ------------------------------------------
 
-.. automodule:: aws_xray_sdk.ext.flask.middleware
+.. automodule:: aws_xray_sdk.ext.sqlalchemy.query
     :members:
     :undoc-members:
     :show-inheritance:
@@ -16,7 +16,7 @@ aws\_xray\_sdk.ext.flask.middleware module
 Module contents
 ---------------
 
-.. automodule:: aws_xray_sdk.ext.flask
+.. automodule:: aws_xray_sdk.ext.sqlalchemy
     :members:
     :undoc-members:
     :show-inheritance:
