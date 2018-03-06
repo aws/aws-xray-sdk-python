@@ -20,7 +20,7 @@ You can get started in minutes using ``pip`` or by downloading a zip file.
 Currently supported web frameworks and libraries:
 
 * aioboto3/aiobotocore
-* aiohttp
+* aiohttp >=2.3
 * boto3/botocore
 * Django >=1.10
 * Flask
