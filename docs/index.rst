@@ -19,6 +19,7 @@ You can get started in minutes using ``pip`` or by downloading a zip file.
 
 Currently supported web frameworks and libraries:
 
+* aiohttp >=2.3
 * django >=1.10
 * flask
 * boto3

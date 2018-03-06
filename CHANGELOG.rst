@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+unreleased
+==========
+* feature: Use the official middleware pattern for Aiohttp ext. `PR29 <https://github.com/aws/aws-xray-sdk-python/pull/29>`_.
+
 0.96
 ====
 * feature: Add support for SQLAlchemy and Flask-SQLAlcemy. `PR14 <https://github.com/aws/aws-xray-sdk-python/pull/14>`_.
