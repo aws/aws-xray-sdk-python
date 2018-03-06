@@ -19,15 +19,17 @@ You can get started in minutes using ``pip`` or by downloading a zip file.
 
 Currently supported web frameworks and libraries:
 
+* aioboto3/aiobotocore
 * aiohttp >=2.3
-* django >=1.10
-* flask
-* boto3
-* botocore
-* pynamodb
-* requests
-* sqlite3
+* boto3/botocore
+* Django >=1.10
+* Flask
+* httplib
 * mysql-connector
+* Pynamodb
+* requests
+* SQLAlchemy
+* sqlite3
 
 You must have the X-Ray daemon running to use the SDK.
 For information about installing and configuring the daemon see:

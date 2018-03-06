@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.core\.emitters package
-======================================
+aws\_xray\_sdk.core.emitters package
+====================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.core\.emitters\.udp\_emitter module
----------------------------------------------------
+aws\_xray\_sdk.core.emitters.udp\_emitter module
+------------------------------------------------
 
 .. automodule:: aws_xray_sdk.core.emitters.udp_emitter
     :members:

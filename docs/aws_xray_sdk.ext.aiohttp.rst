@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.ext\.aiohttp package
-====================================
+aws\_xray\_sdk.ext.aiohttp package
+==================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.ext\.aiohttp\.middleware module
------------------------------------------------
+aws\_xray\_sdk.ext.aiohttp.middleware module
+--------------------------------------------
 
 .. automodule:: aws_xray_sdk.ext.aiohttp.middleware
     :members:

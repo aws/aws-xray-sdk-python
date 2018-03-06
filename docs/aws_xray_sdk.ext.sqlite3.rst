@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.ext\.sqlite3 package
-====================================
+aws\_xray\_sdk.ext.sqlite3 package
+==================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.ext\.sqlite3\.patch module
-------------------------------------------
+aws\_xray\_sdk.ext.sqlite3.patch module
+---------------------------------------
 
 .. automodule:: aws_xray_sdk.ext.sqlite3.patch
     :members:

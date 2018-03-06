@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.core\.exceptions package
-========================================
+aws\_xray\_sdk.core.exceptions package
+======================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.core\.exceptions\.exceptions module
----------------------------------------------------
+aws\_xray\_sdk.core.exceptions.exceptions module
+------------------------------------------------
 
 .. automodule:: aws_xray_sdk.core.exceptions.exceptions
     :members:
