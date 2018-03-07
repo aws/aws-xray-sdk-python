@@ -41,7 +41,7 @@ def test_all(capsys, session):
     User.query.all()
     subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.query.all')
     assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.all'
-    # assert subsegment['sql']['sanitized_query']
+    assert subsegment['sql']['sanitized_query']
     assert subsegment['sql']['url']
 
 

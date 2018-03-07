@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+unreleased
+==========
+* feature: Added Sqlalchemy parameterized query capture. `PR34 <https://github.com/aws/aws-xray-sdk-python/pull/34>`_.
+
 1.0
 ===
 * Changed development status to `5 - Production/Stable` and removed beta tag.
