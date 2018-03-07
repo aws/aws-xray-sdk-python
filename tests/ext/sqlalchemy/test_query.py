@@ -42,7 +42,7 @@ def test_all(capsys, session):
     session.query(User).all()
     subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.query.all')
     assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.all'
-    # assert subsegment['sql']['sanitized_query']
+    assert subsegment['sql']['sanitized_query']
     assert subsegment['sql']['url']
 
 
@@ -64,6 +64,6 @@ def test_filter(capsys, session):
     session.query(User).filter(User.password=="mypassword!")
     subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.query.filter')
     assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.filter'
-    # assert subsegment['sql']['sanitized_query']
-    # assert "mypassword!" not in subsegment['sql']['sanitized_query']
+    assert subsegment['sql']['sanitized_query']
+    assert "mypassword!" not in subsegment['sql']['sanitized_query']
     assert subsegment['sql']['url']
