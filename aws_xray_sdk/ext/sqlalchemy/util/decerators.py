@@ -84,7 +84,7 @@ def parse_bind(bind):
     m = re.match(r"Engine\((.*?)\)", str(bind))
     if m is not None:
         u = urlparse(m.group(1))
-        log.debug('URL: {}'.format(u.get_url()))
+        log.debug('URL: {}'.format(u.geturl()))
         # Add Scheme to uses_netloc or // will be missing from url.
         uses_netloc.append(u.scheme)
         safe_url = ""
