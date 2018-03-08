@@ -1,9 +1,10 @@
 import re
 from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.ext.util import strip_url
+from aws_xray_sdk.core.models.entity import _valid_name_characters
 from future.standard_library import install_aliases
 install_aliases()
 from urllib.parse import urlparse, uses_netloc
-
 
 
 def decorate_all_functions(function_decorator):
@@ -46,7 +47,11 @@ def xray_on_call(cls, func):
                         sql = None
         if sql is not None:
             if getattr(c._local, 'entities', None) is not None:
-                subsegment = xray_recorder.begin_subsegment(sql['url'], namespace='remote')
+                # Strip URL of ? and following text
+                sub_name = strip_url(sql['url'])
+                # Ensure url has a valid characters. 
+                sub_name = ''.join([c for c in sub_name if c in _valid_name_characters])
+                subsegment = xray_recorder.begin_subsegment(sub_name, namespace='remote')
             else:
                 subsegment = None
         res = func(*args, **kw)

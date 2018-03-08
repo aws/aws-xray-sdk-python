@@ -35,7 +35,7 @@ class Entity(object):
         self.parent_id = None
 
         if self.name != name:
-            log.warning("Removing Segment/Subsugment Name invalid characters.")
+            log.warning("Removing Segment/Subsugment Name invalid characters from {}.".format(name))
 
         # sampling
         self.sampled = True
