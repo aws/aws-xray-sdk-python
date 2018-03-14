@@ -36,7 +36,7 @@ async def middleware(request, handler):
     )
 
     # Store request metadata in the current segment
-    segment.put_http_meta(http.URL, request.url)
+    segment.put_http_meta(http.URL, str(request.url))
     segment.put_http_meta(http.METHOD, request.method)
 
     if 'User-Agent' in request.headers:

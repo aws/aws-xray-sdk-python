@@ -119,9 +119,7 @@ async def test_ok(test_client, loop, recorder):
     response = segment.http['response']
 
     assert request['method'] == 'GET'
-    assert str(request['url']).startswith('http://127.0.0.1')
-    assert request['url'].host == '127.0.0.1'
-    assert request['url'].path == '/'
+    assert request['url'] == 'http://127.0.0.1:{port}/'.format(port=client.port)
     assert response['status'] == 200
 
 
@@ -145,8 +143,7 @@ async def test_error(test_client, loop, recorder):
     request = segment.http['request']
     response = segment.http['response']
     assert request['method'] == 'GET'
-    assert request['url'].host == '127.0.0.1'
-    assert request['url'].path == '/error'
+    assert request['url'] == 'http://127.0.0.1:{port}/error'.format(port=client.port)
     assert request['client_ip'] == '127.0.0.1'
     assert response['status'] == 404
 
@@ -172,8 +169,7 @@ async def test_exception(test_client, loop, recorder):
     response = segment.http['response']
     exception = segment.cause['exceptions'][0]
     assert request['method'] == 'GET'
-    assert request['url'].host == '127.0.0.1'
-    assert request['url'].path == '/exception'
+    assert request['url'] == 'http://127.0.0.1:{port}/exception'.format(port=client.port)
     assert request['client_ip'] == '127.0.0.1'
     assert response['status'] == 500
     assert exception.type == 'KeyError'
