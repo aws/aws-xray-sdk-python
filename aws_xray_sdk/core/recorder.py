@@ -73,6 +73,8 @@ class AWSXRayRecorder(object):
         :param tuple plugins: plugins that add extra metadata to each segment.
             Currently available plugins are EC2Plugin, ECS plugin and
             ElasticBeanstalkPlugin.
+            If you want to disable all previously enabled plugins,
+            pass an empty tuple ``()``.
         :param str context_missing: recorder behavior when it tries to mutate
             a segment or add a subsegment but there is no active segment.
             RUNTIME_ERROR means the recorder will raise an exception.
@@ -117,12 +119,13 @@ class AWSXRayRecorder(object):
         if streaming_threshold:
             self.streaming_threshold = streaming_threshold
 
-        plugin_modules = None
-        if plugins:
-            plugin_modules = get_plugin_modules(plugins)
-            for module in plugin_modules:
-                module.initialize()
-        self._plugins = plugin_modules
+        if plugins is not None:
+            plugin_modules = None
+            if plugins:
+                plugin_modules = get_plugin_modules(plugins)
+                for module in plugin_modules:
+                    module.initialize()
+            self._plugins = plugin_modules
 
     def begin_segment(self, name=None, traceid=None,
                       parent_id=None, sampling=None):
