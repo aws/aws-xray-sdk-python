@@ -1,15 +1,15 @@
 """
 AioHttp Middleware
 """
-import aiohttp
 import traceback
+from aiohttp import web
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.ext.util import calculate_sampling_decision, calculate_segment_name, construct_xray_header
 
 
-@aiohttp.web.middleware
+@web.middleware
 async def middleware(request, handler):
     """
     Main middleware function, deals with all the X-Ray segment logic
