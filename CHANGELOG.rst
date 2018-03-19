@@ -6,8 +6,9 @@ unreleased
 ==========
 * feature: Use the official middleware pattern for Aiohttp ext. `PR29 <https://github.com/aws/aws-xray-sdk-python/pull/29>`_.
 * bugfix: SQLAlcemy plugin would cause warning messages with some db connection strings that contained invalid characters for a segment/subsegment name.
-* bugfix: Aiohttp middleware serialized URL values incorrectly `PR37 <https://github.com/aws/aws-xray-sdk-python/pull/37>`_
-* bugfix: SQLAlchemy could try and end subsegments, eg. sqlalchemy.orm.session.flush,  after the Flask middleware closed the parent segment. Catch this exception so not to break users apps.
+* bugfix: Aiohttp middleware serialized URL values incorrectly. `PR37 <https://github.com/aws/aws-xray-sdk-python/pull/37>`_
+* bugfix: Don't overwrite plugins list on each `.configure` call. `PR38 <https://github.com/aws/aws-xray-sdk-python/pull/38>`_
+* bugfix: SQLAlchemy could try and end subsegments, eg. `sqlalchemy.orm.session.flush`,  after the Flask middleware closed the parent segment. Catch this exception to not break users' apps.
 
 0.96
 ====
