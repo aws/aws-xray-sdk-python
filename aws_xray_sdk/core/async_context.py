@@ -41,7 +41,6 @@ class TaskLocalStorage(object):
         self._loop = loop
 
     def __setattr__(self, name, value):
-        print(name, value)
         if name in ('_loop',):
             # Set normal attributes
             object.__setattr__(self, name, value)
