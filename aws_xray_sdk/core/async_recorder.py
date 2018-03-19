@@ -34,7 +34,7 @@ class AsyncAWSXRayRecorder(AWSXRayRecorder):
         return wrapper
 
     async def record_subsegment_async(self, wrapped, instance, args, kwargs, name,
-                                namespace, meta_processor):
+                                      namespace, meta_processor):
 
         subsegment = self.begin_subsegment(name, namespace)
 
