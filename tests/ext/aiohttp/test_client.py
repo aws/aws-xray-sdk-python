@@ -5,7 +5,7 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.async_context import AsyncContext
 from aws_xray_sdk.ext.util import strip_url
 from aws_xray_sdk.ext.aiohttp.client import aws_xray_trace_config
-
+from aws_xray_sdk.ext.aiohttp.client import REMOTE_NAMESPACE, LOCAL_NAMESPACE
 
 
 # httpbin.org is created by the same author of requests to make testing http easy.
@@ -34,6 +34,7 @@ async def test_ok(loop, recorder):
 
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert subsegment.name == strip_url(url)
+    assert subsegment.namespace == REMOTE_NAMESPACE
 
     http_meta = subsegment.http
     assert http_meta['request']['url'] == url
@@ -41,9 +42,9 @@ async def test_ok(loop, recorder):
     assert http_meta['response']['status'] == status_code
 
 
-async def test_ok_name_and_namespace(loop, recorder):
+async def test_ok_name(loop, recorder):
     xray_recorder.begin_segment('name')
-    trace_config = aws_xray_trace_config(name='test', namespace='local')
+    trace_config = aws_xray_trace_config(name='test')
     status_code = 200
     url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
     async with ClientSession(loop=loop, trace_configs=[trace_config]) as session:
@@ -52,7 +53,6 @@ async def test_ok_name_and_namespace(loop, recorder):
 
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert subsegment.name == 'test'
-    assert subsegment.namespace == 'local'
 
 
 async def test_error(loop, recorder):
@@ -125,6 +125,7 @@ async def test_invalid_url(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == LOCAL_NAMESPACE
     assert subsegment.fault
 
     exception = subsegment.cause['exceptions'][0]
