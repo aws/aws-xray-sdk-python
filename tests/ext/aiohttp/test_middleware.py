@@ -34,7 +34,7 @@ class CustomStubbedEmitter(UDPEmitter):
             return None
 
 
-class TestServer(object):
+class ServerTest(object):
     """
     Simple class to hold a copy of the event loop
     """
@@ -107,7 +107,7 @@ async def test_ok(test_client, loop, recorder):
     :param loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
-    client = await test_client(TestServer.app(loop=loop))
+    client = await test_client(ServerTest.app(loop=loop))
 
     resp = await client.get('/')
     assert resp.status == 200
@@ -131,7 +131,7 @@ async def test_error(test_client, loop, recorder):
     :param loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
-    client = await test_client(TestServer.app(loop=loop))
+    client = await test_client(ServerTest.app(loop=loop))
 
     resp = await client.get('/error')
     assert resp.status == 404
@@ -156,7 +156,7 @@ async def test_exception(test_client, loop, recorder):
     :param loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
-    client = await test_client(TestServer.app(loop=loop))
+    client = await test_client(ServerTest.app(loop=loop))
 
     resp = await client.get('/exception')
     await resp.text()  # Need this to trigger Exception
@@ -183,7 +183,7 @@ async def test_concurrent(test_client, loop, recorder):
     :param loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
-    client = await test_client(TestServer.app(loop=loop))
+    client = await test_client(ServerTest.app(loop=loop))
 
     recorder.emitter = CustomStubbedEmitter()
 

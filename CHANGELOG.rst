@@ -4,6 +4,7 @@ CHANGELOG
 
 unreleased
 ==========
+* feature: Aiohttp client tracing for aiohttp versions > 3. `PR42 <https://github.com/aws/aws-xray-sdk-python/pull/42>`_.
 * feature: Use the official middleware pattern for Aiohttp ext. `PR29 <https://github.com/aws/aws-xray-sdk-python/pull/29>`_.
 * bugfix: SQLAlcemy plugin would cause warning messages with some db connection strings that contained invalid characters for a segment/subsegment name.
 * bugfix: Aiohttp middleware serialized URL values incorrectly. `PR37 <https://github.com/aws/aws-xray-sdk-python/pull/37>`_

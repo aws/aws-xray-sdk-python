@@ -176,6 +176,20 @@ app.router.add_get("/", handler)
 web.run_app(app)
 ```
 
+### Trace aiohttp client requests
+
+Only available using Aiohttp releases greater than 3.X.
+
+```python
+from aws_xray_sdk.ext.aiohttp.client import aws_xray_trace_config
+
+async def foo():
+    trace_config = aws_xray_trace_config()
+    async with ClientSession(loop=loop, trace_configs=[trace_config]) as session:
+        async with session.get(url) as resp
+            await resp.read()
+```
+
 ### Use SQLAlchemy ORM
 The SQLAlchemy integration requires you to override the Session and Query Classes for SQL Alchemy
 
