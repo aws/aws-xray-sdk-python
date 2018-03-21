@@ -9,6 +9,7 @@ unreleased
 * bugfix: SQLAlcemy plugin would cause warning messages with some db connection strings that contained invalid characters for a segment/subsegment name.
 * bugfix: Aiohttp middleware serialized URL values incorrectly. `PR37 <https://github.com/aws/aws-xray-sdk-python/pull/37>`_
 * bugfix: Don't overwrite plugins list on each `.configure` call. `PR38 <https://github.com/aws/aws-xray-sdk-python/pull/38>`_
+* bugfix: Do not swallow `return_value`. `PR44 <https://github.com/aws/aws-xray-sdk-python/pull/44>`_
 
 0.96
 ====
