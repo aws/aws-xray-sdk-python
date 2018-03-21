@@ -122,6 +122,7 @@ def test_pass_through_on_context_missing():
 
     with Stubber(ddb) as stubber:
         stubber.add_response('describe_table', response, {'TableName': 'mytable'})
-        ddb.describe_table(TableName='mytable')
+        result = ddb.describe_table(TableName='mytable')
+        assert result is not None
 
     xray_recorder.configure(context_missing='RUNTIME_ERROR')

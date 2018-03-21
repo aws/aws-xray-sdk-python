@@ -336,7 +336,7 @@ class AWSXRayRecorder(object):
         finally:
             # No-op if subsegment is `None` due to `LOG_ERROR`.
             if subsegment is None:
-                return
+                return return_value
 
             end_time = time.time()
             if callable(meta_processor):
