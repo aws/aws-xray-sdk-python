@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-15 -*-
 import pytest
 
 from aws_xray_sdk.core.models.segment import Segment
@@ -8,6 +9,17 @@ from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.core.exceptions.exceptions import AlreadyEndedException
 
 from .util import entity_to_dict
+
+
+def test_unicode_entity_name():
+
+    name1 = u'福'
+    name2 = u'セツナ'
+    segment = Segment(name1)
+    subsegment = Subsegment(name2, 'local', segment)
+
+    assert segment.name == name1
+    assert subsegment.name == name2
 
 
 def test_put_http_meta():

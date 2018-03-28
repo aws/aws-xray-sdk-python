@@ -1,3 +1,4 @@
+import pytest
 from .util import get_new_stubbed_recorder
 
 
@@ -40,3 +41,28 @@ def test_subsegments_streaming():
 
     assert segment.get_total_subsegments_size() == 10
     assert xray_recorder.current_subsegment().name == '9'
+
+
+def test_capture_not_suppress_exception():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=False, context_missing='LOG_ERROR')
+
+    @xray_recorder.capture()
+    def buggy_func():
+        return 1 / 0
+
+    with pytest.raises(ZeroDivisionError):
+        buggy_func()
+
+
+def test_capture_not_swallow_return():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=False, context_missing='LOG_ERROR')
+    value = 1
+
+    @xray_recorder.capture()
+    def my_func():
+        return value
+
+    actual = my_func()
+    assert actual == value

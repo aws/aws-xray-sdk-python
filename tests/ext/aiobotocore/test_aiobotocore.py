@@ -2,6 +2,7 @@ import pytest
 
 import aiobotocore
 from botocore.stub import Stubber, ANY
+from botocore.exceptions import ClientError
 
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core.async_context import AsyncContext
@@ -103,3 +104,30 @@ async def test_map_parameter_grouping(loop, recorder):
 
     aws_meta = subsegment.aws
     assert sorted(aws_meta['table_names']) == ['table1', 'table2']
+
+
+async def test_context_missing_not_swallow_return(loop, recorder):
+    xray_recorder.configure(service='test', sampling=False,
+                            context=AsyncContext(loop=loop), context_missing='LOG_ERROR')
+
+    response = {'ResponseMetadata': {'RequestId': '1234', 'HTTPStatusCode': 403}}
+
+    session = aiobotocore.get_session(loop=loop)
+    async with session.create_client('dynamodb', region_name='eu-west-2') as client:
+        with Stubber(client) as stubber:
+            stubber.add_response('describe_table', response, {'TableName': 'mytable'})
+            actual_resp = await client.describe_table(TableName='mytable')
+
+    assert actual_resp == response
+
+
+async def test_context_missing_not_suppress_exception(loop, recorder):
+    xray_recorder.configure(service='test', sampling=False,
+                            context=AsyncContext(loop=loop), context_missing='LOG_ERROR')
+
+    session = aiobotocore.get_session(loop=loop)
+    async with session.create_client('dynamodb', region_name='eu-west-2') as client:
+        with Stubber(client) as stubber:
+            stubber.add_client_error('describe_table', expected_params={'TableName': ANY})
+            with pytest.raises(ClientError):
+                await client.describe_table(TableName='mytable')

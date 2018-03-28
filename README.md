@@ -160,7 +160,10 @@ xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
 ```
 
-### Add aiohttp middleware
+### Working with aiohttp
+
+Adding aiohttp middleware. Support aiohttp >= 2.3.
+
 ```python
 from aiohttp import web
 
@@ -176,9 +179,7 @@ app.router.add_get("/", handler)
 web.run_app(app)
 ```
 
-### Trace aiohttp client requests
-
-Only available using Aiohttp releases greater than 3.X.
+Tracing aiohttp client. Support aiohttp >=3.
 
 ```python
 from aws_xray_sdk.ext.aiohttp.client import aws_xray_trace_config

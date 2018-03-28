@@ -1,15 +1,19 @@
 from setuptools import setup, find_packages
 from os import path
-import codecs
 
 CURRENT_DIR = path.abspath(path.dirname(__file__))
 
-with codecs.open(path.join(CURRENT_DIR, 'README.md'), encoding='utf-8') as f:
-    long_description = f.read()
+try:
+    from pypandoc import convert
+    read_md = lambda f: convert(f, 'rst')
+except ImportError:
+    read_md = lambda f: open(f, 'r').read()
+
+long_description = read_md(path.join(CURRENT_DIR, 'README.md'))
 
 setup(
     name='aws-xray-sdk',
-    version='0.96',
+    version='0.97',
 
     description='The AWS X-Ray SDK for Python (the SDK) enables Python developers to record'
                 ' and emit information from within their applications to the AWS X-Ray service.',

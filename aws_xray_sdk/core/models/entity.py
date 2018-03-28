@@ -14,8 +14,8 @@ from ..exceptions.exceptions import AlreadyEndedException
 
 log = logging.getLogger(__name__)
 
-# List of valid characters found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
-_valid_name_characters = string.ascii_letters + string.digits + '_.:/%&#=+\-@ '
+# Valid characters can be found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
+_common_invalid_name_characters = '?;*()!$~^<>'
 _valid_annotation_key_characters = string.ascii_letters + string.digits + '_'
 
 
@@ -30,7 +30,7 @@ class Entity(object):
         # required attributes
         self.id = self._generate_random_id()
         self.name = name
-        self.name = ''.join([c for c in name if c in _valid_name_characters])
+        self.name = ''.join([c for c in name if c not in _common_invalid_name_characters])
         self.start_time = time.time()
         self.parent_id = None
 

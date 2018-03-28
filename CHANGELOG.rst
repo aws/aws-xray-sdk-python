@@ -2,14 +2,15 @@
 CHANGELOG
 =========
 
-unreleased
-==========
-* feature: Aiohttp client tracing for aiohttp versions > 3. `PR42 <https://github.com/aws/aws-xray-sdk-python/pull/42>`_.
+0.97
+====
+* feature: Support aiohttp client tracing for aiohttp 3.x. `PR42 <https://github.com/aws/aws-xray-sdk-python/pull/42>`_.
 * feature: Use the official middleware pattern for Aiohttp ext. `PR29 <https://github.com/aws/aws-xray-sdk-python/pull/29>`_.
-* bugfix: SQLAlcemy plugin would cause warning messages with some db connection strings that contained invalid characters for a segment/subsegment name.
 * bugfix: Aiohttp middleware serialized URL values incorrectly. `PR37 <https://github.com/aws/aws-xray-sdk-python/pull/37>`_
 * bugfix: Don't overwrite plugins list on each `.configure` call. `PR38 <https://github.com/aws/aws-xray-sdk-python/pull/38>`_
-* bugfix: Do not swallow `return_value`. `PR44 <https://github.com/aws/aws-xray-sdk-python/pull/44>`_
+* bugfix: Do not swallow `return_value` when context is missing and `LOG_ERROR` is set. `PR44 <https://github.com/aws/aws-xray-sdk-python/pull/44>`_
+* bugfix: Loose entity name validation. `ISSUE36 <https://github.com/aws/aws-xray-sdk-python/issues/36>`_
+* bugfix: Fix PyPI project page being rendered incorrectly. `ISSUE30 <https://github.com/aws/aws-xray-sdk-python/issues/30>`_
 
 0.96
 ====

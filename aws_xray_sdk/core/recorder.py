@@ -335,26 +335,24 @@ class AWSXRayRecorder(object):
             raise
         finally:
             # No-op if subsegment is `None` due to `LOG_ERROR`.
-            if subsegment is None:
-                return return_value
+            if subsegment is not None:
+                end_time = time.time()
+                if callable(meta_processor):
+                    meta_processor(
+                        wrapped=wrapped,
+                        instance=instance,
+                        args=args,
+                        kwargs=kwargs,
+                        return_value=return_value,
+                        exception=exception,
+                        subsegment=subsegment,
+                        stack=stack,
+                    )
+                elif exception:
+                    if subsegment:
+                        subsegment.add_exception(exception, stack)
 
-            end_time = time.time()
-            if callable(meta_processor):
-                meta_processor(
-                    wrapped=wrapped,
-                    instance=instance,
-                    args=args,
-                    kwargs=kwargs,
-                    return_value=return_value,
-                    exception=exception,
-                    subsegment=subsegment,
-                    stack=stack,
-                )
-            elif exception:
-                if subsegment:
-                    subsegment.add_exception(exception, stack)
-
-            self.end_subsegment(end_time)
+                self.end_subsegment(end_time)
 
     def _populate_runtime_context(self, segment):
         if not self._plugins:

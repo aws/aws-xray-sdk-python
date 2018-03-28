@@ -50,20 +50,22 @@ class AsyncAWSXRayRecorder(AWSXRayRecorder):
             stack = traceback.extract_stack(limit=self._max_trace_back)
             raise
         finally:
-            end_time = time.time()
-            if callable(meta_processor):
-                meta_processor(
-                    wrapped=wrapped,
-                    instance=instance,
-                    args=args,
-                    kwargs=kwargs,
-                    return_value=return_value,
-                    exception=exception,
-                    subsegment=subsegment,
-                    stack=stack,
-                )
-            elif exception:
-                if subsegment:
-                    subsegment.add_exception(exception, stack)
+            # No-op if subsegment is `None` due to `LOG_ERROR`.
+            if subsegment is not None:
+                end_time = time.time()
+                if callable(meta_processor):
+                    meta_processor(
+                        wrapped=wrapped,
+                        instance=instance,
+                        args=args,
+                        kwargs=kwargs,
+                        return_value=return_value,
+                        exception=exception,
+                        subsegment=subsegment,
+                        stack=stack,
+                    )
+                elif exception:
+                    if subsegment:
+                        subsegment.add_exception(exception, stack)
 
-            self.end_subsegment(end_time)
+                self.end_subsegment(end_time)
