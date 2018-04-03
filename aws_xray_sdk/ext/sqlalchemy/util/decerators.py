@@ -21,6 +21,7 @@ def decorate_all_functions(function_decorator):
         return cls
     return decorator
 
+
 def xray_on_call(cls, func):
     def wrapper(*args, **kw):
         from ..query import XRayQuery, XRaySession
@@ -40,9 +41,8 @@ def xray_on_call(cls, func):
                 if isinstance(arg, XRayQuery):
                     try:
                         sql = parse_bind(arg.session.bind)
-                        # Commented our for later PR
-                        # sql['sanitized_query'] = str(arg)
-                    except:
+                        sql['sanitized_query'] = str(arg)
+                    except Exception:
                         sql = None
         if sql is not None:
             if getattr(c._local, 'entities', None) is not None:
@@ -54,7 +54,7 @@ def xray_on_call(cls, func):
         res = func(*args, **kw)
         if subsegment is not None:
             subsegment.set_sql(sql)
-            subsegment.put_annotation("sqlalchemy", class_name+'.'+func.__name__ );
+            subsegment.put_annotation("sqlalchemy", class_name+'.'+func.__name__)
             xray_recorder.end_subsegment()
         return res
     return wrapper
