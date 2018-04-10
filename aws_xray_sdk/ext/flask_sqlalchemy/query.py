@@ -3,7 +3,7 @@ from flask_sqlalchemy.model import Model
 from sqlalchemy.orm.session import sessionmaker
 from flask_sqlalchemy import SQLAlchemy, BaseQuery, _SessionSignalEvents, get_state
 from aws_xray_sdk.ext.sqlalchemy.query import XRaySession, XRayQuery
-from aws_xray_sdk.ext.sqlalchemy.util.decerators import xray_on_call, decorate_all_functions
+from aws_xray_sdk.ext.sqlalchemy.util.decorators import xray_on_call, decorate_all_functions
 
 
 @decorate_all_functions(xray_on_call)

@@ -1,7 +1,7 @@
 from builtins import super
 from sqlalchemy.orm.query import Query
 from sqlalchemy.orm.session import Session, sessionmaker
-from .util.decerators import xray_on_call, decorate_all_functions
+from .util.decorators import xray_on_call, decorate_all_functions
 
 
 @decorate_all_functions(xray_on_call)
