@@ -28,14 +28,12 @@ def test_no_ops():
     subsegment.put_metadata('key', 'value')
     subsegment.put_annotation('key', 'value')
     subsegment.put_http_meta(http.URL, 'url')
-    subsegment.set_user('user')
     subsegment.set_aws({'key': 'value'})
     subsegment.set_sql({'key': 'value'})
 
     assert not subsegment.metadata
     assert not subsegment.annotations
     assert not subsegment.http
-    assert not subsegment.user
     assert not subsegment.aws
     assert not subsegment.sql
 

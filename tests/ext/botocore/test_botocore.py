@@ -50,6 +50,30 @@ def test_ddb_table_name():
     assert aws_meta['operation'] == 'DescribeTable'
 
 
+def test_s3_bucket_name_capture():
+    s3 = session.create_client('s3', region_name='us-west-2')
+    response = {
+        'ResponseMetadata': {
+            'RequestId': REQUEST_ID,
+            'HTTPStatusCode': 200,
+        }
+    }
+
+    bucket_name = 'mybucket'
+
+    with Stubber(s3) as stubber:
+        stubber.add_response('list_objects_v2', response, {'Bucket': bucket_name})
+        s3.list_objects_v2(Bucket=bucket_name)
+
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    aws_meta = subsegment.aws
+
+    assert aws_meta['bucket_name'] == bucket_name
+    assert aws_meta['request_id'] == REQUEST_ID
+    assert aws_meta['region'] == 'us-west-2'
+    assert aws_meta['operation'] == 'ListObjectsV2'
+
+
 def test_list_parameter_counting():
     """
     Test special parameters that have shape of list are recorded

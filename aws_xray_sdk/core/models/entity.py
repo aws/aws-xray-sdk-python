@@ -24,7 +24,6 @@ class Entity(object):
     The parent class for segment/subsegment. It holds common properties
     and methods on segment and subsegment.
     """
-
     def __init__(self, name):
 
         # required attributes
@@ -54,8 +53,6 @@ class Entity(object):
         # list is thread-safe
         self.subsegments = []
 
-        self.user = None
-
     def close(self, end_time=None):
         """
         Close the trace entity by setting `end_time`
@@ -84,7 +81,6 @@ class Entity(object):
         """
         Remove input subsegment from child subsegments.
         """
-        self._check_ended()
         self.subsegments.remove(subsegment)
 
     def put_http_meta(self, key, value):
@@ -182,15 +178,6 @@ class Entity(object):
         self._check_ended()
         self.aws = aws_meta
 
-    def set_user(self, user):
-        """
-        set user of an segment or subsegment.
-        one segment or subsegment can only hold one user.
-        User is indexed and can be later queried.
-        """
-        self._check_ended()
-        self.user = user
-
     def add_throttle_flag(self):
         self.throttle = True
 
@@ -271,8 +258,6 @@ class Entity(object):
             del properties['annotations']
         if not self.metadata:
             del properties['metadata']
-        if not self.user:
-            del properties['user']
 
         del properties['sampled']
 

@@ -5,7 +5,7 @@ from flask import request
 
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.ext.util import calculate_sampling_decision, \
-    calculate_segment_name, construct_xray_header
+    calculate_segment_name, construct_xray_header, prepare_response_header
 
 
 class XRayMiddleware(object):
@@ -43,6 +43,7 @@ class XRayMiddleware(object):
             sampling=sampling_decision,
         )
 
+        segment.save_origin_trace_header(xray_header)
         segment.put_http_meta(http.URL, req.base_url)
         segment.put_http_meta(http.METHOD, req.method)
         segment.put_http_meta(http.USER_AGENT, headers.get('User-Agent'))
@@ -57,6 +58,10 @@ class XRayMiddleware(object):
     def _after_request(self, response):
         segment = self._recorder.current_segment()
         segment.put_http_meta(http.STATUS, response.status_code)
+
+        origin_header = segment.get_origin_trace_header()
+        resp_header_str = prepare_response_header(origin_header, segment)
+        response.headers[http.XRAY_HEADER] = resp_header_str
 
         cont_len = response.headers.get('Content-Length')
         if cont_len:

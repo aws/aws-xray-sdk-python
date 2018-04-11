@@ -1,17 +1,21 @@
-import logging
-import time
-import os
-import traceback
+import copy
 import json
+import logging
+import os
+import platform
+import time
+import traceback
 
 import wrapt
 
+from aws_xray_sdk.version import VERSION
 from .models.segment import Segment
 from .models.subsegment import Subsegment
 from .models.default_dynamic_naming import DefaultDynamicNaming
 from .models.dummy_entities import DummySegment, DummySubsegment
 from .emitters.udp_emitter import UDPEmitter
 from .sampling.default_sampler import DefaultSampler
+from .streaming.default_streaming import DefaultStreaming
 from .context import Context
 from .plugins.utils import get_plugin_modules
 from .lambda_launcher import check_in_lambda
@@ -23,6 +27,18 @@ log = logging.getLogger(__name__)
 TRACING_NAME_KEY = 'AWS_XRAY_TRACING_NAME'
 DAEMON_ADDR_KEY = 'AWS_XRAY_DAEMON_ADDRESS'
 CONTEXT_MISSING_KEY = 'AWS_XRAY_CONTEXT_MISSING'
+
+XRAY_META = {
+    'xray': {
+        'sdk': 'X-Ray for Python',
+        'sdk_version': VERSION
+    }
+}
+
+SERVICE_INFO = {
+    'runtime': platform.python_implementation(),
+    'runtime_version': platform.python_version()
+}
 
 
 class AWSXRayRecorder(object):
@@ -37,13 +53,14 @@ class AWSXRayRecorder(object):
     """
     def __init__(self):
 
+        self._streaming = DefaultStreaming()
         context = check_in_lambda()
         if context:
+            # Special handling when running on AWS Lambda.
             self._context = context
-            self._max_subsegments = 0
+            self.streaming_threshold = 0
         else:
             self._context = Context()
-            self._max_subsegments = 30
 
         self._emitter = UDPEmitter()
         self._sampler = DefaultSampler()
@@ -52,12 +69,15 @@ class AWSXRayRecorder(object):
         self._plugins = None
         self._service = os.getenv(TRACING_NAME_KEY)
         self._dynamic_naming = None
+        self._aws_metadata = copy.deepcopy(XRAY_META)
+        self._origin = None
 
     def configure(self, sampling=None, plugins=None,
                   context_missing=None, sampling_rules=None,
                   daemon_address=None, service=None,
-                  context=None, emitter=None,
-                  dynamic_naming=None, streaming_threshold=None):
+                  context=None, emitter=None, streaming=None,
+                  dynamic_naming=None, streaming_threshold=None,
+                  max_trace_back=None):
         """Configure global X-Ray recorder.
 
         Configure needs to run before patching thrid party libraries
@@ -92,9 +112,14 @@ class AWSXRayRecorder(object):
         :param dynamic_naming: a string that defines a pattern that host names
             should match. Alternatively you can pass a module which
             overrides ``DefaultDynamicNaming`` module.
+        :param streaming: The streaming module to stream out trace documents
+            when they grow too large. You can override ``DefaultStreaming``
+            class to have your own implementation of the streaming process.
         :param streaming_threshold: If breaks within a single segment it will
             start streaming out children subsegments. By default it is the
             maximum number of subsegments within a segment.
+        :param int max_trace_back: The maxinum number of stack traces recorded
+            by auto-capture. Lower this if a single document becomes too large.
 
         Environment variables AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
         and AWS_XRAY_TRACING_NAME respectively overrides arguments
@@ -116,16 +141,24 @@ class AWSXRayRecorder(object):
             self.context.context_missing = os.getenv(CONTEXT_MISSING_KEY, context_missing)
         if dynamic_naming:
             self.dynamic_naming = dynamic_naming
+        if streaming:
+            self.streaming = streaming
         if streaming_threshold:
             self.streaming_threshold = streaming_threshold
+        if max_trace_back:
+            self.max_trace_back = max_trace_back
 
-        if plugins is not None:
-            plugin_modules = None
-            if plugins:
-                plugin_modules = get_plugin_modules(plugins)
-                for module in plugin_modules:
-                    module.initialize()
-            self._plugins = plugin_modules
+        if plugins:
+            plugin_modules = get_plugin_modules(plugins)
+            for plugin in plugin_modules:
+                plugin.initialize()
+                if plugin.runtime_context:
+                    self._aws_metadata[plugin.SERVICE_NAME] = plugin.runtime_context
+                    self._origin = plugin.ORIGIN
+        # handling explicitly using empty list to clean up plugins.
+        elif plugins is not None:
+            self._aws_metadata = copy.deepcopy(XRAY_META)
+            self._origin = None
 
     def begin_segment(self, name=None, traceid=None,
                       parent_id=None, sampling=None):
@@ -238,6 +271,44 @@ class AWSXRayRecorder(object):
         else:
             self.stream_subsegments()
 
+    def put_annotation(self, key, value):
+        """
+        Annotate current active trace entity with a key-value pair.
+        Annotations will be indexed for later search query.
+
+        :param str key: annotation key
+        :param object value: annotation value. Any type other than
+            string/number/bool will be dropped
+        """
+        entity = self.get_trace_entity()
+        if entity and entity.sampled:
+            entity.put_annotation(key, value)
+
+    def put_metadata(self, key, value, namespace='default'):
+        """
+        Add metadata to the current active trace entity.
+        Metadata is not indexed but can be later retrieved
+        by BatchGetTraces API.
+
+        :param str namespace: optional. Default namespace is `default`.
+            It must be a string and prefix `AWS.` is reserved.
+        :param str key: metadata key under specified namespace
+        :param object value: any object that can be serialized into JSON string
+        """
+        entity = self.get_trace_entity()
+        if entity and entity.sampled:
+            entity.put_metadata(key, value, namespace)
+
+    def is_sampled(self):
+        """
+        Check if the current trace entity is sampled or not.
+        Return `False` if no active entity found.
+        """
+        entity = self.get_trace_entity()
+        if entity:
+            return entity.sampled
+        return False
+
     def get_trace_entity(self):
         """
         A pass through method to ``context.get_trace_entity()``.
@@ -264,35 +335,8 @@ class AWSXRayRecorder(object):
         """
         segment = self.current_segment()
 
-        if not segment or not segment.sampled:
-            return
-
-        if segment.get_total_subsegments_size() <= self.streaming_threshold:
-            return
-
-        # find all subsegments that has no open child subsegments and
-        # send them to the daemon
-        self._stream_eligible_subsegments(segment)
-
-    def _stream_eligible_subsegments(self, subsegment):
-
-        children = subsegment.subsegments
-
-        children_ready = []
-        if len(children) > 0:
-            for child in children:
-                if self._stream_eligible_subsegments(child):
-                    children_ready.append(child)
-
-        if len(children_ready) == len(children) and not subsegment.in_progress:
-            return True
-
-        # stream all ready children before return False
-        for child in children_ready:
-            self._stream_subsegment(child)
-            subsegment.remove_subsegment(child)
-
-        return False
+        if self.streaming.is_eligible(segment):
+            self.streaming.stream(segment, self._stream_subsegment_out)
 
     def capture(self, name=None):
         """
@@ -331,7 +375,7 @@ class AWSXRayRecorder(object):
             return return_value
         except Exception as e:
             exception = e
-            stack = traceback.extract_stack(limit=self._max_trace_back)
+            stack = traceback.extract_stack(limit=self.max_trace_back)
             raise
         finally:
             # No-op if subsegment is `None` due to `LOG_ERROR`.
@@ -355,15 +399,11 @@ class AWSXRayRecorder(object):
                 self.end_subsegment(end_time)
 
     def _populate_runtime_context(self, segment):
-        if not self._plugins:
-            return
+        if self._origin:
+            setattr(segment, 'origin', self._origin)
 
-        aws_meta = {}
-        for plugin in self._plugins:
-            if plugin.runtime_context:
-                aws_meta[plugin.SERVICE_NAME] = plugin.runtime_context
-                setattr(segment, 'origin', plugin.ORIGIN)
-        segment.set_aws(aws_meta)
+        segment.set_aws(self._aws_metadata)
+        segment.set_service(SERVICE_INFO)
 
     def _send_segment(self):
         """
@@ -380,8 +420,7 @@ class AWSXRayRecorder(object):
             self.emitter.send_entity(segment)
         self.clear_trace_entities()
 
-    def _stream_subsegment(self, subsegment):
-
+    def _stream_subsegment_out(self, subsegment):
         log.debug("streaming subsegments...")
         self.emitter.send_entity(subsegment)
 
@@ -452,9 +491,31 @@ class AWSXRayRecorder(object):
         self._emitter = value
 
     @property
+    def streaming(self):
+        return self._streaming
+
+    @streaming.setter
+    def streaming(self, value):
+        self._streaming = value
+
+    @property
     def streaming_threshold(self):
-        return self._max_subsegments
+        """
+        Proxy method to Streaming module's `streaming_threshold` property.
+        """
+        return self.streaming.streaming_threshold
 
     @streaming_threshold.setter
     def streaming_threshold(self, value):
-        self._max_subsegments = value
+        """
+        Proxy method to Streaming module's `streaming_threshold` property.
+        """
+        self.streaming.streaming_threshold = value
+
+    @property
+    def max_trace_back(self):
+        return self._max_trace_back
+
+    @max_trace_back.setter
+    def max_trace_back(self, value):
+        self._max_trace_back = value

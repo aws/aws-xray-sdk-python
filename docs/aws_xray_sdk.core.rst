@@ -1,6 +1,19 @@
 aws\_xray\_sdk.core package
 ===========================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    aws_xray_sdk.core.emitters
+    aws_xray_sdk.core.exceptions
+    aws_xray_sdk.core.models
+    aws_xray_sdk.core.plugins
+    aws_xray_sdk.core.sampling
+    aws_xray_sdk.core.streaming
+    aws_xray_sdk.core.utils
+
 Submodules
 ----------
 

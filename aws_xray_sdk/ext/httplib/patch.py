@@ -44,7 +44,8 @@ def http_response_processor(wrapped, instance, args, kwargs, return_value,
 
 def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
     if not PY2 and kwargs.get('buffering', False):
-        return wrapped(*args, **kwargs)  # ignore py2 calls that fail as 'buffering` only exists in py2.
+        # ignore py2 calls that fail as 'buffering` only exists in py2.
+        return wrapped(*args, **kwargs)
 
     xray_data = getattr(instance, _XRAY_PROP)
 
@@ -72,7 +73,8 @@ def _send_request(wrapped, instance, args, kwargs):
     def decompose_args(method, url, body, headers, encode_chunked=False):
         inject_trace_header(headers, xray_recorder.current_subsegment())
 
-        # we have to check against sock because urllib3's HTTPSConnection inherit's from http.client.HTTPConnection
+        # we have to check against sock because urllib3's HTTPSConnection
+        # inherits from `http.client.HTTPConnection`.
         scheme = 'https' if isinstance(instance.sock, ssl.SSLSocket) else 'http'
         xray_url = '{}://{}{}'.format(scheme, instance.host, url)
         xray_data = _XRay_Data(method, instance.host, xray_url)
@@ -103,7 +105,9 @@ def http_read_processor(wrapped, instance, args, kwargs, return_value,
 
 
 def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
-    xray_data = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP, None)
+    if not xray_data:
+        return wrapped(*args, **kwargs)
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
@@ -114,7 +118,9 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
 
 def patch():
-    """ patch the built-in urllib/httplib/httplib.client methods for tracing"""
+    """
+    patch the built-in `urllib/httplib/httplib.client` methods for tracing.
+    """
     if getattr(httplib, PATCH_FLAG, False):
         return
     # we set an attribute to avoid multiple wrapping

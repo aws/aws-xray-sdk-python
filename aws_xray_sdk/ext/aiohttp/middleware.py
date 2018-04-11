@@ -6,7 +6,8 @@ from aiohttp import web
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.ext.util import calculate_sampling_decision, calculate_segment_name, construct_xray_header
+from aws_xray_sdk.ext.util import calculate_sampling_decision, \
+    calculate_segment_name, construct_xray_header, prepare_response_header
 
 
 @web.middleware
@@ -35,6 +36,7 @@ async def middleware(request, handler):
         sampling=sampling_decision,
     )
 
+    segment.save_origin_trace_header(xray_header)
     # Store request metadata in the current segment
     segment.put_http_meta(http.URL, str(request.url))
     segment.put_http_meta(http.METHOD, request.method)
@@ -57,7 +59,7 @@ async def middleware(request, handler):
         # Store exception information including the stacktrace to the segment
         segment = xray_recorder.current_segment()
         segment.put_http_meta(http.STATUS, 500)
-        stack = traceback.extract_stack(limit=xray_recorder._max_trace_back)
+        stack = traceback.extract_stack(limit=xray_recorder.max_trace_back)
         segment.add_exception(err, stack)
         xray_recorder.end_segment()
         raise
@@ -68,6 +70,9 @@ async def middleware(request, handler):
     if 'Content-Length' in response.headers:
         length = int(response.headers['Content-Length'])
         segment.put_http_meta(http.CONTENT_LENGTH, length)
+
+    header_str = prepare_response_header(xray_header, segment)
+    response.headers[http.XRAY_HEADER] = header_str
 
     # Close segment so it can be dispatched off to the daemon
     xray_recorder.end_segment()

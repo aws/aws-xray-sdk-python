@@ -28,11 +28,11 @@ def test_from_str():
     assert header1.sampled == 1
 
     # missing parent id
-    header_str2 = 'Root=%s;Sampled=0' % TRACE_ID
+    header_str2 = 'Root=%s;Sampled=?' % TRACE_ID
     header2 = TraceHeader.from_header_str(header_str2)
     assert header2.root == TRACE_ID
     assert header2.parent is None
-    assert header2.sampled == 0
+    assert header2.sampled == '?'
 
     # missing sampled
     header_str3 = 'Root=%s;Parent=%s' % (TRACE_ID, PARENT_ID)
@@ -40,6 +40,15 @@ def test_from_str():
     assert header3.root == TRACE_ID
     assert header3.parent == PARENT_ID
     assert header3.sampled is None
+
+
+def test_arbitrary_fields():
+    origin_header_str = 'Root=%s;k1=v1;k2=v2' % TRACE_ID
+    header = TraceHeader.from_header_str(origin_header_str)
+    header_str = header.to_header_str()
+
+    assert 'k1=v1' in header_str
+    assert 'k2=v2' in header_str
 
 
 def test_invalid_str():

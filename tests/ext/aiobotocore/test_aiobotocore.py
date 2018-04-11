@@ -45,6 +45,31 @@ async def test_describe_table(loop, recorder):
     assert aws_meta['operation'] == 'DescribeTable'
 
 
+async def test_s3_parameter_capture(loop, recorder):
+    segment = recorder.begin_segment('name')
+
+    bucket_name = 'mybucket'
+    key = 'mykey'
+    version_id = 'myversionid'
+    response = {'ResponseMetadata': {'RequestId': '1234', 'HTTPStatusCode': 200}}
+
+    session = aiobotocore.get_session(loop=loop)
+    async with session.create_client('s3', region_name='eu-west-2') as client:
+        with Stubber(client) as stubber:
+            stubber.add_response('get_object', response,
+                                 {'Bucket': bucket_name, 'Key': key, 'VersionId': version_id})
+            await client.get_object(Bucket=bucket_name, Key=key,
+                                    VersionId=version_id)
+
+    subsegment = segment.subsegments[0]
+    aws_meta = subsegment.aws
+
+    assert aws_meta['bucket_name'] == bucket_name
+    assert aws_meta['key'] == key
+    assert aws_meta['version_id'] == version_id
+    assert aws_meta['operation'] == 'GetObject'
+
+
 async def test_list_parameter_counting(loop, recorder):
     """
     Test special parameters that have shape of list are recorded

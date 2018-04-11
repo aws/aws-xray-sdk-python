@@ -2,6 +2,21 @@
 CHANGELOG
 =========
 
+1.0
+===
+* Changed development status to `5 - Production/Stable` and removed beta tag.
+* feature: Added S3 API parameters to the default whitelist.
+* feature: Added new recorder APIs to add annotations/metadata.
+* feature: The recorder now adds more runtime and version information to sampled segments.
+* feature: Django, Flask and Aiohttp middleware now inject trace header to response headers.
+* feature: Added a new API to configure maximum captured stack trace.
+* feature: Modularized subsegments streaming logic and now it can be overriden with custom implementation.
+* bugfix(**Breaking**): Subsegment `set_user` API is removed since this attribute is not supported by X-Ray back-end.
+* bugfix: Fixed an issue where arbitrary fields in trace header being dropped when calling downstream.
+* bugfix: Fixed a compatibility issue between botocore and httplib patcher. `ISSUE48 <https://github.com/aws/aws-xray-sdk-python/issues/48>`_.
+* bugfix: Fixed a typo in sqlalchemy decorators. `PR50 <https://github.com/aws/aws-xray-sdk-python/pull/50>`_.
+* Updated `README` with more usage examples. 
+
 0.97
 ====
 * feature: Support aiohttp client tracing for aiohttp 3.x. `PR42 <https://github.com/aws/aws-xray-sdk-python/pull/42>`_.

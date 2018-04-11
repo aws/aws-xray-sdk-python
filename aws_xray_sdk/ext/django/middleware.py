@@ -4,7 +4,7 @@ import traceback
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.ext.util import calculate_sampling_decision, \
-    calculate_segment_name, construct_xray_header
+    calculate_segment_name, construct_xray_header, prepare_response_header
 
 
 log = logging.getLogger(__name__)
@@ -49,6 +49,7 @@ class XRayMiddleware(object):
             sampling=sampling_decision,
         )
 
+        segment.save_origin_trace_header(xray_header)
         segment.put_http_meta(http.URL, request.build_absolute_uri())
         segment.put_http_meta(http.METHOD, request.method)
 
@@ -68,6 +69,7 @@ class XRayMiddleware(object):
         if response.has_header(CONTENT_LENGTH_KEY):
             length = int(response[CONTENT_LENGTH_KEY])
             segment.put_http_meta(http.CONTENT_LENGTH, length)
+        response[http.XRAY_HEADER] = prepare_response_header(xray_header, segment)
 
         xray_recorder.end_segment()
 

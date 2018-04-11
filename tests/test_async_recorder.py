@@ -1,4 +1,7 @@
+import platform
+
 from .util import get_new_stubbed_recorder
+from aws_xray_sdk.version import VERSION
 from aws_xray_sdk.core.async_context import AsyncContext
 
 
@@ -30,3 +33,12 @@ async def test_capture(loop):
     subsegment = segment.subsegments[0]
     assert len(subsegment.subsegments) == 1
     assert subsegment.subsegments[0].name == 'test_2'
+
+    # Check runtime context is correctly attached
+    xray_meta = segment.aws.get('xray')
+    assert 'X-Ray for Python' == xray_meta.get('sdk')
+    assert VERSION == xray_meta.get('sdk_version')
+
+    service = segment.service
+    assert platform.python_implementation() == service.get('runtime')
+    assert platform.python_version() == service.get('runtime_version')

@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 from os import path
+from aws_xray_sdk.version import VERSION
 
 CURRENT_DIR = path.abspath(path.dirname(__file__))
 
@@ -13,7 +14,7 @@ long_description = read_md(path.join(CURRENT_DIR, 'README.md'))
 
 setup(
     name='aws-xray-sdk',
-    version='0.97',
+    version=VERSION,
 
     description='The AWS X-Ray SDK for Python (the SDK) enables Python developers to record'
                 ' and emit information from within their applications to the AWS X-Ray service.',
@@ -26,7 +27,7 @@ setup(
     license="Apache License 2.0",
 
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'License :: OSI Approved :: Apache Software License',

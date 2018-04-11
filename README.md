@@ -1,4 +1,4 @@
-# AWS X-Ray SDK for Python <sup><sup><sup>(beta)</sup></sup></sup>
+# AWS X-Ray SDK for Python
 
 ![Screenshot of the AWS X-Ray console](/images/example_servicemap.png?raw=true)
 
@@ -104,6 +104,31 @@ async def main():
     await myfunc()
 ```
 
+### Adding annotations/metadata using recorder
+
+```python
+from aws_xray_sdk.core import xray_recorder
+
+# Start a segment if no segment exist
+segment1 = xray_recorder.begin_segment('segment_name')
+
+# This will add the key value pair to segment1 as it is active
+xray_recorder.put_annotation('key', 'value')
+
+# Start a subsegment so it becomes the active trace entity
+subsegment1 = xray_recorder.begin_subsegment('subsegment_name')
+
+# This will add the key value pair to subsegment1 as it is active
+xray_recorder.put_metadata('key', 'value')
+
+if xray_recorder.is_sampled():
+    # some expensitve annotations/metadata generation code here
+    val = compute_annotation_val()
+    metadata = compute_metadata_body()
+    xray_recorder.put_annotation('mykey', val)
+    xray_recorder.put_metadata('mykey', metadata)
+```
+
 ### Trace AWS Lambda functions
 
 ```python
@@ -121,6 +146,47 @@ def lambda_handler(event, context):
     xray_recorder.end_subsegment()
 
     # ... some other code
+```
+
+### Trace ThreadPoolExecutor
+
+```python
+import concurrent.futures
+
+import requests
+
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core import patch
+
+patch(('requests',))
+
+URLS = ['http://www.amazon.com/',
+        'http://aws.amazon.com/',
+        'http://example.com/',
+        'http://www.bilibili.com/',
+        'http://invalid-domain.com/']
+
+def load_url(url, trace_entity):
+    # Set the parent X-Ray entity for the worker thread.
+    xray_recorder.set_trace_entity(trace_entity)
+    # Subsegment captured from the following HTTP GET will be
+    # a child of parent entity passed from the main thread.
+    resp = requests.get(url)
+    # prevent thread pollution
+    xray_recorder.clear_trace_entities()
+    return resp
+
+# Get the current active segment or subsegment from the main thread.
+current_entity = xray_recorder.get_trace_entity()
+with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    # Pass the active entity from main thread to worker threads.
+    future_to_url = {executor.submit(load_url, url, current_entity): url for url in URLS}
+    for future in concurrent.futures.as_completed(future_to_url):
+        url = future_to_url[future]
+        try:
+            data = future.result()
+        except Exception:
+            pass
 ```
 
 ### Patch third-party libraries

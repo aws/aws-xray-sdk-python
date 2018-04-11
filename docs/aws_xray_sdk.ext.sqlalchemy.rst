@@ -1,6 +1,13 @@
 aws\_xray\_sdk.ext.sqlalchemy package
 =====================================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    aws_xray_sdk.ext.sqlalchemy.util
+
 Submodules
 ----------
 

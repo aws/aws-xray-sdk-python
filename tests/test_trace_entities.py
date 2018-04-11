@@ -22,6 +22,14 @@ def test_unicode_entity_name():
     assert subsegment.name == name2
 
 
+def test_segment_user():
+    segment = Segment('seg')
+    segment.set_user('whoami')
+    doc = entity_to_dict(segment)
+
+    assert doc['user'] == 'whoami'
+
+
 def test_put_http_meta():
 
     segment = Segment('seg')

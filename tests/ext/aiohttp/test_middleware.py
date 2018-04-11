@@ -11,6 +11,7 @@ import pytest
 
 from aws_xray_sdk.core.emitters.udp_emitter import UDPEmitter
 from aws_xray_sdk.core.async_context import AsyncContext
+from aws_xray_sdk.core.models import http
 from tests.util import get_new_stubbed_recorder
 from aws_xray_sdk.ext.aiohttp.middleware import middleware
 
@@ -173,6 +174,16 @@ async def test_exception(test_client, loop, recorder):
     assert request['client_ip'] == '127.0.0.1'
     assert response['status'] == 500
     assert exception.type == 'KeyError'
+
+
+async def test_response_trace_header(test_client, loop, recorder):
+    client = await test_client(ServerTest.app(loop=loop))
+    resp = await client.get('/')
+    xray_header = resp.headers[http.XRAY_HEADER]
+    segment = recorder.emitter.pop()
+
+    expected = 'Root=%s' % segment.trace_id
+    assert expected in xray_header
 
 
 async def test_concurrent(test_client, loop, recorder):
