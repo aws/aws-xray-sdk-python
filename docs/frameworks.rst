@@ -20,7 +20,7 @@ a segment.
 To get the current segment and add annotations or metadata as needed,
 use the following statement in your application code when processing request::
 
-    segment = xray_recorder.current_segement()
+    segment = xray_recorder.current_segment()
 
 For more configurations in your Django ``settings.py`` file,
 add the following line::
