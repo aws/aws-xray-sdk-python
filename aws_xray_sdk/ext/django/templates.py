@@ -23,7 +23,8 @@ def patch_template():
         if template_name:
             name = str(template_name)
             subsegment = xray_recorder.current_subsegment()
-            subsegment.name = name
+            if subsegment:
+                subsegment.name = name
 
         return Template._xray_original_render(self, context)
 
