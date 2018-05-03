@@ -91,7 +91,7 @@ def test_only_dynamodb_calls_are_traced():
                                config=Config(signature_version=UNSIGNED))
     try:
         s3.get_bucket_location(Bucket='mybucket')
-    except ClientError:
+    except Exception:
         pass
 
     subsegments = xray_recorder.current_segment().subsegments
