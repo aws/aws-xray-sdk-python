@@ -6,9 +6,6 @@ python:
   - "3.5"
   - "3.6"
 
-env:
-  - AWS_SECRET_ACCESS_KEY=fake_key AWS_ACCESS_KEY_ID=fake_id
-
 install:
   - pip install tox
 
