@@ -1,5 +1,8 @@
-import botocore.session
 import pytest
+
+import botocore.session
+from botocore import UNSIGNED
+from botocore.client import Config
 from botocore.exceptions import ClientError
 from pynamodb.attributes import UnicodeAttribute
 from pynamodb.models import Model
@@ -61,10 +64,11 @@ def test_only_dynamodb_calls_are_traced():
     PynamoDB call.
     """
     session = botocore.session.get_session()
-    s3 = session.create_client('s3', region_name='us-west-2')
+    s3 = session.create_client('s3', region_name='us-west-2',
+                               config=Config(signature_version=UNSIGNED))
     try:
         s3.get_bucket_location(Bucket='mybucket')
-    except Exception:
+    except ClientError:
         pass
 
     subsegments = xray_recorder.current_segment().subsegments
