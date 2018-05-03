@@ -393,8 +393,7 @@ class AWSXRayRecorder(object):
                         stack=stack,
                     )
                 elif exception:
-                    if subsegment:
-                        subsegment.add_exception(exception, stack)
+                    subsegment.add_exception(exception, stack)
 
                 self.end_subsegment(end_time)
 
