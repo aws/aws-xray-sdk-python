@@ -64,7 +64,7 @@ def test_only_dynamodb_calls_are_traced():
     s3 = session.create_client('s3', region_name='us-west-2')
     try:
         s3.get_bucket_location(Bucket='mybucket')
-    except ClientError:
+    except Exception:
         pass
 
     subsegments = xray_recorder.current_segment().subsegments
