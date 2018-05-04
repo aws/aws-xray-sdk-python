@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/aws/aws-xray-sdk-python.svg?branch=master)](https://travis-ci.org/aws/aws-xray-sdk-python)
+
 # AWS X-Ray SDK for Python
 
 ![Screenshot of the AWS X-Ray console](/images/example_servicemap.png?raw=true)
