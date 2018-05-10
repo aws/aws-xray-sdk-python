@@ -24,41 +24,33 @@ LOCAL_EXCEPTIONS = (
 
 async def begin_subsegment(session, trace_config_ctx, params):
     name = trace_config_ctx.name if trace_config_ctx.name else strip_url(str(params.url))
-
     try:
         subsegment = xray_recorder.begin_subsegment(name, REMOTE_NAMESPACE)
     except SegmentNotFoundException:
-        if not trace_config_ctx.raise_if_not_subsegment:
-            return
-        raise
-
-    subsegment.put_http_meta(http.METHOD, params.method)
-    subsegment.put_http_meta(http.URL, params.url.human_repr())
-    inject_trace_header(params.headers, subsegment)
+        if trace_config_ctx.raise_if_not_subsegment:
+            raise
+        trace_config_ctx.give_up = True
+    else:
+        trace_config_ctx.give_up = False
+        subsegment.put_http_meta(http.METHOD, params.method)
+        subsegment.put_http_meta(http.URL, params.url.human_repr())
+        inject_trace_header(params.headers, subsegment)
 
 
 async def end_subsegment(session, trace_config_ctx, params):
+    if trace_config_ctx.give_up:
+        return
 
-    try:
-        subsegment = xray_recorder.current_subsegment()
-    except SegmentNotFoundException:
-        if not trace_config_ctx.raise_if_not_subsegment:
-            return
-        raise
-
+    subsegment = xray_recorder.current_subsegment()
     subsegment.put_http_meta(http.STATUS, params.response.status)
     xray_recorder.end_subsegment()
 
 
 async def end_subsegment_with_exception(session, trace_config_ctx, params):
+    if trace_config_ctx.give_up:
+        return
 
-    try:
-        subsegment = xray_recorder.current_subsegment()
-    except SegmentNotFoundException:
-        if not trace_config_ctx.raise_if_not_subsegment:
-            return
-        raise
-
+    subsegment = xray_recorder.current_subsegment()
     subsegment.add_exception(
         params.exception,
         traceback.extract_stack(limit=xray_recorder._max_trace_back)
