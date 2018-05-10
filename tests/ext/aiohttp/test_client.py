@@ -3,6 +3,7 @@ from aiohttp import ClientSession
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.async_context import AsyncContext
+from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.ext.util import strip_url
 from aws_xray_sdk.ext.aiohttp.client import aws_xray_trace_config
 from aws_xray_sdk.ext.aiohttp.client import REMOTE_NAMESPACE, LOCAL_NAMESPACE
@@ -130,3 +131,25 @@ async def test_invalid_url(loop, recorder):
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'ClientConnectorError'
+
+
+async def test_no_segment_raise(loop, recorder):
+    trace_config = aws_xray_trace_config()
+    status_code = 200
+    url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
+    with pytest.raises(SegmentNotFoundException):
+        async with ClientSession(loop=loop, trace_configs=[trace_config]) as session:
+            async with session.get(url):
+                pass
+
+
+async def test_no_segment_not_raise(loop, recorder):
+    trace_config = aws_xray_trace_config(raise_if_not_subsegment=False)
+    status_code = 200
+    url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
+    async with ClientSession(loop=loop, trace_configs=[trace_config]) as session:
+        async with session.get(url) as resp:
+            status_received = resp.status
+
+    # Just check that the request was done correctly
+    assert status_received == status_code
