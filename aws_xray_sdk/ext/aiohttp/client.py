@@ -9,7 +9,6 @@ from types import SimpleNamespace
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.ext.util import inject_trace_header, strip_url
-from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 
 # All aiohttp calls will entail outgoing HTTP requests, only in some ad-hoc
 # exceptions the namespace will be flip back to local.
@@ -24,11 +23,10 @@ LOCAL_EXCEPTIONS = (
 
 async def begin_subsegment(session, trace_config_ctx, params):
     name = trace_config_ctx.name if trace_config_ctx.name else strip_url(str(params.url))
-    try:
-        subsegment = xray_recorder.begin_subsegment(name, REMOTE_NAMESPACE)
-    except SegmentNotFoundException:
-        if trace_config_ctx.raise_if_not_subsegment:
-            raise
+    subsegment = xray_recorder.begin_subsegment(name, REMOTE_NAMESPACE)
+
+    # No-op if subsegment is `None` due to `LOG_ERROR`.
+    if not subsegment:
         trace_config_ctx.give_up = True
     else:
         trace_config_ctx.give_up = False
@@ -62,20 +60,16 @@ async def end_subsegment_with_exception(session, trace_config_ctx, params):
     xray_recorder.end_subsegment()
 
 
-def aws_xray_trace_config(name=None, raise_if_not_subsegment=True):
+def aws_xray_trace_config(name=None):
     """
     :param name: name used to identify the subsegment, with None internally the URL will
                  be used as identifier.
-    :param raise_if_not_subsegment: boolean, raise an exception so stopping the request if
-                                    the subsegment can't be created. True by default. Use
-                                    False to let the request move ahead and just skip the trace.
     :returns: TraceConfig.
     """
 
     def _trace_config_ctx_factory(trace_request_ctx):
         return SimpleNamespace(
             name=name,
-            raise_if_not_subsegment=raise_if_not_subsegment,
             trace_request_ctx=trace_request_ctx
         )
 

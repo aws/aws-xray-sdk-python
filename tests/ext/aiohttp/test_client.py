@@ -134,6 +134,7 @@ async def test_invalid_url(loop, recorder):
 
 
 async def test_no_segment_raise(loop, recorder):
+    xray_recorder.configure(context_missing='RUNTIME_ERROR')
     trace_config = aws_xray_trace_config()
     status_code = 200
     url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
@@ -144,7 +145,8 @@ async def test_no_segment_raise(loop, recorder):
 
 
 async def test_no_segment_not_raise(loop, recorder):
-    trace_config = aws_xray_trace_config(raise_if_not_subsegment=False)
+    xray_recorder.configure(context_missing='LOG_ERROR')
+    trace_config = aws_xray_trace_config()
     status_code = 200
     url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
     async with ClientSession(loop=loop, trace_configs=[trace_config]) as session:
