@@ -14,11 +14,24 @@ SUPPORTED_MODULES = (
     'pymongo',
 )
 
+NO_DOUBLE_PATCH = (
+    'aiobotocore',
+    'botocore',
+    'pynamodb',
+    'requests',
+    'sqlite3',
+    'mysql',
+    'pymongo',
+)
+
 _PATCHED_MODULES = set()
 
 
-def patch_all():
-    patch(SUPPORTED_MODULES, raise_errors=False)
+def patch_all(double_patch=False):
+    if double_patch:
+        patch(SUPPORTED_MODULES, raise_errors=False)
+    else:
+        patch(NO_DOUBLE_PATCH, raise_errors=False)
 
 
 def patch(modules_to_patch, raise_errors=True):

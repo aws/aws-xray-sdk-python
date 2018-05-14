@@ -28,12 +28,16 @@ class XRayMiddleware(object):
 
         name = calculate_segment_name(req.host, self._recorder)
 
+        sampling_req = {
+            'host': req.host,
+            'method': req.method,
+            'path': req.path,
+            'service': name,
+        }
         sampling_decision = calculate_sampling_decision(
             trace_header=xray_header,
             recorder=self._recorder,
-            service_name=req.host,
-            method=req.method,
-            path=req.path,
+            sampling_req=sampling_req,
         )
 
         segment = self._recorder.begin_segment(
@@ -73,7 +77,14 @@ class XRayMiddleware(object):
     def _handle_exception(self, exception):
         if not exception:
             return
-        segment = self._recorder.current_segment()
+        segment = None
+        try:
+            segment = self._recorder.current_segment()
+        except Exception:
+            pass
+        if not segment:
+            return
+
         segment.put_http_meta(http.STATUS, 500)
         stack = traceback.extract_stack(limit=self._recorder._max_trace_back)
         segment.add_exception(exception, stack)

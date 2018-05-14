@@ -34,12 +34,16 @@ class XRayMiddleware(object):
         # a segment name is required
         name = calculate_segment_name(meta.get(HOST_KEY), xray_recorder)
 
+        sampling_req = {
+            'host': meta.get(HOST_KEY),
+            'method': request.method,
+            'path': request.path,
+            'service': name,
+        }
         sampling_decision = calculate_sampling_decision(
             trace_header=xray_header,
             recorder=xray_recorder,
-            service_name=meta.get(HOST_KEY),
-            method=request.method,
-            path=request.path,
+            sampling_req=sampling_req,
         )
 
         segment = xray_recorder.begin_segment(

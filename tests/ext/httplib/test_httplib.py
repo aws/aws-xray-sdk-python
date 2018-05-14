@@ -41,7 +41,7 @@ def _do_req(url, method='GET'):
     host, _, port = parts.netloc.partition(':')
     if port == '':
         port = None
-    conn = httplib.HTTPConnection(parts.netloc, port)
+    conn = httplib.HTTPSConnection(parts.netloc, port)
 
     path = '{}?{}'.format(parts.path, parts.query) if parts.query else parts.path
     conn.request(method, path)
@@ -50,7 +50,7 @@ def _do_req(url, method='GET'):
 
 def test_ok():
     status_code = 200
-    url = 'http://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
+    url = 'https://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
     _do_req(url)
     subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == strip_url(url)
@@ -63,7 +63,7 @@ def test_ok():
 
 def test_error():
     status_code = 400
-    url = 'http://{}/status/{}'.format(BASE_URL, status_code)
+    url = 'https://{}/status/{}'.format(BASE_URL, status_code)
     _do_req(url, 'POST')
     subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
@@ -77,7 +77,7 @@ def test_error():
 
 def test_throttle():
     status_code = 429
-    url = 'http://{}/status/{}'.format(BASE_URL, status_code)
+    url = 'https://{}/status/{}'.format(BASE_URL, status_code)
     _do_req(url, 'HEAD')
     subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url
@@ -92,7 +92,7 @@ def test_throttle():
 
 def test_fault():
     status_code = 500
-    url = 'http://{}/status/{}'.format(BASE_URL, status_code)
+    url = 'https://{}/status/{}'.format(BASE_URL, status_code)
     _do_req(url, 'PUT')
     subsegment = xray_recorder.current_segment().subsegments[1]
     assert subsegment.name == url

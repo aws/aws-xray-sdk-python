@@ -4,9 +4,8 @@ import wrapt
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.ext.util import inject_trace_header, strip_url, unwrap
-
-import ssl
 
 if sys.version_info >= (3, 0, 0):
     PY2 = False
@@ -26,7 +25,9 @@ PATCH_FLAG = '__xray_patched'
 
 def http_response_processor(wrapped, instance, args, kwargs, return_value,
                             exception, subsegment, stack):
-    xray_data = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP, None)
+    if not xray_data:
+        return
 
     subsegment.put_http_meta(http.METHOD, xray_data.method)
     subsegment.put_http_meta(http.URL, xray_data.url)
@@ -47,7 +48,9 @@ def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
         # ignore py2 calls that fail as 'buffering` only exists in py2.
         return wrapped(*args, **kwargs)
 
-    xray_data = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP, None)
+    if not xray_data:
+        return wrapped(*args, **kwargs)
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
@@ -59,7 +62,9 @@ def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
 
 def http_send_request_processor(wrapped, instance, args, kwargs, return_value,
                                 exception, subsegment, stack):
-    xray_data = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP, None)
+    if not xray_data:
+        return
 
     # we don't delete the attr as we can have multiple reads
     subsegment.put_http_meta(http.METHOD, xray_data.method)
@@ -71,11 +76,23 @@ def http_send_request_processor(wrapped, instance, args, kwargs, return_value,
 
 def _send_request(wrapped, instance, args, kwargs):
     def decompose_args(method, url, body, headers, encode_chunked=False):
-        inject_trace_header(headers, xray_recorder.current_subsegment())
+        # skip httplib tracing for SDK built-in centralized sampling pollers
+        if (('/GetSamplingRules' in args or '/SamplingTargets' in args) and
+                type(instance).__name__ == 'botocore.awsrequest.AWSHTTPConnection'):
+            return wrapped(*args, **kwargs)
 
-        # we have to check against sock because urllib3's HTTPSConnection
-        # inherits from `http.client.HTTPConnection`.
-        scheme = 'https' if isinstance(instance.sock, ssl.SSLSocket) else 'http'
+        # Only injects headers when the subsegment for the outgoing
+        # calls are opened successfully.
+        subsegment = None
+        try:
+            subsegment = xray_recorder.current_subsegment()
+        except SegmentNotFoundException:
+            pass
+        if subsegment:
+            inject_trace_header(headers, subsegment)
+
+        ssl_cxt = getattr(instance, '_context', None)
+        scheme = 'https' if ssl_cxt and type(ssl_cxt).__name__ == 'SSLContext' else 'http'
         xray_url = '{}://{}{}'.format(scheme, instance.host, url)
         xray_data = _XRay_Data(method, instance.host, xray_url)
         setattr(instance, _XRAY_PROP, xray_data)
@@ -93,7 +110,9 @@ def _send_request(wrapped, instance, args, kwargs):
 
 def http_read_processor(wrapped, instance, args, kwargs, return_value,
                         exception, subsegment, stack):
-    xray_data = getattr(instance, _XRAY_PROP)
+    xray_data = getattr(instance, _XRAY_PROP, None)
+    if not xray_data:
+        return
 
     # we don't delete the attr as we can have multiple reads
     subsegment.put_http_meta(http.METHOD, xray_data.method)

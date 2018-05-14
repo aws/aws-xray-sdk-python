@@ -14,9 +14,11 @@ from .models.subsegment import Subsegment
 from .models.default_dynamic_naming import DefaultDynamicNaming
 from .models.dummy_entities import DummySegment, DummySubsegment
 from .emitters.udp_emitter import UDPEmitter
-from .sampling.default_sampler import DefaultSampler
+from .sampling.sampler import DefaultSampler
+from .sampling.local.sampler import LocalSampler
 from .streaming.default_streaming import DefaultStreaming
 from .context import Context
+from .daemon_config import DaemonConfig
 from .plugins.utils import get_plugin_modules
 from .lambda_launcher import check_in_lambda
 from .exceptions.exceptions import SegmentNameMissingException
@@ -59,11 +61,12 @@ class AWSXRayRecorder(object):
             # Special handling when running on AWS Lambda.
             self._context = context
             self.streaming_threshold = 0
+            self._sampler = LocalSampler()
         else:
             self._context = Context()
+            self._sampler = DefaultSampler()
 
         self._emitter = UDPEmitter()
-        self._sampler = DefaultSampler()
         self._sampling = True
         self._max_trace_back = 10
         self._plugins = None
@@ -72,12 +75,15 @@ class AWSXRayRecorder(object):
         self._aws_metadata = copy.deepcopy(XRAY_META)
         self._origin = None
 
+        if type(self.sampler).__name__ == 'DefaultSampler':
+            self.sampler.load_settings(DaemonConfig(), self.context)
+
     def configure(self, sampling=None, plugins=None,
                   context_missing=None, sampling_rules=None,
                   daemon_address=None, service=None,
                   context=None, emitter=None, streaming=None,
                   dynamic_naming=None, streaming_threshold=None,
-                  max_trace_back=None):
+                  max_trace_back=None, sampler=None):
         """Configure global X-Ray recorder.
 
         Configure needs to run before patching thrid party libraries
@@ -86,10 +92,16 @@ class AWSXRayRecorder(object):
         :param bool sampling: If sampling is enabled, every time the recorder
             creates a segment it decides whether to send this segment to
             the X-Ray daemon. This setting is not used if the recorder
-            is running in AWS Lambda.
-        :param sampling_rules: Pass a set of custom sampling rules.
+            is running in AWS Lambda. The recorder always respect the incoming
+            sampling decisions regardless of this setting.
+        :param sampling_rules: Pass a set of local custom sampling rules.
             Can be an absolute path of the sampling rule config json file
-            or a dictionary that defines those rules.
+            or a dictionary that defines those rules. This will also be the
+            fallback rules in case of centralized sampling opted-in while
+            the cetralized sampling rules are not available.
+        :param sampler: The sampler used to make sampling decisions. The SDK
+            provides two built-in samplers. One is centralized rules based and
+            the other is local rules based. The former is the default.
         :param tuple plugins: plugins that add extra metadata to each segment.
             Currently available plugins are EC2Plugin, ECS plugin and
             ElasticBeanstalkPlugin.
@@ -127,6 +139,8 @@ class AWSXRayRecorder(object):
         """
         if sampling is not None:
             self.sampling = sampling
+        if sampler:
+            self.sampler = sampler
         if service:
             self.service = os.getenv(TRACING_NAME_KEY, service)
         if sampling_rules:
@@ -160,6 +174,10 @@ class AWSXRayRecorder(object):
             self._aws_metadata = copy.deepcopy(XRAY_META)
             self._origin = None
 
+        if type(self.sampler).__name__ == 'DefaultSampler':
+            self.sampler.load_settings(DaemonConfig(daemon_address),
+                                       self.context, self._origin)
+
     def begin_segment(self, name=None, traceid=None,
                       parent_id=None, sampling=None):
         """
@@ -175,21 +193,26 @@ class AWSXRayRecorder(object):
         if not seg_name:
             raise SegmentNameMissingException("Segment name is required.")
 
-        # we respect sampling decision regardless of recorder configuration.
-        dummy = False
-        if sampling == 0:
-            dummy = True
-        elif sampling == 1:
-            dummy = False
-        elif self.sampling and not self._sampler.should_trace():
-            dummy = True
+        # Sampling decision is None if not sampled.
+        # In a sampled case it could be either a string or 1
+        # depending on if centralized or local sampling rule takes effect.
+        decision = True
 
-        if dummy:
+        # we respect the input sampling decision
+        # regardless of recorder configuration.
+        if sampling == 0:
+            decision = False
+        elif sampling:
+            decision = sampling
+        elif self.sampling:
+            decision = self._sampler.should_trace()
+
+        if not decision:
             segment = DummySegment(seg_name)
         else:
             segment = Segment(name=seg_name, traceid=traceid,
                               parent_id=parent_id)
-            self._populate_runtime_context(segment)
+            self._populate_runtime_context(segment, decision)
 
         self.context.put_segment(segment)
         return segment
@@ -397,12 +420,15 @@ class AWSXRayRecorder(object):
 
                 self.end_subsegment(end_time)
 
-    def _populate_runtime_context(self, segment):
+    def _populate_runtime_context(self, segment, sampling_decision):
         if self._origin:
             setattr(segment, 'origin', self._origin)
 
-        segment.set_aws(self._aws_metadata)
+        segment.set_aws(copy.deepcopy(self._aws_metadata))
         segment.set_service(SERVICE_INFO)
+
+        if isinstance(sampling_decision, string_types):
+            segment.set_rule_name(sampling_decision)
 
     def _send_segment(self):
         """
@@ -429,10 +455,10 @@ class AWSXRayRecorder(object):
             return
 
         if isinstance(sampling_rules, dict):
-            self.sampler = DefaultSampler(sampling_rules)
+            self.sampler.load_local_rules(sampling_rules)
         else:
             with open(sampling_rules) as f:
-                self.sampler = DefaultSampler(json.load(f))
+                self.sampler.load_local_rules(json.load(f))
 
     def _is_subsegment(self, entity):
 

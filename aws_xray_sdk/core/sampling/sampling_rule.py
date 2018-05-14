@@ -1,102 +1,151 @@
+import threading
+
 from .reservoir import Reservoir
-from ..utils.search_pattern import wildcard_match
-from ..exceptions.exceptions import InvalidSamplingManifestError
+from aws_xray_sdk.core.utils.search_pattern import wildcard_match
 
 
 class SamplingRule(object):
     """
-    One SamolingRule represents one rule defined from rule json file
-    or from a dictionary. It can be either a custom rule or default rule.
+    Data model for a single centralized sampling rule definition.
     """
-    FIXED_TARGET = 'fixed_target'
-    RATE = 'rate'
+    def __init__(self, name, priority, rate, reservoir_size,
+                 host=None, method=None, path=None, service=None,
+                 service_type=None):
+        self._name = name
+        self._priority = priority
+        self._rate = rate
+        self._can_borrow = not not reservoir_size
 
-    SERVICE_NAME = 'service_name'
-    METHOD = 'http_method'
-    PATH = 'url_path'
+        self._host = host
+        self._method = method
+        self._path = path
+        self._service = service
+        self._service_type = service_type
 
-    def __init__(self, rule_dict, default=False):
+        self._reservoir = Reservoir()
+        self._reset_statistics()
+
+        self._lock = threading.Lock()
+
+    def match(self, sampling_req):
         """
-        :param dict rule_dict: The dictionary that defines a single rule.
-        :param bool default: Indicates if this is the default rule. A default
-            rule cannot have `service_name`, `http_method` or `url_path`.
+        Determines whether or not this sampling rule applies to the incoming
+        request based on some of the request's parameters.
+        Any ``None`` parameter provided will be considered an implicit match.
         """
-        self._fixed_target = rule_dict.get(self.FIXED_TARGET, None)
-        self._rate = rule_dict.get(self.RATE, None)
+        if sampling_req is None:
+            return False
 
-        self._service_name = rule_dict.get(self.SERVICE_NAME, None)
-        self._method = rule_dict.get(self.METHOD, None)
-        self._path = rule_dict.get(self.PATH, None)
+        host = sampling_req.get('host', None)
+        method = sampling_req.get('method', None)
+        path = sampling_req.get('path', None)
+        service = sampling_req.get('service', None)
+        service_type = sampling_req.get('service_type', None)
 
-        self._default = default
+        return (not host or wildcard_match(self._host, host)) \
+            and (not method or wildcard_match(self._method, method)) \
+            and (not path or wildcard_match(self._path, path)) \
+            and (not service or wildcard_match(self._service, service)) \
+            and (not service_type or wildcard_match(self._service_type, service_type))
 
-        self._validate()
+    def is_default(self):
+        # ``Default`` is a reserved keyword on X-Ray back-end.
+        return self.name == 'Default'
 
-        self._reservoir = Reservoir(self.fixed_target)
-
-    def applies(self, service_name, method, path):
+    def snapshot_statistics(self):
         """
-        Determines whether or not this sampling rule applies to
-        the incoming request based on some of the request's parameters.
-        Any None parameters provided will be considered an implicit match.
+        Take a snapshot of request/borrow/sampled count for reporting
+        back to X-Ray back-end by ``TargetPoller`` and reset those counters.
         """
-        return (not service_name or wildcard_match(self.service_name, service_name)) \
-            and (not method or wildcard_match(self.service_name, method)) \
-            and (not path or wildcard_match(self.path, path))
+        with self._lock:
 
-    @property
-    def fixed_target(self):
+            stats = {
+                'request_count': self.request_count,
+                'borrow_count': self.borrow_count,
+                'sampled_count': self.sampled_count,
+            }
+
+            self._reset_statistics()
+            return stats
+
+    def merge(self, rule):
         """
-        Defines fixed number of sampled segments per second.
-        This doesn't count for sampling rate.
+        Migrate all stateful attributes from the old rule
         """
-        return self._fixed_target
+        with self._lock:
+            self._request_count = rule.request_count
+            self._borrow_count = rule.borrow_count
+            self._sampled_count = rule.sampled_count
+            self._reservoir = rule.reservoir
+            rule.reservoir = None
+
+    def ever_matched(self):
+        """
+        Returns ``True`` if this sample rule has ever been matched
+        with an incoming request within the reporting interval.
+        """
+        return self._request_count > 0
+
+    def time_to_report(self):
+        """
+        Returns ``True`` if it is time to report sampling statistics
+        of this rule to refresh quota information for its reservoir.
+        """
+        return self.reservoir._time_to_report()
+
+    def increment_request_count(self):
+        with self._lock:
+            self._request_count += 1
+
+    def increment_borrow_count(self):
+        with self._lock:
+            self._borrow_count += 1
+
+    def increment_sampled_count(self):
+        with self._lock:
+            self._sampled_count += 1
+
+    def _reset_statistics(self):
+        self._request_count = 0
+        self._borrow_count = 0
+        self._sampled_count = 0
 
     @property
     def rate(self):
-        """
-        A float number less than 1.0 defines the sampling rate.
-        """
         return self._rate
 
-    @property
-    def service_name(self):
-        """
-        The host name of the reqest to sample.
-        """
-        return self._service_name
+    @rate.setter
+    def rate(self, v):
+        self._rate = v
 
     @property
-    def method(self):
-        """
-        HTTP method of the request to sample.
-        """
-        return self._method
+    def name(self):
+        return self._name
 
     @property
-    def path(self):
-        """
-        The url path of the request to sample.
-        """
-        return self._path
+    def priority(self):
+        return self._priority
 
     @property
     def reservoir(self):
-        """
-        Keeps track of used sampled targets within the second.
-        """
         return self._reservoir
 
-    def _validate(self):
-        if self.fixed_target < 0 or self.rate < 0:
-            raise InvalidSamplingManifestError('All rules must have non-negative values for '
-                                               'fixed_target and rate')
+    @reservoir.setter
+    def reservoir(self, v):
+        self._reservoir = v
 
-        if self._default:
-            if self.service_name or self.method or self.path:
-                raise InvalidSamplingManifestError('The default rule must not specify values for '
-                                                   'url_path, service_name, or http_method')
-        else:
-            if not self.service_name or not self.method or not self.path:
-                raise InvalidSamplingManifestError('All non-default rules must have values for '
-                                                   'url_path, service_name, and http_method')
+    @property
+    def can_borrow(self):
+        return self._can_borrow
+
+    @property
+    def request_count(self):
+        return self._request_count
+
+    @property
+    def borrow_count(self):
+        return self._borrow_count
+
+    @property
+    def sampled_count(self):
+        return self._sampled_count

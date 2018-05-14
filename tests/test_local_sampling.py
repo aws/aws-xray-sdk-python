@@ -1,13 +1,13 @@
 import copy
 import pytest
 
-from aws_xray_sdk.core.sampling.sampling_rule import SamplingRule
-from aws_xray_sdk.core.sampling.default_sampler import DefaultSampler
+from aws_xray_sdk.core.sampling.local.sampling_rule import SamplingRule
+from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
 from aws_xray_sdk.core.exceptions.exceptions import InvalidSamplingManifestError
 
 
 RULE = {"description": "Player moves.",
-        "service_name": "*",
+        "host": "*",
         "http_method": "*",
         "url_path": "/api/move/*",
         "fixed_target": 0,
@@ -16,10 +16,10 @@ RULE = {"description": "Player moves.",
 
 
 RULE_MANIFEST = {
-    "version": 1,
+    "version": 2,
     "rules": [{
         "description": "Player moves.",
-        "service_name": "*",
+        "host": "*",
         "http_method": "*",
         "url_path": "/api/move/*",
         "fixed_target": 0,
@@ -34,9 +34,10 @@ RULE_MANIFEST = {
 
 def test_should_trace():
 
-    sampler = DefaultSampler(RULE_MANIFEST)
-    assert sampler.should_trace(None, 'GET', '/view')
-    assert not sampler.should_trace('name', 'method', '/api/move/left')
+    sampler = LocalSampler(RULE_MANIFEST)
+    assert sampler.should_trace({'method': 'GET', 'path': '/view'})
+    assert not sampler.should_trace({'host': 'name', 'method': 'method',
+                                    'path': '/api/move/left'})
 
 
 def test_missing_version_num():
@@ -44,7 +45,7 @@ def test_missing_version_num():
     rule = copy.deepcopy(RULE_MANIFEST)
     del rule['version']
     with pytest.raises(InvalidSamplingManifestError):
-        DefaultSampler(rule)
+        LocalSampler(rule)
 
 
 def test_path_matching():
@@ -76,7 +77,7 @@ def test_negative_fixed_target():
 def test_invalid_default():
 
     with pytest.raises(InvalidSamplingManifestError):
-        SamplingRule(RULE, default=True)
+        SamplingRule(RULE, 2, default=True)
 
 
 def test_incomplete_path_rule():

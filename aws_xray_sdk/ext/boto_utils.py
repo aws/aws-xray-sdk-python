@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 
 from aws_xray_sdk.ext.util import inject_trace_header, to_snake_case
 
@@ -16,8 +17,21 @@ with open(resource_filename(__name__, 'resources/aws_para_whitelist.json'), 'r')
 
 
 def inject_header(wrapped, instance, args, kwargs):
-    headers = args[0]
-    inject_trace_header(headers, xray_recorder.current_subsegment())
+    # skip tracing for SDK built-in centralized sampling pollers
+    url = args[0].url
+    if 'GetCentralizedSamplingRules' in url or 'SamplingTargets' in url:
+        return wrapped(*args, **kwargs)
+
+    headers = args[0].headers
+    # skip if the recorder is unable to open the subsegment
+    # for the outgoing request
+    subsegment = None
+    try:
+        subsegment = xray_recorder.current_subsegment()
+    except SegmentNotFoundException:
+        pass
+    if subsegment:
+        inject_trace_header(headers, subsegment)
     return wrapped(*args, **kwargs)
 
 
