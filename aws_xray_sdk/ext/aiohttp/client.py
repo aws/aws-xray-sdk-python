@@ -24,18 +24,30 @@ LOCAL_EXCEPTIONS = (
 async def begin_subsegment(session, trace_config_ctx, params):
     name = trace_config_ctx.name if trace_config_ctx.name else strip_url(str(params.url))
     subsegment = xray_recorder.begin_subsegment(name, REMOTE_NAMESPACE)
-    subsegment.put_http_meta(http.METHOD, params.method)
-    subsegment.put_http_meta(http.URL, params.url.human_repr())
-    inject_trace_header(params.headers, subsegment)
+
+    # No-op if subsegment is `None` due to `LOG_ERROR`.
+    if not subsegment:
+        trace_config_ctx.give_up = True
+    else:
+        trace_config_ctx.give_up = False
+        subsegment.put_http_meta(http.METHOD, params.method)
+        subsegment.put_http_meta(http.URL, params.url.human_repr())
+        inject_trace_header(params.headers, subsegment)
 
 
 async def end_subsegment(session, trace_config_ctx, params):
+    if trace_config_ctx.give_up:
+        return
+
     subsegment = xray_recorder.current_subsegment()
     subsegment.put_http_meta(http.STATUS, params.response.status)
     xray_recorder.end_subsegment()
 
 
 async def end_subsegment_with_exception(session, trace_config_ctx, params):
+    if trace_config_ctx.give_up:
+        return
+
     subsegment = xray_recorder.current_subsegment()
     subsegment.add_exception(
         params.exception,
@@ -54,10 +66,14 @@ def aws_xray_trace_config(name=None):
                  be used as identifier.
     :returns: TraceConfig.
     """
-    trace_config = aiohttp.TraceConfig(
-        trace_config_ctx_factory=lambda trace_request_ctx: SimpleNamespace(name=name,
-                                                                           trace_request_ctx=trace_request_ctx)
-    )
+
+    def _trace_config_ctx_factory(trace_request_ctx):
+        return SimpleNamespace(
+            name=name,
+            trace_request_ctx=trace_request_ctx
+        )
+
+    trace_config = aiohttp.TraceConfig(trace_config_ctx_factory=_trace_config_ctx_factory)
     trace_config.on_request_start.append(begin_subsegment)
     trace_config.on_request_end.append(end_subsegment)
     trace_config.on_request_exception.append(end_subsegment_with_exception)

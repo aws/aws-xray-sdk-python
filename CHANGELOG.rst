@@ -5,6 +5,7 @@ CHANGELOG
 unreleased
 ==========
 * feature: Added Sqlalchemy parameterized query capture. `PR34 <https://github.com/aws/aws-xray-sdk-python/pull/34>`_.
+* bugfix: Added new `raise_if_not_subsegment` parameter for Aiohttp Client tracing `PR58 <https://github.com/aws/aws-xray-sdk-python/pull/58>`_.
 
 1.0
 ===
