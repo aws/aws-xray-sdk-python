@@ -3,6 +3,7 @@ AioHttp Middleware
 """
 import traceback
 from aiohttp import web
+from aiohttp.web_exceptions import HTTPException
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
@@ -55,6 +56,9 @@ async def middleware(request, handler):
     try:
         # Call next middleware or request handler
         response = await handler(request)
+    except HTTPException as exc:
+        # None 2XX reponses are raised as HTTPExceptions
+        response = exc
     except Exception as err:
         # Store exception information including the stacktrace to the segment
         segment = xray_recorder.current_segment()
