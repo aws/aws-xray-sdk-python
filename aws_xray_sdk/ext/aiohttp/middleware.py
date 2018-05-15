@@ -57,7 +57,7 @@ async def middleware(request, handler):
         # Call next middleware or request handler
         response = await handler(request)
     except HTTPException as exc:
-        # None 2XX reponses are raised as HTTPExceptions
+        # Non 2XX responses are raised as HTTPExceptions
         response = exc
     except Exception as err:
         # Store exception information including the stacktrace to the segment
