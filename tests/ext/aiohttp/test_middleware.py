@@ -49,7 +49,12 @@ class ServerTest(object):
         """
         Handle / request
         """
-        return web.Response(text="ok")
+        if "content_length" in request.query:
+            headers = {'Content-Length': request.query['content_length']}
+        else:
+            headers = None
+
+        return web.Response(text="ok", headers=headers)
 
     async def handle_error(self, request: web.Request) -> web.Response:
         """
@@ -130,6 +135,41 @@ async def test_ok(test_client, loop, recorder):
     assert request['method'] == 'GET'
     assert request['url'] == 'http://127.0.0.1:{port}/'.format(port=client.port)
     assert response['status'] == 200
+
+
+async def test_ok_x_forwarded_for(test_client, loop, recorder):
+    """
+    Test a normal response with x_forwarded_for headers
+
+    :param test_client: AioHttp test client fixture
+    :param loop: Eventloop fixture
+    :param recorder: X-Ray recorder fixture
+    """
+    client = await test_client(ServerTest.app(loop=loop))
+
+    resp = await client.get('/', headers={'X-Forwarded-For': 'foo'})
+    assert resp.status == 200
+
+    segment = recorder.emitter.pop()
+    assert segment.http['request']['client_ip'] == 'foo'
+    assert segment.http['request']['x_forwarded_for']
+
+
+async def test_ok_content_length(test_client, loop, recorder):
+    """
+    Test a normal response with content length as response header
+
+    :param test_client: AioHttp test client fixture
+    :param loop: Eventloop fixture
+    :param recorder: X-Ray recorder fixture
+    """
+    client = await test_client(ServerTest.app(loop=loop))
+
+    resp = await client.get('/?content_length=100')
+    assert resp.status == 200
+
+    segment = recorder.emitter.pop()
+    assert segment.http['response']['content_length'] == 100
 
 
 async def test_error(test_client, loop, recorder):
