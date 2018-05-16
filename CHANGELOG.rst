@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+unreleased
+==========
+* bugfix: Handle Aiohttp Exceptions as valid responses `PR59 <https://github.com/aws/aws-xray-sdk-python/pull/59>`_.
+
 1.1
 ===
 * feature: Added Sqlalchemy parameterized query capture. `PR34 <https://github.com/aws/aws-xray-sdk-python/pull/34>`_
