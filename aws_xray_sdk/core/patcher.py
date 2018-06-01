@@ -6,6 +6,7 @@ log = logging.getLogger(__name__)
 SUPPORTED_MODULES = (
     'aiobotocore',
     'botocore',
+    'chalice',
     'pynamodb',
     'requests',
     'sqlite3',
