@@ -7,8 +7,8 @@ class XrayCommandListener(monitoring.CommandListener):
     A listener that traces all pymongo db commands to AWS Xray.
     Creates a subsegment for each mongo db conmmand.
 
-    name: 'pymongo'
-    annotations: command_name:str , database_name: str, succeed: bool
+    name: 'pymongo-127.0.0.1:27017'
+    annotations: command_name:str, database_name: str, succeed: bool
     """
 
     def started(self, event):
