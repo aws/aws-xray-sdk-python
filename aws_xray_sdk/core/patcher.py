@@ -11,6 +11,7 @@ SUPPORTED_MODULES = (
     'sqlite3',
     'mysql',
     'httplib',
+    'pymongo',
 )
 
 _PATCHED_MODULES = set()
