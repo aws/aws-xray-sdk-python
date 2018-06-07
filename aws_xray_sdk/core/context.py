@@ -32,9 +32,6 @@ class Context(object):
         self._context_missing = strategy
         self._root_entity = None
 
-    def set_root_entity(self, entity):
-        self._root_entity = weakref.ref(entity)
-
     def put_segment(self, segment):
         """
         Store the segment created by ``xray_recorder`` to the context.
@@ -118,6 +115,15 @@ class Context(object):
         clean up all trace entities created by the current thread.
         """
         self._local.__dict__.clear()
+
+    def set_root_trace_entity(self, trace_entity):
+        """
+        Sets the root entity to be used if there is no entity available in the
+        current thread.
+
+        :param trace_entity: root trace entity to use
+        """
+        self._root_entity = weakref.ref(trace_entity)
 
     def handle_context_missing(self):
         """
