@@ -2,9 +2,17 @@
 CHANGELOG
 =========
 
-unreleased
-==========
-* feature: Added Sqlalchemy parameterized query capture. `PR34 <https://github.com/aws/aws-xray-sdk-python/pull/34>`_.
+1.1.1
+=====
+* bugfix: Handle Aiohttp Exceptions as valid responses `PR59 <https://github.com/aws/aws-xray-sdk-python/pull/59>`_.
+
+1.1
+===
+* feature: Added Sqlalchemy parameterized query capture. `PR34 <https://github.com/aws/aws-xray-sdk-python/pull/34>`_
+* bugfix: Allow standalone sqlalchemy integrations without flask_sqlalchemy. `PR53 <https://github.com/aws/aws-xray-sdk-python/pull/53>`_
+* bugfix: Give up aiohttp client tracing when there is no open segment and LOG_ERROR is configured. `PR58 <https://github.com/aws/aws-xray-sdk-python/pull/58>`_
+* bugfix: Handle missing subsegment when rendering a Django template. `PR54 <https://github.com/aws/aws-xray-sdk-python/pull/54>`_
+* Typo fixes on comments and docs.
 
 1.0
 ===
