@@ -1,6 +1,7 @@
 import threading
 import logging
 import os
+import weakref
 
 from .exceptions.exceptions import SegmentNotFoundException
 
@@ -29,6 +30,7 @@ class Context(object):
         self._local = threading.local()
         strategy = os.getenv(CXT_MISSING_STRATEGY_KEY, context_missing)
         self._context_missing = strategy
+        self._root_entity = None
 
     def put_segment(self, segment):
         """
@@ -90,6 +92,11 @@ class Context(object):
         it behaves based on pre-defined ``context_missing`` strategy.
         """
         if not getattr(self._local, 'entities', None):
+            root_entity = self._root_entity() if self._root_entity else None
+            if root_entity:
+                self.set_trace_entity(root_entity)
+                return root_entity
+
             return self.handle_context_missing()
 
         return self._local.entities[-1]
@@ -109,6 +116,15 @@ class Context(object):
         """
         self._local.__dict__.clear()
 
+    def set_root_trace_entity(self, trace_entity):
+        """
+        Sets the root entity to be used if there is no entity available in the
+        current thread.
+
+        :param trace_entity: root trace entity to use
+        """
+        self._root_entity = weakref.ref(trace_entity)
+
     def handle_context_missing(self):
         """
         Called whenever there is no trace entity to access or mutate.
@@ -120,7 +136,6 @@ class Context(object):
             log.error(MISSING_SEGMENT_MSG)
 
     def _is_subsegment(self, entity):
-
         return hasattr(entity, 'type') and entity.type == 'subsegment'
 
     @property
