@@ -4,6 +4,7 @@ from django.test import TestCase
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
+from aws_xray_sdk.core.models import http
 
 
 class XRayTestCase(TestCase):
@@ -84,3 +85,20 @@ class XRayTestCase(TestCase):
         assert subsegment.name == 'index.html'
         assert not subsegment.in_progress
         assert subsegment.namespace == 'local'
+
+    def test_trace_header_data_perservation(self):
+        url = reverse('200ok')
+        self.client.get(url, HTTP_X_AMZN_TRACE_ID='k1=v1')
+        segment = xray_recorder.emitter.pop()
+        header = segment.get_origin_trace_header()
+
+        assert header.data['k1'] == 'v1'
+
+    def test_response_header(self):
+        url = reverse('200ok')
+        resp = self.client.get(url, HTTP_X_AMZN_TRACE_ID='Sampled=?')
+        segment = xray_recorder.emitter.pop()
+        trace_header = resp[http.XRAY_HEADER]
+
+        assert 'Sampled=1' in trace_header
+        assert segment.trace_id in trace_header

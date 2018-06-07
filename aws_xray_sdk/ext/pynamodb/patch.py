@@ -56,8 +56,8 @@ def pynamodb_meta_processor(wrapped, instance, args, kwargs, return_value,
 
     subsegment.put_http_meta(http.STATUS, return_value.status_code)
 
-    _extract_whitelisted_params(subsegment.name, operation_name,
-                                aws_meta, [None, json.loads(args[0].body)],
+    _extract_whitelisted_params(subsegment.name, operation_name, aws_meta,
+                                [None, json.loads(args[0].body.decode('utf-8'))],
                                 None, return_value.json())
 
     subsegment.set_aws(aws_meta)

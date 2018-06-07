@@ -3,7 +3,7 @@ from flask_sqlalchemy.model import Model
 from sqlalchemy.orm.session import sessionmaker
 from flask_sqlalchemy import SQLAlchemy, BaseQuery, _SessionSignalEvents, get_state
 from aws_xray_sdk.ext.sqlalchemy.query import XRaySession, XRayQuery
-from aws_xray_sdk.ext.sqlalchemy.util.decerators import xray_on_call, decorate_all_functions
+from aws_xray_sdk.ext.sqlalchemy.util.decorators import xray_on_call, decorate_all_functions
 
 
 @decorate_all_functions(xray_on_call)
@@ -12,17 +12,18 @@ class XRayBaseQuery(BaseQuery):
 
 
 class XRaySignallingSession(XRaySession):
-    """The signalling session is the default session that Flask-SQLAlchemy
-    uses.  It extends the default session system with bind selection and
+    """
+    .. versionadded:: 2.0
+    .. versionadded:: 2.1
+
+    The signalling session is the default session that Flask-SQLAlchemy
+    uses. It extends the default session system with bind selection and
     modification tracking.
     If you want to use a different session you can override the
     :meth:`SQLAlchemy.create_session` function.
-    .. versionadded:: 2.0
-    .. versionadded:: 2.1
-        The `binds` option was added, which allows a session to be joined
-        to an external transaction.
+    The `binds` option was added, which allows a session to be joined
+    to an external transaction.
     """
-
     def __init__(self, db, autocommit=False, autoflush=True, **options):
         #: The application that this session belongs to.
         self.app = app = db.get_app()

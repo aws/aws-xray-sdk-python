@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.ext\.mysql package
-==================================
+aws\_xray\_sdk.ext.mysql package
+================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.ext\.mysql\.patch module
-----------------------------------------
+aws\_xray\_sdk.ext.mysql.patch module
+-------------------------------------
 
 .. automodule:: aws_xray_sdk.ext.mysql.patch
     :members:

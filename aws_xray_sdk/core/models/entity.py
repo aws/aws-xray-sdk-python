@@ -14,8 +14,8 @@ from ..exceptions.exceptions import AlreadyEndedException
 
 log = logging.getLogger(__name__)
 
-# List of valid characters found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
-_valid_name_characters = string.ascii_letters + string.digits + '_.:/%&#=+\-@ '
+# Valid characters can be found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
+_common_invalid_name_characters = '?;*()!$~^<>'
 _valid_annotation_key_characters = string.ascii_letters + string.digits + '_'
 
 
@@ -24,18 +24,17 @@ class Entity(object):
     The parent class for segment/subsegment. It holds common properties
     and methods on segment and subsegment.
     """
-
     def __init__(self, name):
 
         # required attributes
         self.id = self._generate_random_id()
         self.name = name
-        self.name = ''.join([c for c in name if c in _valid_name_characters])
+        self.name = ''.join([c for c in name if c not in _common_invalid_name_characters])
         self.start_time = time.time()
         self.parent_id = None
 
         if self.name != name:
-            log.warning("Removing Segment/Subsugment Name invalid characters.")
+            log.warning("Removing Segment/Subsugment Name invalid characters from {}.".format(name))
 
         # sampling
         self.sampled = True
@@ -53,8 +52,6 @@ class Entity(object):
         # child subsegments
         # list is thread-safe
         self.subsegments = []
-
-        self.user = None
 
     def close(self, end_time=None):
         """
@@ -84,7 +81,6 @@ class Entity(object):
         """
         Remove input subsegment from child subsegments.
         """
-        self._check_ended()
         self.subsegments.remove(subsegment)
 
     def put_http_meta(self, key, value):
@@ -182,15 +178,6 @@ class Entity(object):
         self._check_ended()
         self.aws = aws_meta
 
-    def set_user(self, user):
-        """
-        set user of an segment or subsegment.
-        one segment or subsegment can only hold one user.
-        User is indexed and can be later queried.
-        """
-        self._check_ended()
-        self.user = user
-
     def add_throttle_flag(self):
         self.throttle = True
 
@@ -271,8 +258,6 @@ class Entity(object):
             del properties['annotations']
         if not self.metadata:
             del properties['metadata']
-        if not self.user:
-            del properties['user']
 
         del properties['sampled']
 

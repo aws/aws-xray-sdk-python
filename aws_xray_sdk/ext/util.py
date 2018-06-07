@@ -23,10 +23,17 @@ def inject_trace_header(headers, entity):
     if not entity:
         return
 
+    if hasattr(entity, 'type') and entity.type == 'subsegment':
+        header = entity.parent_segment.get_origin_trace_header()
+    else:
+        header = entity.get_origin_trace_header()
+    data = header.data if header else None
+
     to_insert = TraceHeader(
         root=entity.trace_id,
         parent=entity.id,
         sampled=entity.sampled,
+        data=data,
     )
 
     value = to_insert.to_header_str()
@@ -44,7 +51,7 @@ def calculate_sampling_decision(trace_header, recorder,
     in the recorder. If not enbaled it returns 1. Otherwise it uses
     sampling rule to decide.
     """
-    if trace_header.sampled is not None:
+    if trace_header.sampled is not None and trace_header.sampled != '?':
         return trace_header.sampled
     elif not recorder.sampling:
         return 1
@@ -82,6 +89,20 @@ def calculate_segment_name(host_name, recorder):
         return recorder.dynamic_naming.get_name(host_name)
     else:
         return recorder.service
+
+
+def prepare_response_header(origin_header, segment):
+    """
+    Prepare a trace header to be inserted into response
+    based on original header and the request segment.
+    """
+    if origin_header and origin_header.sampled == '?':
+        new_header = TraceHeader(root=segment.trace_id,
+                                 sampled=segment.sampled)
+    else:
+        new_header = TraceHeader(root=segment.trace_id)
+
+    return new_header.to_header_str()
 
 
 def to_snake_case(name):

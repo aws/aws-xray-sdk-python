@@ -46,6 +46,12 @@ class DummySegment(Segment):
         """
         pass
 
+    def set_service(self, service_info):
+        """
+        No-op
+        """
+        pass
+
     def apply_status_code(self, status_code):
         """
         No-op
@@ -102,12 +108,6 @@ class DummySubsegment(Subsegment):
         pass
 
     def set_sql(self, sql):
-        """
-        No-op
-        """
-        pass
-
-    def set_user(self, user):
         """
         No-op
         """

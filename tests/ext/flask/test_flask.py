@@ -3,6 +3,7 @@ from flask import Flask, render_template_string
 
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from aws_xray_sdk.core.context import Context
+from aws_xray_sdk.core.models import http
 from tests.util import get_new_stubbed_recorder
 
 
@@ -112,3 +113,33 @@ def test_render_template():
     assert subsegment.name
     assert subsegment.namespace == 'local'
     assert not subsegment.in_progress
+
+
+def test_incoming_sampling_decision_respected():
+    path = '/ok'
+    resp = app.get(path, headers={http.XRAY_HEADER: 'Sampled=0'})
+    resp_header = resp.headers[http.XRAY_HEADER]
+    segment = recorder.emitter.pop()
+
+    assert not segment
+    # The SDK should still send the headers back regardless of sampling decision
+    assert 'Root' in resp_header
+
+
+def test_trace_header_data_perservation():
+    path = '/ok'
+    app.get(path, headers={http.XRAY_HEADER: 'k1=v1'})
+    segment = recorder.emitter.pop()
+    header = segment.get_origin_trace_header()
+
+    assert header.data['k1'] == 'v1'
+
+
+def test_sampled_response_header():
+    path = '/ok'
+    resp = app.get(path, headers={http.XRAY_HEADER: 'Sampled=?;k1=v1'})
+    segment = recorder.emitter.pop()
+
+    resp_header = resp.headers[http.XRAY_HEADER]
+    assert segment.trace_id in resp_header
+    assert 'Sampled=1' in resp_header

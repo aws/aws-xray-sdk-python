@@ -20,7 +20,7 @@ a segment.
 To get the current segment and add annotations or metadata as needed,
 use the following statement in your application code when processing request::
 
-    segment = xray_recorder.current_segement()
+    segment = xray_recorder.current_segment()
 
 For more configurations in your Django ``settings.py`` file,
 add the following line::
@@ -45,6 +45,7 @@ The default values are as follows::
         'SAMPLING_RULES': None,
         'AWS_XRAY_TRACING_NAME': None, # the segment name for segments generated from incoming requests
         'DYNAMIC_NAMING': None, # defines a pattern that host names should match
+        'STREAMING_THRESHOLD': None, # defines when a segment starts to stream out its children subsegments
     }
 
 Environment variables have higher precedence over user settings.
@@ -83,8 +84,11 @@ To generate segment based on incoming requests, you need to instantiate the X-Ra
 Flask built-in template rendering will be wrapped into subsegments.
 You can configure the recorder, see :ref:`Configure Global Recorder <configurations>` for more details.
 
-aiohttp Server
-==============
+Aiohttp
+=======
+
+Server
+------
 
 For X-Ray to create a segment based on an incoming request, you need register some middleware with aiohttp. As aiohttp
 is an asyncronous framework, X-Ray will also need to be configured with an ``AsyncContext`` compared to the default threaded
@@ -114,3 +118,17 @@ version.::
 There are two things to note from the example above. Firstly a middleware corountine from aws-xray-sdk is provided during the creation
 of an aiohttp server app. Lastly the ``xray_recorder`` has also been configured with a name and an ``AsyncContext``. See
 :ref:`Configure Global Recorder <configurations>` for more information about configuring the ``xray_recorder``.
+
+Client
+------
+
+Since 3.0.0 Aiohttp provides a generic object that allows third packages to gather the different events ocurred during an HTTP call, X-Ray
+can be configured to track these requests as subsegments using the `aws_xray_trace_config` function. This will return a valid `TraceConfig` ready to be installed
+in any `aiohttp.ClientSession`. The following example shows how it can be used.::
+
+    from aws_xray_sdk.ext.aiohttp.client import aws_xray_trace_config
+
+    trace_config = aws_xray_trace_config()
+    async with ClientSession(loop=loop, trace_configs=[trace_config]) as session:
+        async with session.get(url) as resp
+            await resp.read()

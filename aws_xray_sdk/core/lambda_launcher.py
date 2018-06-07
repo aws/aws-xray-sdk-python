@@ -72,6 +72,7 @@ class LambdaContext(Context):
 
         if not self._is_subsegment(current_entity) and current_entity.initializing:
             log.warning("Subsegment %s discarded due to Lambda worker still initializing" % subsegment.name)
+            return
 
         current_entity.add_subsegment(subsegment)
         self._local.entities.append(subsegment)

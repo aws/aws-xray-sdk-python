@@ -2,13 +2,52 @@
 CHANGELOG
 =========
 
-Unreleased
-==========
+1.1.1
+=====
+* bugfix: Handle Aiohttp Exceptions as valid responses `PR59 <https://github.com/aws/aws-xray-sdk-python/pull/59>`_.
+
+1.1
+===
+* feature: Added Sqlalchemy parameterized query capture. `PR34 <https://github.com/aws/aws-xray-sdk-python/pull/34>`_
+* bugfix: Allow standalone sqlalchemy integrations without flask_sqlalchemy. `PR53 <https://github.com/aws/aws-xray-sdk-python/pull/53>`_
+* bugfix: Give up aiohttp client tracing when there is no open segment and LOG_ERROR is configured. `PR58 <https://github.com/aws/aws-xray-sdk-python/pull/58>`_
+* bugfix: Handle missing subsegment when rendering a Django template. `PR54 <https://github.com/aws/aws-xray-sdk-python/pull/54>`_
+* Typo fixes on comments and docs.
+
+1.0
+===
+* Changed development status to `5 - Production/Stable` and removed beta tag.
+* feature: Added S3 API parameters to the default whitelist.
+* feature: Added new recorder APIs to add annotations/metadata.
+* feature: The recorder now adds more runtime and version information to sampled segments.
+* feature: Django, Flask and Aiohttp middleware now inject trace header to response headers.
+* feature: Added a new API to configure maximum captured stack trace.
+* feature: Modularized subsegments streaming logic and now it can be overriden with custom implementation.
+* bugfix(**Breaking**): Subsegment `set_user` API is removed since this attribute is not supported by X-Ray back-end.
+* bugfix: Fixed an issue where arbitrary fields in trace header being dropped when calling downstream.
+* bugfix: Fixed a compatibility issue between botocore and httplib patcher. `ISSUE48 <https://github.com/aws/aws-xray-sdk-python/issues/48>`_.
+* bugfix: Fixed a typo in sqlalchemy decorators. `PR50 <https://github.com/aws/aws-xray-sdk-python/pull/50>`_.
+* Updated `README` with more usage examples. 
+
+0.97
+====
+* feature: Support aiohttp client tracing for aiohttp 3.x. `PR42 <https://github.com/aws/aws-xray-sdk-python/pull/42>`_.
+* feature: Use the official middleware pattern for Aiohttp ext. `PR29 <https://github.com/aws/aws-xray-sdk-python/pull/29>`_.
+* bugfix: Aiohttp middleware serialized URL values incorrectly. `PR37 <https://github.com/aws/aws-xray-sdk-python/pull/37>`_
+* bugfix: Don't overwrite plugins list on each `.configure` call. `PR38 <https://github.com/aws/aws-xray-sdk-python/pull/38>`_
+* bugfix: Do not swallow `return_value` when context is missing and `LOG_ERROR` is set. `PR44 <https://github.com/aws/aws-xray-sdk-python/pull/44>`_
+* bugfix: Loose entity name validation. `ISSUE36 <https://github.com/aws/aws-xray-sdk-python/issues/36>`_
+* bugfix: Fix PyPI project page being rendered incorrectly. `ISSUE30 <https://github.com/aws/aws-xray-sdk-python/issues/30>`_
+
+0.96
+====
 * feature: Add support for SQLAlchemy and Flask-SQLAlcemy. `PR14 <https://github.com/aws/aws-xray-sdk-python/pull/14>`_.
 * feature: Add support for PynamoDB calls to DynamoDB. `PR13 <https://github.com/aws/aws-xray-sdk-python/pull/13>`_.
-* feature: Add support for httplib calls `PR19 <https://github.com/aws/aws-xray-sdk-python/pull/19>`_.
+* feature: Add support for httplib calls. `PR19 <https://github.com/aws/aws-xray-sdk-python/pull/19>`_.
+* feature: Make streaming threshold configurable through public interface. `ISSUE21 <https://github.com/aws/aws-xray-sdk-python/issues/21>`_.
 * bugfix:  Drop invalid annotation keys and log a warning. `PR22 <https://github.com/aws/aws-xray-sdk-python/pull/22>`_.
 * bugfix:  Respect `with` statement on cursor objects in dbapi2 patcher. `PR17 <https://github.com/aws/aws-xray-sdk-python/pull/17>`_.
+* bugfix:  Don't throw error from built in subsegment capture when `LOG_ERROR` is set. `ISSUE4 <https://github.com/aws/aws-xray-sdk-python/issues/4>`_.
 
 0.95
 ====

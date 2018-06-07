@@ -5,6 +5,8 @@ from .traceid import TraceId
 from ..utils.atomic_counter import AtomicCounter
 from ..exceptions.exceptions import SegmentNameMissingException
 
+ORIGIN_TRACE_HEADER_ATTR_KEY = '_origin_trace_header'
+
 
 class Segment(Entity):
     """
@@ -39,6 +41,7 @@ class Segment(Entity):
 
         self.in_progress = True
         self.sampled = sampled
+        self.user = None
         self.ref_counter = AtomicCounter()
         self._subsegments_counter = AtomicCounter()
 
@@ -95,13 +98,44 @@ class Segment(Entity):
         super(Segment, self).remove_subsegment(subsegment)
         self.decrement_subsegments_size()
 
+    def set_user(self, user):
+        """
+        set user of a segment. One segment can only have one user.
+        User is indexed and can be later queried.
+        """
+        super(Segment, self)._check_ended()
+        self.user = user
+
+    def set_service(self, service_info):
+        """
+        Add python runtime and version info.
+        This method should be only used by the recorder.
+        """
+        self.service = service_info
+
+    def save_origin_trace_header(self, trace_header):
+        """
+        Temporarily store additional data fields in trace header
+        to the segment for later propagation. The data will be
+        cleaned up upon serilaization.
+        """
+        setattr(self, ORIGIN_TRACE_HEADER_ATTR_KEY, trace_header)
+
+    def get_origin_trace_header(self):
+        """
+        Retrieve saved trace header data.
+        """
+        return getattr(self, ORIGIN_TRACE_HEADER_ATTR_KEY, None)
+
     def __getstate__(self):
         """
         Used by jsonpikle to remove unwanted fields.
         """
         properties = copy.copy(self.__dict__)
         super(Segment, self)._delete_empty_properties(properties)
-
+        if not self.user:
+            del properties['user']
         del properties['ref_counter']
         del properties['_subsegments_counter']
+        properties.pop(ORIGIN_TRACE_HEADER_ATTR_KEY, None)
         return properties

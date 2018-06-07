@@ -1,9 +1,9 @@
 import re
 from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.ext.util import strip_url
 from future.standard_library import install_aliases
 install_aliases()
 from urllib.parse import urlparse, uses_netloc
-
 
 
 def decorate_all_functions(function_decorator):
@@ -21,10 +21,16 @@ def decorate_all_functions(function_decorator):
         return cls
     return decorator
 
+
 def xray_on_call(cls, func):
     def wrapper(*args, **kw):
         from ..query import XRayQuery, XRaySession
-        from ...flask_sqlalchemy.query import XRaySignallingSession
+        try:
+            from ...flask_sqlalchemy.query import XRaySignallingSession
+            has_sql_alchemy = True
+        except ImportError:
+            has_sql_alchemy = False
+
         class_name = str(cls.__module__)
         c = xray_recorder._context
         sql = None
@@ -33,26 +39,27 @@ def xray_on_call(cls, func):
             for arg in args:
                 if isinstance(arg, XRaySession):
                     sql = parse_bind(arg.bind)
-                if isinstance(arg, XRaySignallingSession):
+                if has_sql_alchemy and isinstance(arg, XRaySignallingSession):
                     sql = parse_bind(arg.bind)
         if class_name == 'sqlalchemy.orm.query':
             for arg in args:
                 if isinstance(arg, XRayQuery):
                     try:
                         sql = parse_bind(arg.session.bind)
-                        # Commented our for later PR
-                        # sql['sanitized_query'] = str(arg)
-                    except:
+                        sql['sanitized_query'] = str(arg)
+                    except Exception:
                         sql = None
         if sql is not None:
             if getattr(c._local, 'entities', None) is not None:
-                subsegment = xray_recorder.begin_subsegment(sql['url'], namespace='remote')
+                # Strip URL of ? and following text
+                sub_name = strip_url(sql['url'])
+                subsegment = xray_recorder.begin_subsegment(sub_name, namespace='remote')
             else:
                 subsegment = None
         res = func(*args, **kw)
         if subsegment is not None:
             subsegment.set_sql(sql)
-            subsegment.put_annotation("sqlalchemy", class_name+'.'+func.__name__ );
+            subsegment.put_annotation("sqlalchemy", class_name+'.'+func.__name__)
             xray_recorder.end_subsegment()
         return res
     return wrapper

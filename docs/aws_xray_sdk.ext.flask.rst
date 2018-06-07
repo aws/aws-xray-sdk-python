@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.ext\.flask package
-==================================
+aws\_xray\_sdk.ext.flask package
+================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.ext\.flask\.middleware module
----------------------------------------------
+aws\_xray\_sdk.ext.flask.middleware module
+------------------------------------------
 
 .. automodule:: aws_xray_sdk.ext.flask.middleware
     :members:

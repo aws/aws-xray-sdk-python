@@ -1,11 +1,11 @@
-aws\_xray\_sdk\.ext\.botocore package
-=====================================
+aws\_xray\_sdk.ext.botocore package
+===================================
 
 Submodules
 ----------
 
-aws\_xray\_sdk\.ext\.botocore\.patch module
--------------------------------------------
+aws\_xray\_sdk.ext.botocore.patch module
+----------------------------------------
 
 .. automodule:: aws_xray_sdk.ext.botocore.patch
     :members:
