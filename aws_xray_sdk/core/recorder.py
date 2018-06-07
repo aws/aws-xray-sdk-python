@@ -77,7 +77,7 @@ class AWSXRayRecorder(object):
                   daemon_address=None, service=None,
                   context=None, emitter=None, streaming=None,
                   dynamic_naming=None, streaming_threshold=None,
-                  max_trace_back=None):
+                  max_trace_back=None, enabled=True):
         """Configure global X-Ray recorder.
 
         Configure needs to run before patching thrid party libraries
@@ -120,7 +120,7 @@ class AWSXRayRecorder(object):
             maximum number of subsegments within a segment.
         :param int max_trace_back: The maxinum number of stack traces recorded
             by auto-capture. Lower this if a single document becomes too large.
-
+        :param bool enabled: Set to False to disable tracing
         Environment variables AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
         and AWS_XRAY_TRACING_NAME respectively overrides arguments
         daemon_address, context_missing and service.
@@ -129,7 +129,7 @@ class AWSXRayRecorder(object):
             self.sampling = sampling
         if service:
             self.service = os.getenv(TRACING_NAME_KEY, service)
-        if sampling_rules:
+        if sampling_rules and enabled:
             self._load_sampling_rules(sampling_rules)
         if emitter:
             self.emitter = emitter
@@ -160,6 +160,19 @@ class AWSXRayRecorder(object):
             self._aws_metadata = copy.deepcopy(XRAY_META)
             self._origin = None
 
+        if not enabled:
+            disabled_rule = {
+                "version": 1,
+                "default": {
+                    "fixed_target": 0,
+                    "rate": 0
+                },
+                "rules": [
+                ]
+            }
+
+            self._load_sampling_rules(disabled_rule)
+
     def begin_segment(self, name=None, traceid=None,
                       parent_id=None, sampling=None):
         """
@@ -169,6 +182,7 @@ class AWSXRayRecorder(object):
 
         :param str name: the name of the segment
         :param str traceid: trace id of the segment
+        :param str parent_id: parent id of the segment
         :param int sampling: 0 means not sampled, 1 means sampled
         """
         seg_name = name or self.service
