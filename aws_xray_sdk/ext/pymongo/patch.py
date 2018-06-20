@@ -1,3 +1,4 @@
+# Copyright © 2018 Clarity Movement Co. All rights reserved.
 from pymongo import monitoring
 from aws_xray_sdk.core import xray_recorder
 
