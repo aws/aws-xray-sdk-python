@@ -42,22 +42,24 @@ def pynamodb_meta_processor(wrapped, instance, args, kwargs, return_value,
                             exception, subsegment, stack):
     operation_name = args[0].headers['X-Amz-Target'].decode('utf-8').split('.')[1]
     region = args[0].url.split('.')[1]
-    request_id = return_value.headers.get('x-amzn-RequestId')
 
     aws_meta = {
         'operation': operation_name,
-        'request_id': request_id,
         'region': region
     }
+
+    # in case of client timeout the return value will be empty
+    if return_value is not None:
+        aws_meta['request_id'] = return_value.headers.get('x-amzn-RequestId')
+        subsegment.put_http_meta(http.STATUS, return_value.status_code)
 
     if exception:
         subsegment.add_error_flag()
         subsegment.add_exception(exception, stack, True)
 
-    subsegment.put_http_meta(http.STATUS, return_value.status_code)
-
+    resp = return_value.json() if return_value else None
     _extract_whitelisted_params(subsegment.name, operation_name, aws_meta,
                                 [None, json.loads(args[0].body.decode('utf-8'))],
-                                None, return_value.json())
+                                None, resp)
 
     subsegment.set_aws(aws_meta)
