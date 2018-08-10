@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+1.1.2
+=====
+* bugfix: Fixed an issue on PynamoDB patcher where the capture didn't handle client timeout.
+
 1.1.1
 =====
 * bugfix: Handle Aiohttp Exceptions as valid responses `PR59 <https://github.com/aws/aws-xray-sdk-python/pull/59>`_.
