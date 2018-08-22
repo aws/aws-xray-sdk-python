@@ -21,7 +21,12 @@ class User(Base):
 
 
 @pytest.fixture()
-def session():
+def engine():
+    return create_engine('sqlite:///:memory:')
+
+
+@pytest.fixture()
+def session(engine):
     """Test Fixture to Create DataBase Tables and start a trace segment"""
     engine = create_engine('sqlite:///:memory:')
     xray_recorder.configure(service='test', sampling=False, context=Context())
@@ -35,6 +40,21 @@ def session():
     xray_recorder.clear_trace_entities()
 
 
+@pytest.fixture()
+def connection(engine):
+    conn = engine.connect()
+    xray_recorder.configure(service='test', sampling=False, context=Context())
+    xray_recorder.clear_trace_entities()
+    xray_recorder.begin_segment('SQLAlchemyTest')
+    Session = XRaySessionMaker(bind=conn)
+    Base.metadata.create_all(engine)
+    session = Session()
+    yield session
+    xray_recorder.end_segment()
+    xray_recorder.clear_trace_entities()
+
+
+
 def test_all(capsys, session):
     """ Test calling all() on get all records.
     Verify we run the query and return the SQL as metdata"""
@@ -44,6 +64,14 @@ def test_all(capsys, session):
     assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.all'
     assert subsegment['sql']['sanitized_query']
     assert subsegment['sql']['url']
+
+
+def test_supports_connection(capsys, connection):
+    """ Test that XRaySessionMaker supports connection as well as engine"""
+    connection.query(User).all()
+    subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy',
+                                               'sqlalchemy.orm.query.all')
+    assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.all'
 
 
 def test_add(capsys, session):

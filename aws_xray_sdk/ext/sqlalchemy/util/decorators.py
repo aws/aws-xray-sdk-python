@@ -4,6 +4,7 @@ from aws_xray_sdk.ext.util import strip_url
 from future.standard_library import install_aliases
 install_aliases()
 from urllib.parse import urlparse, uses_netloc
+from sqlalchemy.engine.base import Connection
 
 
 def decorate_all_functions(function_decorator):
@@ -86,7 +87,11 @@ def xray_on_call(cls, func):
 #   }
 def parse_bind(bind):
     """Parses a connection string and creates SQL trace metadata"""
-    m = re.match(r"Engine\((.*?)\)", str(bind))
+    if isinstance(bind, Connection):
+        engine = bind.engine
+    else:
+        engine = bind
+    m = re.match(r"Engine\((.*?)\)", str(engine))
     if m is not None:
         u = urlparse(m.group(1))
         # Add Scheme to uses_netloc or // will be missing from url.
