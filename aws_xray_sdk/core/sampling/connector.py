@@ -142,5 +142,6 @@ class ServiceConnector(object):
         session = botocore.session.get_session()
         url = 'http://%s:%s' % (ip, port)
         return session.create_client('xray', endpoint_url=url,
+                                     region_name='us-west-2',
                                      config=Config(signature_version=UNSIGNED)
                                      )
