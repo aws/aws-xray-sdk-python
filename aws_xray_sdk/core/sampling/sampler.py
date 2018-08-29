@@ -43,7 +43,7 @@ class DefaultSampler(object):
                 self._target_poller.start()
                 self._started = True
 
-    def should_trace(self, sampling_req):
+    def should_trace(self, sampling_req=None):
         """
         Return the matched sampling rule name if the sampler finds one
         and decide to sample. If no sampling rule matched, it falls back
