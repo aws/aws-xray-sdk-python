@@ -41,28 +41,22 @@ def inject_trace_header(headers, entity):
     headers[http.XRAY_HEADER] = value
 
 
-def calculate_sampling_decision(trace_header, recorder,
-                                service_name, method, path):
+def calculate_sampling_decision(trace_header, recorder, sampling_req):
     """
-    Return 1 if should sample and 0 if should not.
+    Return 1 or the matched rule name if should sample and 0 if should not.
     The sampling decision coming from ``trace_header`` always has
     the highest precedence. If the ``trace_header`` doesn't contain
     sampling decision then it checks if sampling is enabled or not
-    in the recorder. If not enbaled it returns 1. Otherwise it uses
-    sampling rule to decide.
+    in the recorder. If not enbaled it returns 1. Otherwise it uses user
+    defined sampling rules to decide.
     """
     if trace_header.sampled is not None and trace_header.sampled != '?':
         return trace_header.sampled
     elif not recorder.sampling:
         return 1
-    elif recorder.sampler.should_trace(
-        service_name=service_name,
-        method=method,
-        path=path,
-    ):
-        return 1
     else:
-        return 0
+        decision = recorder.sampler.should_trace(sampling_req)
+    return decision if decision else 0
 
 
 def construct_xray_header(headers):

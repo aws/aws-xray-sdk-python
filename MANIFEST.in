@@ -1,4 +1,4 @@
 include aws_xray_sdk/ext/resources/*.json
-include aws_xray_sdk/core/sampling/*.json
+include aws_xray_sdk/core/sampling/local/*.json
 include README.md
 include LICENSE

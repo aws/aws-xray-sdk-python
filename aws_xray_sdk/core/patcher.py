@@ -4,9 +4,7 @@ import importlib
 log = logging.getLogger(__name__)
 
 SUPPORTED_MODULES = (
-    'aiobotocore',
     'botocore',
-    'pynamodb',
     'requests',
     'sqlite3',
     'mysql',
@@ -15,11 +13,22 @@ SUPPORTED_MODULES = (
     'psycopg2'
 )
 
+NO_DOUBLE_PATCH = (
+    'botocore',
+    'requests',
+    'sqlite3',
+    'mysql',
+    'pymongo',
+)
+
 _PATCHED_MODULES = set()
 
 
-def patch_all():
-    patch(SUPPORTED_MODULES, raise_errors=False)
+def patch_all(double_patch=False):
+    if double_patch:
+        patch(SUPPORTED_MODULES, raise_errors=False)
+    else:
+        patch(NO_DOUBLE_PATCH, raise_errors=False)
 
 
 def patch(modules_to_patch, raise_errors=True):
@@ -29,12 +38,12 @@ def patch(modules_to_patch, raise_errors=True):
         if module_to_patch == 'boto3':
             modules.add('botocore')
         # aioboto3 depends on aiobotocore and patching aiobotocore is sufficient
-        elif module_to_patch == 'aioboto3':
-            modules.add('aiobotocore')
+        # elif module_to_patch == 'aioboto3':
+        #     modules.add('aiobotocore')
         # pynamodb requires botocore to be patched as well
-        elif module_to_patch == 'pynamodb':
-            modules.add('botocore')
-            modules.add(module_to_patch)
+        # elif module_to_patch == 'pynamodb':
+        #     modules.add('botocore')
+        #     modules.add(module_to_patch)
         else:
             modules.add(module_to_patch)
     unsupported_modules = modules - set(SUPPORTED_MODULES)

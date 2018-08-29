@@ -1,33 +1,34 @@
-import os
 import json
 from random import Random
 
 from pkg_resources import resource_filename
 from .sampling_rule import SamplingRule
-from ..exceptions.exceptions import InvalidSamplingManifestError
+from ...exceptions.exceptions import InvalidSamplingManifestError
 
 
-with open(resource_filename(__name__, 'default_sampling_rule.json')) as f:
-    default_sampling_rule = json.load(f)
+with open(resource_filename(__name__, 'sampling_rule.json')) as f:
+    local_sampling_rule = json.load(f)
+
+SUPPORTED_RULE_VERSION = (1, 2)
 
 
-class DefaultSampler(object):
+class LocalSampler(object):
     """
-    The default sampler that holds either custom sampling rules
-    or default sampling rules. Every time before the X-Ray recorder
-    generates a segment, it calculates if this segment is sampled
-    or not.
+    The local sampler that holds either custom sampling rules
+    or default sampling rules defined locally. The X-Ray recorder
+    use it to calculate if this segment should be sampled or not
+    when local rules are neccessary.
     """
-    def __init__(self, rules=default_sampling_rule):
+    def __init__(self, rules=local_sampling_rule):
         """
         :param dict rules: a dict that defines custom sampling rules.
         An example configuration:
         {
-            "version": 1,
+            "version": 2,
             "rules": [
                 {
                     "description": "Player moves.",
-                    "service_name": "*",
+                    "host": "*",
                     "http_method": "*",
                     "url_path": "/api/move/*",
                     "fixed_target": 0,
@@ -46,24 +47,10 @@ class DefaultSampler(object):
         The SDK applies custom rules in the order in which they are defined.
         If a request matches multiple custom rules, the SDK applies only the first rule.
         """
-        version = rules.get('version', None)
-        if version != 1:
-            raise InvalidSamplingManifestError('Manifest version: %s is not supported.', version)
-
-        if 'default' not in rules:
-            raise InvalidSamplingManifestError('A default rule must be provided.')
-
-        self._default_rule = SamplingRule(rule_dict=rules['default'],
-                                          default=True)
-
-        self._rules = []
-        if 'rules' in rules:
-            for rule in rules['rules']:
-                self._rules.append(SamplingRule(rule))
-
+        self.load_local_rules(rules)
         self._random = Random()
 
-    def should_trace(self, service_name=None, method=None, path=None):
+    def should_trace(self, sampling_req):
         """
         Return True if the sampler decide to sample based on input
         information and sampling rules. It will first check if any
@@ -73,12 +60,35 @@ class DefaultSampler(object):
         All optional arugments are extracted from incoming requests by
         X-Ray middleware to perform path based sampling.
         """
-        if service_name and method and path:
-            for rule in self._rules:
-                if rule.applies(service_name, method, path):
-                    return self._should_trace(rule)
+        if sampling_req is None:
+            return self._should_trace(self._default_rule)
+
+        host = sampling_req.get('host', None)
+        method = sampling_req.get('method', None)
+        path = sampling_req.get('path', None)
+
+        for rule in self._rules:
+            if rule.applies(host, method, path):
+                return self._should_trace(rule)
 
         return self._should_trace(self._default_rule)
+
+    def load_local_rules(self, rules):
+        version = rules.get('version', None)
+        if version not in SUPPORTED_RULE_VERSION:
+            raise InvalidSamplingManifestError('Manifest version: %s is not supported.', version)
+
+        if 'default' not in rules:
+            raise InvalidSamplingManifestError('A default rule must be provided.')
+
+        self._default_rule = SamplingRule(rule_dict=rules['default'],
+                                          version=version,
+                                          default=True)
+
+        self._rules = []
+        if 'rules' in rules:
+            for rule in rules['rules']:
+                self._rules.append(SamplingRule(rule, version))
 
     def _should_trace(self, sampling_rule):
 

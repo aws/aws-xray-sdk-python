@@ -2,6 +2,24 @@
 CHANGELOG
 =========
 
+2.0.1
+=====
+* bugfix: Fixed a issue where manually `begin_segment` might break when making sampling decisions. `PR82 <https://github.com/aws/aws-xray-sdk-python/pull/82>`_.
+
+2.0.0
+=====
+* **Breaking**: The default sampler now launches background tasks to poll sampling rules from X-Ray backend. See the new default sampling strategy in more details here: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-python-configuration.html#xray-sdk-python-configuration-sampling.
+* **Breaking**: The `should_trace` function in the sampler now takes a dictionary for sampling rule matching.
+* **Breaking**: The original sampling modules for local defined rules are moved from `models.sampling` to `models.sampling.local`.
+* **Breaking**: The default behavior of `patch_all` changed to selectively patches libraries to avoid double patching. You can use `patch_all(double_patch=True)` to force it to patch ALL supported libraries. See more details on `ISSUE63 <https://github.com/aws/aws-xray-sdk-python/issues/63>`_
+* **Breaking**: The latest `botocore` that has new X-Ray service API `GetSamplingRules` and `GetSamplingTargets` are required.
+* **Breaking**: Version 2.x doesn't support pynamodb and aiobotocore as it requires botocore >= 1.11.3 which isn’t currently supported by the pynamodb and aiobotocore libraries. Please continue to use version 1.x if you’re using pynamodb or aiobotocore until those haven been updated to use botocore > = 1.11.3. 
+* feature: Environment variable `AWS_XRAY_DAEMON_ADDRESS` now takes an additional notation in `tcp:127.0.0.1:2000 udp:127.0.0.2:2001` to set TCP and UDP destination separately. By default it assumes a X-Ray daemon listening to both UDP and TCP traffic on `127.0.0.1:2000`.
+* feature: Added MongoDB python client support. `PR65 <https://github.com/aws/aws-xray-sdk-python/pull/65>`_.
+* bugfix: Support binding connection in sqlalchemy as well as engine. `PR78 <https://github.com/aws/aws-xray-sdk-python/pull/78>`_. 
+* bugfix: Flask middleware safe request teardown. `ISSUE75 <https://github.com/aws/aws-xray-sdk-python/issues/75>`_. 
+
+
 1.1.2
 =====
 * bugfix: Fixed an issue on PynamoDB patcher where the capture didn't handle client timeout.

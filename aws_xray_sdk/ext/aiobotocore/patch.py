@@ -22,7 +22,7 @@ def patch():
 
     wrapt.wrap_function_wrapper(
         'aiobotocore.endpoint',
-        'AioEndpoint._encode_headers',
+        'AioEndpoint.prepare_request',
         inject_header,
     )
 
