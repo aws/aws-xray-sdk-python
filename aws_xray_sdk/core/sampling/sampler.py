@@ -57,6 +57,8 @@ class DefaultSampler(object):
         now = int(time.time())
         if sampling_req and not sampling_req.get('service_type', None):
             sampling_req['service_type'] = self._origin
+        elif sampling_req is None:
+            sampling_req = {'service_type': self._origin}
         matched_rule = self._cache.get_matched_rule(sampling_req, now)
         if matched_rule:
             log.debug('Rule %s is selected to make a sampling decision.', matched_rule.name)

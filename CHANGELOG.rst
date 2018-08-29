@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+2.0.1
+=====
+* bugfix: Fixed a issue where manually `begin_segment` might break when making sampling decisions. `PR82 <https://github.com/aws/aws-xray-sdk-python/pull/82>`_.
+
 2.0.0
 =====
 * **Breaking**: The default sampler now launches background tasks to poll sampling rules from X-Ray backend. See the new default sampling strategy in more details here: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-python-configuration.html#xray-sdk-python-configuration-sampling.
