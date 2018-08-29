@@ -12,6 +12,7 @@ SUPPORTED_MODULES = (
     'mysql',
     'httplib',
     'pymongo',
+    'psycopg2'
 )
 
 _PATCHED_MODULES = set()
