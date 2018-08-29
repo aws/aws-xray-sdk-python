@@ -1,4 +1,5 @@
 import psycopg2
+import psycopg2.pool
 
 import pytest
 import testing.postgresql
@@ -53,6 +54,26 @@ def test_execute_dsn_string():
                                 ' host=' + dsn['host'] +
                                 ' port=' + str(dsn['port']))
         cur = conn.cursor()
+        cur.execute(q)
+
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.name == 'execute'
+    sql = subsegment.sql
+    assert sql['database_type'] == 'postgresql'
+    assert sql['dbname'] == dsn['database']
+
+
+def test_execute_in_pool():
+    q = 'SELECT 1'
+    with testing.postgresql.Postgresql() as postgresql:
+        dsn = postgresql.dsn()
+        pool = psycopg2.pool.SimpleConnectionPool(1, 1,
+                                                  dbname=dsn['database'],
+                                                  user=dsn['user'],
+                                                  password='',
+                                                  host=dsn['host'],
+                                                  port=dsn['port'])
+        cur = pool.getconn(key=dsn['user']).cursor()
         cur.execute(q)
 
     subsegment = xray_recorder.current_segment().subsegments[0]
