@@ -41,7 +41,9 @@ def test_execute_dsn_kwargs():
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'postgresql'
-    assert sql['dbname'] == dsn['database']
+    assert sql['database_host'] == dsn['host']
+    assert sql['database_name'] == dsn['database']
+    assert sql['database_user'] == dsn['user']
 
 
 def test_execute_dsn_string():
@@ -49,10 +51,10 @@ def test_execute_dsn_string():
     with testing.postgresql.Postgresql() as postgresql:
         dsn = postgresql.dsn()
         conn = psycopg2.connect('dbname=' + dsn['database'] +
-                                ' user=' + dsn['user'] +
                                 ' password=mypassword' +
                                 ' host=' + dsn['host'] +
-                                ' port=' + str(dsn['port']))
+                                ' port=' + str(dsn['port']) +
+                                ' user=' + dsn['user'])
         cur = conn.cursor()
         cur.execute(q)
 
@@ -60,7 +62,10 @@ def test_execute_dsn_string():
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'postgresql'
-    assert sql['dbname'] == dsn['database']
+    assert sql['database_host'] == dsn['host']
+    assert sql['database_name'] == dsn['database']
+    assert sql['database_user'] == dsn['user']
+
 
 
 def test_execute_in_pool():
@@ -80,7 +85,9 @@ def test_execute_in_pool():
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'postgresql'
-    assert sql['dbname'] == dsn['database']
+    assert sql['database_host'] == dsn['host']
+    assert sql['database_name'] == dsn['database']
+    assert sql['database_user'] == dsn['user']
 
 
 def test_execute_bad_query():
@@ -102,7 +109,9 @@ def test_execute_bad_query():
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'postgresql'
-    assert sql['dbname'] == dsn['database']
+    assert sql['database_host'] == dsn['host']
+    assert sql['database_name'] == dsn['database']
+    assert sql['database_user'] == dsn['user']
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'ProgrammingError'

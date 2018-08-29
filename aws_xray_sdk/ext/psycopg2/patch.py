@@ -16,10 +16,11 @@ def patch():
 def _xray_traced_connect(wrapped, instance, args, kwargs):
 
     conn = wrapped(*args, **kwargs)
-
     meta = {
-        'dbname': kwargs['dbname'] if 'dbname' in kwargs else re.match(r'dbname=(\S+)\b', args[0]).groups()[0],
-        'database_type': 'postgresql'
+        'database_type': 'postgresql',
+        'database_host': kwargs['host'] if 'host' in kwargs else re.search(r'host=(\S+)\b', args[0]).groups()[0],
+        'database_name': kwargs['dbname'] if 'dbname' in kwargs else re.search(r'dbname=(\S+)\b', args[0]).groups()[0],
+        'database_user': kwargs['user'] if 'user' in kwargs else re.search(r'user=(\S+)\b', args[0]).groups()[0],
     }
 
     return XRayTracedConn(conn, meta)
