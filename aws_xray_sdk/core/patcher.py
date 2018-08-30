@@ -10,7 +10,7 @@ SUPPORTED_MODULES = (
     'mysql',
     'httplib',
     'pymongo',
-    'psycopg2'
+    'psycopg2',
 )
 
 NO_DOUBLE_PATCH = (
@@ -19,6 +19,7 @@ NO_DOUBLE_PATCH = (
     'sqlite3',
     'mysql',
     'pymongo',
+    'psycopg2',
 )
 
 _PATCHED_MODULES = set()
@@ -34,6 +35,7 @@ def patch_all(double_patch=False):
 def patch(modules_to_patch, raise_errors=True):
     modules = set()
     for module_to_patch in modules_to_patch:
+        print('adding {}'.format(module_to_patch))
         # boto3 depends on botocore and patching botocore is sufficient
         if module_to_patch == 'boto3':
             modules.add('botocore')
@@ -65,7 +67,7 @@ def _patch_module(module_to_patch, raise_errors=True):
 
 
 def _patch(module_to_patch):
-
+    print('patching {}'.format(module_to_patch))
     path = 'aws_xray_sdk.ext.%s' % module_to_patch
 
     if module_to_patch in _PATCHED_MODULES:
