@@ -9,6 +9,8 @@ from aws_xray_sdk.ext.boto_utils import _extract_whitelisted_params
 
 def patch():
     """Patch PynamoDB so it generates subsegements when calling DynamoDB."""
+    import pynamodb
+
     if hasattr(botocore.vendored.requests.sessions, '_xray_enabled'):
         return
     setattr(botocore.vendored.requests.sessions, '_xray_enabled', True)

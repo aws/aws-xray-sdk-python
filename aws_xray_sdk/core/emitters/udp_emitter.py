@@ -1,15 +1,15 @@
-import os
-import socket
 import logging
+import socket
 
+from aws_xray_sdk.core.daemon_config import DaemonConfig
 from ..exceptions.exceptions import InvalidDaemonAddressException
 
 log = logging.getLogger(__name__)
 
 
-PROTOCOL_HEADER = "{\"format\": \"json\", \"version\": 1}"
+PROTOCOL_HEADER = "{\"format\":\"json\",\"version\":1}"
 PROTOCOL_DELIMITER = '\n'
-DAEMON_ADDRESS_KEY = "AWS_XRAY_DAEMON_ADDRESS"
+DEFAULT_DAEMON_ADDRESS = '127.0.0.1:2000'
 
 
 class UDPEmitter(object):
@@ -19,12 +19,11 @@ class UDPEmitter(object):
     exception on the actual data transfer between the socket and the daemon,
     it logs the exception and continue.
     """
-    def __init__(self, daemon_address='127.0.0.1:2000'):
+    def __init__(self, daemon_address=DEFAULT_DAEMON_ADDRESS):
 
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._socket.setblocking(0)
-        address = os.getenv(DAEMON_ADDRESS_KEY, daemon_address)
-        self._ip, self._port = self._parse_address(address)
+        self.set_daemon_address(daemon_address)
 
     def send_entity(self, entity):
         """
@@ -42,11 +41,20 @@ class UDPEmitter(object):
 
     def set_daemon_address(self, address):
         """
-        Takes a full address like 127.0.0.1:2000 and parses it into ip address
-        and port. Throws an exception if the address has invalid format.
+        Set up UDP ip and port from the raw daemon address
+        string using ``DaemonConfig`` class utlities.
         """
         if address:
-            self._ip, self._port = self._parse_address(address)
+            daemon_config = DaemonConfig(address)
+            self._ip, self._port = daemon_config.udp_ip, daemon_config.udp_port
+
+    @property
+    def ip(self):
+        return self._ip
+
+    @property
+    def port(self):
+        return self._port
 
     def _send_data(self, data):
 

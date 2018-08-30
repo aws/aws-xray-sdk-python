@@ -113,6 +113,16 @@ class Segment(Entity):
         """
         self.service = service_info
 
+    def set_rule_name(self, rule_name):
+        """
+        Add the matched centralized sampling rule name
+        if a segment is sampled because of that rule.
+        This method should be only used by the recorder.
+        """
+        if not self.aws.get('xray', None):
+            self.aws['xray'] = {}
+        self.aws['xray']['rule_name'] = rule_name
+
     def save_origin_trace_header(self, trace_header):
         """
         Temporarily store additional data fields in trace header

@@ -21,12 +21,17 @@ async def middleware(request, handler):
     # Get name of service or generate a dynamic one from host
     name = calculate_segment_name(request.headers['host'].split(':', 1)[0], xray_recorder)
 
+    sampling_req = {
+        'host': request.headers['host'],
+        'method': request.method,
+        'path': request.path,
+        'service': name,
+    }
+
     sampling_decision = calculate_sampling_decision(
         trace_header=xray_header,
         recorder=xray_recorder,
-        service_name=request.headers['host'],
-        method=request.method,
-        path=request.path,
+        sampling_req=sampling_req,
     )
 
     # Start a segment

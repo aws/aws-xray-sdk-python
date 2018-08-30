@@ -112,3 +112,11 @@ def test_capture_not_swallow_return():
 
     actual = my_func()
     assert actual == value
+
+
+def test_first_begin_segment_sampled():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=False)
+    segment = xray_recorder.begin_segment('name')
+
+    assert segment.sampled
