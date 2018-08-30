@@ -28,6 +28,7 @@ def construct_ctx():
 def test_execute_dsn_kwargs():
     q = 'SELECT 1'
     with testing.postgresql.Postgresql() as postgresql:
+        url = postgresql.url()
         dsn = postgresql.dsn()
         conn = psycopg2.connect(dbname=dsn['database'],
                                 user=dsn['user'],
@@ -40,15 +41,16 @@ def test_execute_dsn_kwargs():
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
-    assert sql['database_type'] == 'postgresql'
-    assert sql['database_host'] == dsn['host']
-    assert sql['database_name'] == dsn['database']
-    assert sql['database_user'] == dsn['user']
+    assert sql['database_type'] == 'PostgreSQL'
+    assert sql['user'] == dsn['user']
+    assert sql['url'] == url
+    assert sql['database_version'] == 100002
 
 
 def test_execute_dsn_string():
     q = 'SELECT 1'
     with testing.postgresql.Postgresql() as postgresql:
+        url = postgresql.url()
         dsn = postgresql.dsn()
         conn = psycopg2.connect('dbname=' + dsn['database'] +
                                 ' password=mypassword' +
@@ -61,16 +63,16 @@ def test_execute_dsn_string():
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
-    assert sql['database_type'] == 'postgresql'
-    assert sql['database_host'] == dsn['host']
-    assert sql['database_name'] == dsn['database']
-    assert sql['database_user'] == dsn['user']
-
+    assert sql['database_type'] == 'PostgreSQL'
+    assert sql['user'] == dsn['user']
+    assert sql['url'] == url
+    assert sql['database_version'] == 100002
 
 
 def test_execute_in_pool():
     q = 'SELECT 1'
     with testing.postgresql.Postgresql() as postgresql:
+        url = postgresql.url()
         dsn = postgresql.dsn()
         pool = psycopg2.pool.SimpleConnectionPool(1, 1,
                                                   dbname=dsn['database'],
@@ -84,15 +86,16 @@ def test_execute_in_pool():
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
-    assert sql['database_type'] == 'postgresql'
-    assert sql['database_host'] == dsn['host']
-    assert sql['database_name'] == dsn['database']
-    assert sql['database_user'] == dsn['user']
+    assert sql['database_type'] == 'PostgreSQL'
+    assert sql['user'] == dsn['user']
+    assert sql['url'] == url
+    assert sql['database_version'] == 100002
 
 
 def test_execute_bad_query():
     q = 'SELECT blarg'
     with testing.postgresql.Postgresql() as postgresql:
+        url = postgresql.url()
         dsn = postgresql.dsn()
         conn = psycopg2.connect(dbname=dsn['database'],
                                 user=dsn['user'],
@@ -108,10 +111,10 @@ def test_execute_bad_query():
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
-    assert sql['database_type'] == 'postgresql'
-    assert sql['database_host'] == dsn['host']
-    assert sql['database_name'] == dsn['database']
-    assert sql['database_user'] == dsn['user']
+    assert sql['database_type'] == 'PostgreSQL'
+    assert sql['user'] == dsn['user']
+    assert sql['url'] == url
+    assert sql['database_version'] == 100002
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'ProgrammingError'

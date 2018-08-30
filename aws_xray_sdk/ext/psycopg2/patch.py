@@ -16,11 +16,16 @@ def patch():
 def _xray_traced_connect(wrapped, instance, args, kwargs):
 
     conn = wrapped(*args, **kwargs)
+    host = kwargs['host'] if 'host' in kwargs else re.search(r'host=(\S+)\b', args[0]).groups()[0]
+    dbname = kwargs['dbname'] if 'dbname' in kwargs else re.search(r'dbname=(\S+)\b', args[0]).groups()[0]
+    port = kwargs['port'] if 'port' in kwargs else re.search(r'port=(\S+)\b', args[0]).groups()[0]
+    user = kwargs['user'] if 'user' in kwargs else re.search(r'user=(\S+)\b', args[0]).groups()[0]
     meta = {
-        'database_type': 'postgresql',
-        'database_host': kwargs['host'] if 'host' in kwargs else re.search(r'host=(\S+)\b', args[0]).groups()[0],
-        'database_name': kwargs['dbname'] if 'dbname' in kwargs else re.search(r'dbname=(\S+)\b', args[0]).groups()[0],
-        'database_user': kwargs['user'] if 'user' in kwargs else re.search(r'user=(\S+)\b', args[0]).groups()[0],
+        'database_type': 'PostgreSQL',
+        'url': 'postgresql://{}@{}:{}/{}'.format(user, host, port, dbname),
+        'user': user,
+        'database_version': conn.server_version,
+        'driver_version': 'Psycopg 2'
     }
 
     return XRayTracedConn(conn, meta)
