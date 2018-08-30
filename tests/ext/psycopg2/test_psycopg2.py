@@ -44,7 +44,7 @@ def test_execute_dsn_kwargs():
     assert sql['database_type'] == 'PostgreSQL'
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
-    assert sql['database_version'] == 100002
+    assert sql['database_version']
 
 
 def test_execute_dsn_string():
@@ -66,7 +66,7 @@ def test_execute_dsn_string():
     assert sql['database_type'] == 'PostgreSQL'
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
-    assert sql['database_version'] == 100002
+    assert sql['database_version']
 
 
 def test_execute_in_pool():
@@ -89,7 +89,7 @@ def test_execute_in_pool():
     assert sql['database_type'] == 'PostgreSQL'
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
-    assert sql['database_version'] == 100002
+    assert sql['database_version']
 
 
 def test_execute_bad_query():
@@ -114,7 +114,7 @@ def test_execute_bad_query():
     assert sql['database_type'] == 'PostgreSQL'
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
-    assert sql['database_version'] == 100002
+    assert sql['database_version']
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'ProgrammingError'

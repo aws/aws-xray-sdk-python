@@ -24,7 +24,7 @@ def _xray_traced_connect(wrapped, instance, args, kwargs):
         'database_type': 'PostgreSQL',
         'url': 'postgresql://{}@{}:{}/{}'.format(user, host, port, dbname),
         'user': user,
-        'database_version': conn.server_version,
+        'database_version': str(conn.server_version),
         'driver_version': 'Psycopg 2'
     }
 
