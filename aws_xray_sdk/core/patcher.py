@@ -10,6 +10,7 @@ SUPPORTED_MODULES = (
     'mysql',
     'httplib',
     'pymongo',
+    'psycopg2',
 )
 
 NO_DOUBLE_PATCH = (
@@ -18,6 +19,7 @@ NO_DOUBLE_PATCH = (
     'sqlite3',
     'mysql',
     'pymongo',
+    'psycopg2',
 )
 
 _PATCHED_MODULES = set()
