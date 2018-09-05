@@ -50,7 +50,7 @@ class LocalSampler(object):
         self.load_local_rules(rules)
         self._random = Random()
 
-    def should_trace(self, sampling_req):
+    def should_trace(self, sampling_req=None):
         """
         Return True if the sampler decide to sample based on input
         information and sampling rules. It will first check if any
