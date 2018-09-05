@@ -2,6 +2,14 @@
 CHANGELOG
 =========
 
+2.1.0
+=====
+* feature: Added support for `psycopg2`. `PR83 <https://github.com/aws/aws-xray-sdk-python/pull/83>`_.
+* feature: Added support for `pynamodb` >= 3.3.1. `PR88 <https://github.com/aws/aws-xray-sdk-python/pull/88>`_.
+* improvement: Improved stack trace recording when exception is thrown in decorators. `PR70 <https://github.com/aws/aws-xray-sdk-python/pull/70>`_.
+* bugfix: Argument `sampling_req` in LocalSampler `should_trace` method now becomes optional. `PR89 <https://github.com/aws/aws-xray-sdk-python/pull/89>`_.
+* bugfix: Fixed a wrong test setup in recorder unit test.
+
 2.0.1
 =====
 * bugfix: Fixed a issue where manually `begin_segment` might break when making sampling decisions. `PR82 <https://github.com/aws/aws-xray-sdk-python/pull/82>`_.
