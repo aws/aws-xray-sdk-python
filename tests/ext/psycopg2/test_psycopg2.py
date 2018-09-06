@@ -47,6 +47,32 @@ def test_execute_dsn_kwargs():
     assert sql['database_version']
 
 
+def test_execute_dsn_kwargs_alt_dbname():
+    """
+    Psycopg supports database to be passed as `database` or `dbname`
+    """
+    q = 'SELECT 1'
+
+    with testing.postgresql.Postgresql() as postgresql:
+        url = postgresql.url()
+        dsn = postgresql.dsn()
+        conn = psycopg2.connect(database=dsn['database'],
+                                user=dsn['user'],
+                                password='',
+                                host=dsn['host'],
+                                port=dsn['port'])
+        cur = conn.cursor()
+        cur.execute(q)
+
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.name == 'execute'
+    sql = subsegment.sql
+    assert sql['database_type'] == 'PostgreSQL'
+    assert sql['user'] == dsn['user']
+    assert sql['url'] == url
+    assert sql['database_version']
+
+
 def test_execute_dsn_string():
     q = 'SELECT 1'
     with testing.postgresql.Postgresql() as postgresql:
