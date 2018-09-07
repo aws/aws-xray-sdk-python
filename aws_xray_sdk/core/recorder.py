@@ -4,7 +4,6 @@ import logging
 import os
 import platform
 import time
-import traceback
 
 import wrapt
 
@@ -23,6 +22,7 @@ from .plugins.utils import get_plugin_modules
 from .lambda_launcher import check_in_lambda
 from .exceptions.exceptions import SegmentNameMissingException
 from .utils.compat import string_types
+from .utils import stacktrace
 
 log = logging.getLogger(__name__)
 
@@ -398,7 +398,7 @@ class AWSXRayRecorder(object):
             return return_value
         except Exception as e:
             exception = e
-            stack = traceback.extract_stack(limit=self.max_trace_back)
+            stack = stacktrace.get_stacktrace(limit=self.max_trace_back)
             raise
         finally:
             # No-op if subsegment is `None` due to `LOG_ERROR`.

@@ -48,6 +48,11 @@ def test_missing_version_num():
         LocalSampler(rule)
 
 
+def test_default_matching():
+    sampler = LocalSampler(RULE_MANIFEST)
+    assert sampler.should_trace()
+
+
 def test_path_matching():
 
     rule = SamplingRule(RULE)

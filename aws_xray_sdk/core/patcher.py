@@ -5,6 +5,7 @@ log = logging.getLogger(__name__)
 
 SUPPORTED_MODULES = (
     'botocore',
+    'pynamodb',
     'requests',
     'sqlite3',
     'mysql',
@@ -15,6 +16,7 @@ SUPPORTED_MODULES = (
 
 NO_DOUBLE_PATCH = (
     'botocore',
+    'pynamodb',
     'requests',
     'sqlite3',
     'mysql',
@@ -42,9 +44,9 @@ def patch(modules_to_patch, raise_errors=True):
         # elif module_to_patch == 'aioboto3':
         #     modules.add('aiobotocore')
         # pynamodb requires botocore to be patched as well
-        # elif module_to_patch == 'pynamodb':
-        #     modules.add('botocore')
-        #     modules.add(module_to_patch)
+        elif module_to_patch == 'pynamodb':
+            modules.add('botocore')
+            modules.add(module_to_patch)
         else:
             modules.add(module_to_patch)
     unsupported_modules = modules - set(SUPPORTED_MODULES)

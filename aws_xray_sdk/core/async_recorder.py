@@ -1,9 +1,9 @@
 import time
-import traceback
 
 import wrapt
 
 from aws_xray_sdk.core.recorder import AWSXRayRecorder
+from aws_xray_sdk.core.utils import stacktrace
 
 
 class AsyncAWSXRayRecorder(AWSXRayRecorder):
@@ -47,7 +47,7 @@ class AsyncAWSXRayRecorder(AWSXRayRecorder):
             return return_value
         except Exception as e:
             exception = e
-            stack = traceback.extract_stack(limit=self._max_trace_back)
+            stack = stacktrace.get_stacktrace(limit=self._max_trace_back)
             raise
         finally:
             # No-op if subsegment is `None` due to `LOG_ERROR`.
