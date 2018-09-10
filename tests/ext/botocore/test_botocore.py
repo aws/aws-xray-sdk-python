@@ -150,3 +150,26 @@ def test_pass_through_on_context_missing():
     assert result is not None
 
     xray_recorder.configure(context_missing='RUNTIME_ERROR')
+
+
+def test_sns_publish_parameters():
+    sns = session.create_client('sns', region_name='us-west-2')
+    response = {
+        'ResponseMetadata': {
+            'RequestId': REQUEST_ID,
+            'HTTPStatusCode': 200,
+        }
+    }
+
+    with Stubber(sns) as stubber:
+        stubber.add_response('publish', response, {'TopicArn': 'myAmazingTopic', 'Message': 'myBodaciousMessage'})
+        sns.publish(TopicArn='myAmazingTopic', Message='myBodaciousMessage')
+
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.http['response']['status'] == 200
+
+    aws_meta = subsegment.aws
+    assert aws_meta['topic_arn'] == 'myAmazingTopic'
+    assert aws_meta['request_id'] == REQUEST_ID
+    assert aws_meta['region'] == 'us-west-2'
+    assert aws_meta['operation'] == 'Publish'
