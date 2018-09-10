@@ -1,5 +1,14 @@
 {
   "services": {
+    "sns": {
+      "operations": {
+        "Publish": {
+          "request_parameters": [
+            "TopicArn"
+          ]
+        }
+      }
+    },
     "dynamodb": {
       "operations": {
         "BatchGetItem": {
