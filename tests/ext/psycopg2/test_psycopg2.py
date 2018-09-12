@@ -1,4 +1,5 @@
 import psycopg2
+import psycopg2.extras
 import psycopg2.pool
 
 import pytest
@@ -144,3 +145,16 @@ def test_execute_bad_query():
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'ProgrammingError'
+
+
+def test_register_extensions():
+    with testing.postgresql.Postgresql() as postgresql:
+        url = postgresql.url()
+        dsn = postgresql.dsn()
+        conn = psycopg2.connect('dbname=' + dsn['database'] +
+                                ' password=mypassword' +
+                                ' host=' + dsn['host'] +
+                                ' port=' + str(dsn['port']) +
+                                ' user=' + dsn['user'])
+        assert psycopg2.extras.register_uuid(None, conn)
+        assert psycopg2.extras.register_uuid(None, conn.cursor())
