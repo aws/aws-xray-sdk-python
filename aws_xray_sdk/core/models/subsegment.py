@@ -1,7 +1,39 @@
 import copy
+import traceback
 
 from .entity import Entity
 from ..exceptions.exceptions import SegmentNotFoundException
+
+
+class SubsegmentContextManager:
+    """
+    Wrapper for segment and recorder to provide segment context manager.
+    """
+
+    def __init__(self, recorder, name=None, **subsegment_kwargs):
+        self.name = name
+        self.subsegment_kwargs = subsegment_kwargs
+        self.recorder = recorder
+        self.subsegment = None
+
+    def __enter__(self):
+        self.subsegment = self.recorder.begin_subsegment(
+            name=self.name, **self.subsegment_kwargs)
+        return self.subsegment
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.subsegment is None:
+            return
+
+        if exc_type is not None:
+            self.subsegment.add_exception(
+                exc_val,
+                traceback.extract_tb(
+                    exc_tb,
+                    limit=self.recorder.max_trace_back,
+                )
+            )
+        self.recorder.end_subsegment()
 
 
 class Subsegment(Entity):

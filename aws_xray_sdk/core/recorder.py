@@ -8,8 +8,8 @@ import time
 import wrapt
 
 from aws_xray_sdk.version import VERSION
-from .models.segment import Segment
-from .models.subsegment import Subsegment
+from .models.segment import Segment, SegmentContextManager
+from .models.subsegment import Subsegment, SubsegmentContextManager
 from .models.default_dynamic_naming import DefaultDynamicNaming
 from .models.dummy_entities import DummySegment, DummySubsegment
 from .emitters.udp_emitter import UDPEmitter
@@ -177,6 +177,24 @@ class AWSXRayRecorder(object):
         if type(self.sampler).__name__ == 'DefaultSampler':
             self.sampler.load_settings(DaemonConfig(daemon_address),
                                        self.context, self._origin)
+
+    def in_segment(self, name=None, **segment_kwargs):
+        """
+        Return a segment context manger.
+
+        :param str name: the name of the segment
+        :param dict segment_kwargs: remaining arguments passed directly to `begin_segment`
+        """
+        return SegmentContextManager(self, name=name, **segment_kwargs)
+
+    def in_subsegment(self, name=None, **subsegment_kwargs):
+        """
+        Return a subsegment context manger.
+
+        :param str name: the name of the subsegment
+        :param dict segment_kwargs: remaining arguments passed directly to `begin_subsegment`
+        """
+        return SubsegmentContextManager(self, name=name, **subsegment_kwargs)
 
     def begin_segment(self, name=None, traceid=None,
                       parent_id=None, sampling=None):
