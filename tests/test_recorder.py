@@ -120,3 +120,44 @@ def test_first_begin_segment_sampled():
     segment = xray_recorder.begin_segment('name')
 
     assert segment.sampled
+
+
+def test_in_segment_closing():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=False)
+
+    with xray_recorder.in_segment('name') as segment:
+        assert segment.in_progress is True
+        segment.put_metadata('key1', 'value1')
+        segment.put_annotation('key2', 'value2')
+        with xray_recorder.in_subsegment('subsegment') as subsegment:
+            assert subsegment.in_progress is True
+
+    assert subsegment.in_progress is False
+    assert segment.in_progress is False
+    assert segment.annotations['key2'] == 'value2'
+    assert segment.metadata['default']['key1'] == 'value1'
+
+
+def test_in_segment_exception():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=False)
+
+    with pytest.raises(Exception):
+        with xray_recorder.in_segment('name') as segment:
+            assert segment.in_progress is True
+            assert 'exceptions' not in segment.cause
+            raise Exception('test exception')
+
+    assert segment.in_progress is False
+    assert segment.fault is True
+    assert len(segment.cause['exceptions']) == 1
+
+
+    with pytest.raises(Exception):
+        with xray_recorder.in_segment('name') as segment:
+            with xray_recorder.in_subsegment('name') as subsegment:
+                    assert subsegment.in_progress is True
+                    raise Exception('test exception')
+
+    assert len(subsegment.cause['exceptions']) == 1
