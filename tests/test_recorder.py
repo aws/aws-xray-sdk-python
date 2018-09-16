@@ -133,6 +133,10 @@ def test_in_segment_closing():
         with xray_recorder.in_subsegment('subsegment') as subsegment:
             assert subsegment.in_progress is True
 
+        with xray_recorder.capture('capture') as subsegment:
+            assert subsegment.in_progress is True
+            assert subsegment.name == 'capture'
+
     assert subsegment.in_progress is False
     assert segment.in_progress is False
     assert segment.annotations['key2'] == 'value2'

@@ -1,6 +1,8 @@
 import copy
 import traceback
 
+import wrapt
+
 from .entity import Entity
 from ..exceptions.exceptions import SegmentNotFoundException
 
@@ -15,6 +17,19 @@ class SubsegmentContextManager:
         self.subsegment_kwargs = subsegment_kwargs
         self.recorder = recorder
         self.subsegment = None
+
+    @wrapt.decorator
+    def __call__(self, wrapped, instance, args, kwargs):
+        func_name = self.name
+        if not func_name:
+            func_name = wrapped.__name__
+
+        return self.recorder.record_subsegment(
+            wrapped, instance, args, kwargs,
+            name=func_name,
+            namespace='local',
+            meta_processor=None,
+        )
 
     def __enter__(self):
         self.subsegment = self.recorder.begin_subsegment(

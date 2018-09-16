@@ -5,8 +5,6 @@ import os
 import platform
 import time
 
-import wrapt
-
 from aws_xray_sdk.version import VERSION
 from .models.segment import Segment, SegmentContextManager
 from .models.subsegment import Subsegment, SubsegmentContextManager
@@ -387,20 +385,7 @@ class AWSXRayRecorder(object):
         params str name: The name of the subsegment. If not specified
         the function name will be used.
         """
-        @wrapt.decorator
-        def wrapper(wrapped, instance, args, kwargs):
-            func_name = name
-            if not func_name:
-                func_name = wrapped.__name__
-
-            return self.record_subsegment(
-                wrapped, instance, args, kwargs,
-                name=func_name,
-                namespace='local',
-                meta_processor=None,
-            )
-
-        return wrapper
+        return self.in_subsegment(name=name)
 
     def record_subsegment(self, wrapped, instance, args, kwargs, name,
                           namespace, meta_processor):
