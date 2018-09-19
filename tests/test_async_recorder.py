@@ -42,3 +42,16 @@ async def test_capture(loop):
     service = segment.service
     assert platform.python_implementation() == service.get('runtime')
     assert platform.python_version() == service.get('runtime_version')
+
+
+async def test_async_context_managers(loop):
+    xray_recorder.configure(service='test', sampling=False, context=AsyncContext(loop=loop))
+
+    async with xray_recorder.in_segment_async('segment') as segment:
+        async with xray_recorder.capture_async('aio_capture') as subsegment:
+            assert segment.subsegments[0].name == 'aio_capture'
+        assert subsegment.in_progress is  False
+        async with xray_recorder.in_subsegment_async('in_sub') as subsegment:
+            assert segment.subsegments[1].name == 'in_sub'
+            assert subsegment.in_progress is  True
+        assert subsegment.in_progress is  False

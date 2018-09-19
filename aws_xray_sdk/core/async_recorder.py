@@ -4,6 +4,37 @@ import wrapt
 
 from aws_xray_sdk.core.recorder import AWSXRayRecorder
 from aws_xray_sdk.core.utils import stacktrace
+from aws_xray_sdk.core.models.subsegment import SubsegmentContextManager
+from aws_xray_sdk.core.models.segment import SegmentContextManager
+
+
+class AsyncSegmentContextManager(SegmentContextManager):
+    async def __aenter__(self):
+        return self.__enter__()
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return self.__exit__(exc_type, exc_val, exc_tb)
+
+class AsyncSubsegmentContextManager(SubsegmentContextManager):
+
+    @wrapt.decorator
+    async def __call__(self, wrapped, instance, args, kwargs):
+        func_name = self.name
+        if not func_name:
+            func_name = wrapped.__name__
+
+        return await self.recorder.record_subsegment_async(
+            wrapped, instance, args, kwargs,
+            name=func_name,
+            namespace='local',
+            meta_processor=None,
+        )
+
+    async def __aenter__(self):
+        return self.__enter__()
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return self.__exit__(exc_type, exc_val, exc_tb)
 
 
 class AsyncAWSXRayRecorder(AWSXRayRecorder):
@@ -15,23 +46,25 @@ class AsyncAWSXRayRecorder(AWSXRayRecorder):
         params str name: The name of the subsegment. If not specified
         the function name will be used.
         """
+        return self.in_subsegment_async(name=name)
 
-        @wrapt.decorator
-        async def wrapper(wrapped, instance, args, kwargs):
-            func_name = name
-            if not func_name:
-                func_name = wrapped.__name__
+    def in_segment_async(self, name=None, **segment_kwargs):
+        """
+        Return a segment async context manger.
 
-            result = await self.record_subsegment_async(
-                wrapped, instance, args, kwargs,
-                name=func_name,
-                namespace='local',
-                meta_processor=None,
-            )
+        :param str name: the name of the segment
+        :param dict segment_kwargs: remaining arguments passed directly to `begin_segment`
+        """
+        return AsyncSegmentContextManager(self, name=name, **segment_kwargs)
 
-            return result
+    def in_subsegment_async(self, name=None, **subsegment_kwargs):
+        """
+        Return a subsegment async context manger.
 
-        return wrapper
+        :param str name: the name of the segment
+        :param dict segment_kwargs: remaining arguments passed directly to `begin_segment`
+        """
+        return AsyncSubsegmentContextManager(self, name=name, **subsegment_kwargs)
 
     async def record_subsegment_async(self, wrapped, instance, args, kwargs, name,
                                       namespace, meta_processor):
