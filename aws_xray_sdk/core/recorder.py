@@ -5,11 +5,9 @@ import os
 import platform
 import time
 
-import wrapt
-
 from aws_xray_sdk.version import VERSION
-from .models.segment import Segment
-from .models.subsegment import Subsegment
+from .models.segment import Segment, SegmentContextManager
+from .models.subsegment import Subsegment, SubsegmentContextManager
 from .models.default_dynamic_naming import DefaultDynamicNaming
 from .models.dummy_entities import DummySegment, DummySubsegment
 from .emitters.udp_emitter import UDPEmitter
@@ -177,6 +175,24 @@ class AWSXRayRecorder(object):
         if type(self.sampler).__name__ == 'DefaultSampler':
             self.sampler.load_settings(DaemonConfig(daemon_address),
                                        self.context, self._origin)
+
+    def in_segment(self, name=None, **segment_kwargs):
+        """
+        Return a segment context manger.
+
+        :param str name: the name of the segment
+        :param dict segment_kwargs: remaining arguments passed directly to `begin_segment`
+        """
+        return SegmentContextManager(self, name=name, **segment_kwargs)
+
+    def in_subsegment(self, name=None, **subsegment_kwargs):
+        """
+        Return a subsegment context manger.
+
+        :param str name: the name of the subsegment
+        :param dict segment_kwargs: remaining arguments passed directly to `begin_subsegment`
+        """
+        return SubsegmentContextManager(self, name=name, **subsegment_kwargs)
 
     def begin_segment(self, name=None, traceid=None,
                       parent_id=None, sampling=None):
@@ -369,20 +385,7 @@ class AWSXRayRecorder(object):
         params str name: The name of the subsegment. If not specified
         the function name will be used.
         """
-        @wrapt.decorator
-        def wrapper(wrapped, instance, args, kwargs):
-            func_name = name
-            if not func_name:
-                func_name = wrapped.__name__
-
-            return self.record_subsegment(
-                wrapped, instance, args, kwargs,
-                name=func_name,
-                namespace='local',
-                meta_processor=None,
-            )
-
-        return wrapper
+        return self.in_subsegment(name=name)
 
     def record_subsegment(self, wrapped, instance, args, kwargs, name,
                           namespace, meta_processor):

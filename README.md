@@ -66,6 +66,40 @@ xray_recorder.configure(
 
 ### Start a custom segment/subsegment
 
+Using context managers for implicit exceptions recording:
+
+```python
+from aws_xray_sdk.core import xray_recorder
+
+with xray_recorder.in_segment('segment_name') as segment:
+    # Add metadata or annotation here if necessary
+    segment.put_metadata('key', dict, 'namespace')
+    with xray_recorder.in_subsegment('subsegment_name') as subsegment:
+        subsegment.put_annotation('key', 'value')
+        # Do something here
+    with xray_recorder.in_subsegment('subsegment2') as subsegment:
+        subsegment.put_annotation('key2', 'value2')
+        # Do something else 
+```
+
+async versions of context managers:
+
+```python
+from aws_xray_sdk.core import xray_recorder
+
+async with xray_recorder.in_segment_async('segment_name') as segment:
+    # Add metadata or annotation here if necessary
+    segment.put_metadata('key', dict, 'namespace')
+    async with xray_recorder.in_subsegment_async('subsegment_name') as subsegment:
+        subsegment.put_annotation('key', 'value')
+        # Do something here
+    async with xray_recorder.in_subsegment_async('subsegment2') as subsegment:
+        subsegment.put_annotation('key2', 'value2')
+        # Do something else 
+```
+
+Default begin/end functions:
+
 ```python
 from aws_xray_sdk.core import xray_recorder
 
@@ -85,6 +119,8 @@ xray_recorder.end_segment()
 
 ### Capture
 
+As a decorator:
+
 ```python
 from aws_xray_sdk.core import xray_recorder
 
@@ -95,6 +131,19 @@ def myfunc():
 myfunc()
 ```
 
+or as a context manager:
+
+```python
+from aws_xray_sdk.core import xray_recorder
+
+with xray_recorder.capture('subsegment_name') as subsegment:
+    # Do something here
+    subsegment.put_annotation('mykey', val)
+    # Do something more
+```
+
+Async capture as decorator:
+
 ```python
 from aws_xray_sdk.core import xray_recorder
 
@@ -104,6 +153,17 @@ async def myfunc():
 
 async def main():
     await myfunc()
+```
+
+or as context manager:
+
+```python
+from aws_xray_sdk.core import xray_recorder
+
+async with xray_recorder.capture_async('subsegment_name') as subsegment:
+    # Do something here
+    subsegment.put_annotation('mykey', val)
+    # Do something more
 ```
 
 ### Adding annotations/metadata using recorder
