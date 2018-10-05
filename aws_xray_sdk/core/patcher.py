@@ -73,6 +73,7 @@ def _patch(module_to_patch):
 
     if module_to_patch in _PATCHED_MODULES:
         log.debug('%s already patched', module_to_patch)
+        return
 
     imported_module = importlib.import_module(path)
     imported_module.patch()

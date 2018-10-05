@@ -153,7 +153,7 @@ class Segment(Entity):
         """
         if not self.aws.get('xray', None):
             self.aws['xray'] = {}
-        self.aws['xray']['rule_name'] = rule_name
+        self.aws['xray']['sampling_rule_name'] = rule_name
 
     def save_origin_trace_header(self, trace_header):
         """

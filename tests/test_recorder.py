@@ -87,6 +87,7 @@ def test_pass_through_with_missing_context():
 
     xray_recorder.put_annotation('key', 'value')
     xray_recorder.put_metadata('key', 'value')
+    xray_recorder.end_segment()
 
 
 def test_capture_not_suppress_exception():

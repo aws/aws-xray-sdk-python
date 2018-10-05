@@ -5,6 +5,7 @@ import wrapt
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
+from aws_xray_sdk.core.patcher import _PATCHED_MODULES
 from aws_xray_sdk.ext.util import inject_trace_header, strip_url, unwrap
 
 if sys.version_info >= (3, 0, 0):
@@ -169,6 +170,7 @@ def unpatch():
     Unpatch any previously patched modules.
     This operation is idempotent.
     """
+    _PATCHED_MODULES.discard('httplib')
     setattr(httplib, PATCH_FLAG, False)
     # _send_request encapsulates putrequest, putheader[s], and endheaders
     unwrap(httplib.HTTPConnection, '_send_request')

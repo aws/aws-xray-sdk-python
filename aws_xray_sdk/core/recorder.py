@@ -242,7 +242,8 @@ class AWSXRayRecorder(object):
         :param float end_time: segment compeletion in unix epoch in seconds.
         """
         self.context.end_segment(end_time)
-        if self.current_segment().ready_to_send():
+        segment = self.current_segment()
+        if segment and segment.ready_to_send():
             self._send_segment()
 
     def current_segment(self):

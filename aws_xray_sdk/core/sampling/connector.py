@@ -1,6 +1,7 @@
 import binascii
 import os
 import time
+from datetime import datetime
 
 import botocore.session
 from botocore import UNSIGNED
@@ -9,6 +10,7 @@ from botocore.client import Config
 from .sampling_rule import SamplingRule
 from aws_xray_sdk.core.models.dummy_entities import DummySegment
 from aws_xray_sdk.core.context import Context
+from aws_xray_sdk.core.utils.compat import PY2
 
 
 class ServiceConnector(object):
@@ -86,7 +88,7 @@ class ServiceConnector(object):
 
         targets_mapping = {}
         for doc in new_docs:
-            TTL = int(doc['ReservoirQuotaTTL'].strftime('%s')) if doc.get('ReservoirQuotaTTL', None) else None
+            TTL = self._dt_to_epoch(doc['ReservoirQuotaTTL']) if doc.get('ReservoirQuotaTTL', None) else None
             target = {
                 'rate': doc['FixedRate'],
                 'quota': doc.get('ReservoirQuota', None),
@@ -95,7 +97,7 @@ class ServiceConnector(object):
             }
             targets_mapping[doc['RuleName']] = target
 
-        return targets_mapping, int(resp['LastRuleModification'].strftime('%s'))
+        return targets_mapping, self._dt_to_epoch(resp['LastRuleModification'])
 
     def setup_xray_client(self, ip, port, client):
         """
@@ -130,6 +132,21 @@ class ServiceConnector(object):
             }
             report_docs.append(doc)
         return report_docs
+
+    def _dt_to_epoch(self, dt):
+        """
+        Convert a offset-aware datetime to POSIX time.
+        """
+        if PY2:
+            # The input datetime is from botocore unmarshalling and it is
+            # offset-aware so the timedelta of subtracting this time
+            # to 01/01/1970 using the same tzinfo gives us
+            # Unix Time (also known as POSIX Time).
+            time_delta = dt - datetime(1970, 1, 1).replace(tzinfo=dt.tzinfo)
+            return int(time_delta.total_seconds())
+        else:
+            # Added in python 3.3+ and directly returns POSIX time.
+            return int(dt.timestamp())
 
     def _is_rule_valid(self, record):
         # We currently only handle v1 sampling rules.

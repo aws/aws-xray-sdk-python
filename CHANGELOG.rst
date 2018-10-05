@@ -2,6 +2,17 @@
 CHANGELOG
 =========
 
+2.2.0
+=====
+* feature: Added context managers on segment/subsegment capture. `PR97 <https://github.com/aws/aws-xray-sdk-python/pull/97>`_.
+* feature: Added AWS SNS topic ARN to the default whitelist file. `PR93 <https://github.com/aws/aws-xray-sdk-python/pull/93>`_.
+* bugfix: Fixed an issue on `psycopg2` to support all keywords. `PR91 <https://github.com/aws/aws-xray-sdk-python/pull/91>`_.
+* bugfix: Fixed an issue on `endSegment` when there is context missing. `ISSUE98 <https://github.com/aws/aws-xray-sdk-python/issues/98>`_.
+* bugfix: Fixed the package description rendered on PyPI. `PR101 <https://github.com/aws/aws-xray-sdk-python/pull/101>`_.
+* bugfix: Fixed an issue where `patch_all` could patch the same module multiple times. `ISSUE99 <https://github.com/aws/aws-xray-sdk-python/issues/99>`_.
+* bugfix: Fixed the `datetime` to `epoch` conversion on Windows OS. `ISSUE103 <https://github.com/aws/aws-xray-sdk-python/issues/103>`_.
+* bugfix: Fixed a wrong segment json key where it should be `sampling_rule_name` rather than `rule_name`.
+
 2.1.0
 =====
 * feature: Added support for `psycopg2`. `PR83 <https://github.com/aws/aws-xray-sdk-python/pull/83>`_.

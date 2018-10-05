@@ -154,8 +154,8 @@ def test_no_rule_name_pollution():
     segment1.set_rule_name('rule1')
     segment2.set_rule_name('rule2')
 
-    assert segment1.aws['xray']['rule_name'] == 'rule1'
-    assert segment2.aws['xray']['rule_name'] == 'rule2'
+    assert segment1.aws['xray']['sampling_rule_name'] == 'rule1'
+    assert segment2.aws['xray']['sampling_rule_name'] == 'rule2'
 
 
 def test_no_empty_properties():
