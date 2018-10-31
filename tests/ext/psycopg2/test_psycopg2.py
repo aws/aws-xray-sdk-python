@@ -12,18 +12,32 @@ from aws_xray_sdk.core.context import Context
 patch(('psycopg2',))
 
 
-@pytest.fixture(autouse=True)
-def construct_ctx():
+@pytest.fixture(
+    autouse=True,
+    params=[
+        False,
+        True,
+    ],
+)
+def construct_ctx(request):
     """
     Clean up context storage on each test run and begin a segment
     so that later subsegment can be attached. After each test run
     it cleans up context storage again.
     """
-    xray_recorder.configure(service='test', sampling=False, context=Context())
+    xray_recorder.configure(service='test', sampling=False, context=Context(), stream_sql=request.param)
     xray_recorder.clear_trace_entities()
     xray_recorder.begin_segment('name')
     yield
     xray_recorder.clear_trace_entities()
+
+
+def _assert_query(sql_meta, query):
+    if xray_recorder.stream_sql:
+        assert 'sanitized_query' in sql_meta
+        assert sql_meta['sanitized_query'] == query
+    else:
+        assert 'sanitized_query' not in sql_meta
 
 
 def test_execute_dsn_kwargs():
@@ -46,6 +60,7 @@ def test_execute_dsn_kwargs():
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
     assert sql['database_version']
+    _assert_query(sql, q)
 
 
 def test_execute_dsn_kwargs_alt_dbname():
@@ -72,6 +87,7 @@ def test_execute_dsn_kwargs_alt_dbname():
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
     assert sql['database_version']
+    _assert_query(sql, q)
 
 
 def test_execute_dsn_string():
@@ -94,6 +110,7 @@ def test_execute_dsn_string():
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
     assert sql['database_version']
+    _assert_query(sql, q)
 
 
 def test_execute_in_pool():
@@ -117,6 +134,7 @@ def test_execute_in_pool():
     assert sql['user'] == dsn['user']
     assert sql['url'] == url
     assert sql['database_version']
+    _assert_query(sql, q)
 
 
 def test_execute_bad_query():
@@ -145,6 +163,7 @@ def test_execute_bad_query():
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'ProgrammingError'
+    _assert_query(sql, q)
 
 
 def test_register_extensions():

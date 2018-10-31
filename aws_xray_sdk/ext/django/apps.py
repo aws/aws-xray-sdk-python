@@ -36,6 +36,7 @@ class XRayConfig(AppConfig):
             dynamic_naming=settings.DYNAMIC_NAMING,
             streaming_threshold=settings.STREAMING_THRESHOLD,
             max_trace_back=settings.MAX_TRACE_BACK,
+            stream_sql=settings.STREAM_SQL,
         )
 
         # if turned on subsegment will be generated on
