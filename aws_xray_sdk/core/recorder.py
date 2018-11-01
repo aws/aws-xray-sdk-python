@@ -83,7 +83,7 @@ class AWSXRayRecorder(object):
                   context=None, emitter=None, streaming=None,
                   dynamic_naming=None, streaming_threshold=None,
                   max_trace_back=None, sampler=None,
-                  stream_sql=False):
+                  stream_sql=True):
         """Configure global X-Ray recorder.
 
         Configure needs to run before patching thrid party libraries
