@@ -1,5 +1,5 @@
-import ast
 import importlib
+import inspect
 import logging
 import pkgutil
 import sys
@@ -99,86 +99,53 @@ def _patch(module_to_patch):
     log.info('successfully patched module %s', module_to_patch)
 
 
-def _xray_traced(wrapped, instance, args, kwargs):
+def _patch_func(parent, func_name, func):
     from aws_xray_sdk.core import xray_recorder
 
-    with xray_recorder.capture(name=wrapped.__name__):
-        return wrapped(*args, **kwargs)
+    setattr(parent, func_name, xray_recorder.capture()(func))
 
 
-class XRayPatcherVisitor(ast.NodeVisitor):
-    def __init__(self, module):
-        self.module = module
-        self._current_classes = []
-        self._patched_in_class = []
+def _patch_class(module, cls):
+    for member_name, member in inspect.getmembers(cls, inspect.isclass):
+        if member.__module__ == module.__name__:
+            _patch_class(module, member)
 
-    def visit_FunctionDef(self, node):
-        name = '.'.join(self._current_classes + [node.name])
-        if self._patched_in_class:
-            if name in self._patched_in_class[-1]:
-                return
-            self._patched_in_class[-1].add(name)
-        try:
-            wrapt.wrap_function_wrapper(
-                self.module,
-                name,
-                _xray_traced
-            )
-        except Exception:
-            log.warning('could not patch %s in %s', name, self.module)
-
-    def visit_ClassDef(self, node):
-        self._current_classes.append(node.name)
-        self._patched_in_class.append(set())
-
-        self.generic_visit(node)
-
-        self._patched_in_class.pop()
-        self._current_classes.pop()
+    for member_name, member in inspect.getmembers(cls, inspect.ismethod):
+        if member.__module__ == module.__name__:
+            _patch_func(cls, member_name, member)
 
 
-def _patch_file(module, f):
-    if module in _PATCHED_MODULES:
-        log.debug('%s already patched', module)
-        return
+def _on_import(module):
+    for member_name, member in inspect.getmembers(module, inspect.isfunction):
+        if member.__module__ == module.__name__:
+            _patch_func(module, member_name, member)
 
-    with open(f) as open_file:
-        tree = ast.parse(open_file.read())
-    XRayPatcherVisitor(module).visit(tree)
-
-
-def _on_file_import_factory(module, module_path):
-    def on_import(hook):
-        _patch_file(module, '{}.py'.format(module_path))
-    return on_import
+    for member_name, member in inspect.getmembers(module, inspect.isclass):
+        if member.__module__ == module.__name__:
+            _patch_class(module, member)
 
 
 def _external_module_patch(module):
     if module.startswith('.'):
         raise Exception('relative packages not supported for patching: {}'.format(module))
 
-    module_path = module.replace('.', '/')
-    for loader, submodule_name, is_module in pkgutil.iter_modules([module_path]):
+    for loader, submodule_name, is_module in pkgutil.iter_modules([module.replace('.', '/')]):
         submodule = '.'.join([module, submodule_name])
         if is_module:
             _external_module_patch(submodule)
         else:
-            submodule_path = '/'.join([module_path, submodule_name])
-            on_import = _on_file_import_factory(submodule, submodule_path)
-
             if submodule in sys.modules:
-                on_import(None)
+                _on_import(sys.modules[submodule])
             else:
-                wrapt.importer.when_imported(submodule)(on_import)
+                wrapt.importer.when_imported(submodule)(_on_import)
 
             _PATCHED_MODULES.add(submodule)
             log.info('successfully patched module %s', submodule)
 
-    on_import = _on_file_import_factory(module, '{}/__init__'.format(module_path))
     if module in sys.modules:
-        on_import(None)
+        _on_import(sys.modules[module])
     else:
-        wrapt.importer.when_imported(module)(on_import)
+        wrapt.importer.when_imported(module)(_on_import)
 
     _PATCHED_MODULES.add(module)
     log.info('successfully patched module %s', module)
