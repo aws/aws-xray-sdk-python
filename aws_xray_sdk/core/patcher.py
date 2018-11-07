@@ -99,7 +99,20 @@ def _patch(module_to_patch):
     log.info('successfully patched module %s', module_to_patch)
 
 
+def _is_func_decorated(func):
+    # Very naive approach to checking if a function is already decorated
+    code = inspect.getsource(func)
+    try:
+        return '@xray_recorder.capture(' in code[:code.index('def ')]
+    except ValueError:
+        pass
+    return False
+
+
 def _patch_func(parent, func_name, func):
+    if _is_func_decorated(func):
+        return
+
     from aws_xray_sdk.core import xray_recorder
 
     setattr(parent, func_name, xray_recorder.capture()(func))
@@ -133,16 +146,23 @@ def _external_module_patch(module):
     if module.startswith('.'):
         raise Exception('relative packages not supported for patching: {}'.format(module))
 
-    if module in sys.modules:
-        _on_import(sys.modules[module])
+    if module in _PATCHED_MODULES:
+        log.debug('%s already patched', module)
     else:
-        wrapt.importer.when_imported(module)(_on_import)
+        if module in sys.modules:
+            _on_import(sys.modules[module])
+        else:
+            wrapt.importer.when_imported(module)(_on_import)
 
     for loader, submodule_name, is_module in pkgutil.iter_modules([module.replace('.', '/')]):
         submodule = '.'.join([module, submodule_name])
         if is_module:
             _external_module_patch(submodule)
         else:
+            if submodule in _PATCHED_MODULES:
+                log.debug('%s already patched', submodule)
+                continue
+
             if submodule in sys.modules:
                 _on_import(sys.modules[submodule])
             else:
@@ -151,5 +171,6 @@ def _external_module_patch(module):
             _PATCHED_MODULES.add(submodule)
             log.info('successfully patched module %s', submodule)
 
-    _PATCHED_MODULES.add(module)
-    log.info('successfully patched module %s', module)
+    if module not in _PATCHED_MODULES:
+        _PATCHED_MODULES.add(module)
+        log.info('successfully patched module %s', module)

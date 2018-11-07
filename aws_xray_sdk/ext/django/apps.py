@@ -39,7 +39,8 @@ class XRayConfig(AppConfig):
         )
 
         if settings.PATCH_MODULES:
-            patch(settings.PATCH_MODULES)
+            with xray_recorder.in_segment('startup'):
+                patch(settings.PATCH_MODULES)
 
         # if turned on subsegment will be generated on
         # built-in database and template rendering
