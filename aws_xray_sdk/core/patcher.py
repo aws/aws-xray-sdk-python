@@ -2,6 +2,7 @@ import importlib
 import inspect
 import logging
 import pkgutil
+import re
 import sys
 import wrapt
 
@@ -42,7 +43,7 @@ def _is_valid_import(path):
     return bool(pkgutil.get_loader(path))
 
 
-def patch(modules_to_patch, raise_errors=True):
+def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):
     modules = set()
     for module_to_patch in modules_to_patch:
         # boto3 depends on botocore and patching botocore is sufficient
@@ -71,8 +72,9 @@ def patch(modules_to_patch, raise_errors=True):
     for m in native_modules:
         _patch_module(m, raise_errors)
 
+    ignore_module_patterns = [re.compile(pattern) for pattern in ignore_module_patterns]
     for m in external_modules:
-        _external_module_patch(m)
+        _external_module_patch(m, ignore_module_patterns)
 
 
 def _patch_module(module_to_patch, raise_errors=True):
@@ -142,12 +144,14 @@ def _on_import(module):
             _patch_class(module, member)
 
 
-def _external_module_patch(module):
+def _external_module_patch(module, ignore_module_patterns):
     if module.startswith('.'):
         raise Exception('relative packages not supported for patching: {}'.format(module))
 
     if module in _PATCHED_MODULES:
         log.debug('%s already patched', module)
+    elif any(pattern.match(module) for pattern in ignore_module_patterns):
+        log.debug('%s ignored due to rules: %s', module, ignore_module_patterns)
     else:
         if module in sys.modules:
             _on_import(sys.modules[module])
@@ -157,10 +161,13 @@ def _external_module_patch(module):
     for loader, submodule_name, is_module in pkgutil.iter_modules([module.replace('.', '/')]):
         submodule = '.'.join([module, submodule_name])
         if is_module:
-            _external_module_patch(submodule)
+            _external_module_patch(submodule, ignore_module_patterns)
         else:
             if submodule in _PATCHED_MODULES:
                 log.debug('%s already patched', submodule)
+                continue
+            elif any(pattern.match(submodule) for pattern in ignore_module_patterns):
+                log.debug('%s ignored due to rules: %s', submodule, ignore_module_patterns)
                 continue
 
             if submodule in sys.modules:
