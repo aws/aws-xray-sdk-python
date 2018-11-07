@@ -251,6 +251,20 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             pass
 ```
 
+### Trace SQL queries
+By default, if no other value is provided to `.configure()`, SQL trace streaming is enabled
+for all the supported DB engines. Those currently are:
+- Any engine attached to the Django ORM.
+- Any engine attached to SQLAlchemy.
+- SQLite3.
+
+The behaviour can be toggled by sending the appropriate `stream_sql` value, for example:
+```python
+from aws_xray_sdk.core import xray_recorder
+
+xray_recorder.configure(service='fallback_name', stream_sql=True)
+```
+
 ### Patch third-party libraries
 
 ```python
@@ -260,7 +274,8 @@ libs_to_patch = ('boto3', 'mysql', 'requests')
 patch(libs_to_patch)
 ```
 
-### Add Django middleware
+### Django
+#### Add middleware
 
 In django settings.py, use the following.
 
@@ -275,6 +290,10 @@ MIDDLEWARE = [
     # ... other middlewares
 ]
 ```
+#### SQL tracing
+If Django's ORM is patched - either using the `AUTO_INSTRUMENT = True` in your settings file
+or explicitly calling `patch_db()` - the SQL query trace streaming can be enabled or disabled 
+updating the `STREAM_SQL` variable in your settings file.
 
 ### Add Flask middleware
 
