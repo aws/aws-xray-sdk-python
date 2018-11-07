@@ -108,26 +108,35 @@ def _patch_func(parent, func_name, func):
 def _patch_class(module, cls):
     for member_name, member in inspect.getmembers(cls, inspect.isclass):
         if member.__module__ == module.__name__:
+            # Only patch classes of the module, ignore imports
             _patch_class(module, member)
 
     for member_name, member in inspect.getmembers(cls, inspect.ismethod):
         if member.__module__ == module.__name__:
+            # Only patch methods of the class defined in the module, ignore inherited
             _patch_func(cls, member_name, member)
 
 
 def _on_import(module):
     for member_name, member in inspect.getmembers(module, inspect.isfunction):
         if member.__module__ == module.__name__:
+            # Only patch functions of the module, ignore imports
             _patch_func(module, member_name, member)
 
     for member_name, member in inspect.getmembers(module, inspect.isclass):
         if member.__module__ == module.__name__:
+            # Only patch classes of the module, ignore imports
             _patch_class(module, member)
 
 
 def _external_module_patch(module):
     if module.startswith('.'):
         raise Exception('relative packages not supported for patching: {}'.format(module))
+
+    if module in sys.modules:
+        _on_import(sys.modules[module])
+    else:
+        wrapt.importer.when_imported(module)(_on_import)
 
     for loader, submodule_name, is_module in pkgutil.iter_modules([module.replace('.', '/')]):
         submodule = '.'.join([module, submodule_name])
@@ -141,11 +150,6 @@ def _external_module_patch(module):
 
             _PATCHED_MODULES.add(submodule)
             log.info('successfully patched module %s', submodule)
-
-    if module in sys.modules:
-        _on_import(sys.modules[module])
-    else:
-        wrapt.importer.when_imported(module)(_on_import)
 
     _PATCHED_MODULES.add(module)
     log.info('successfully patched module %s', module)
