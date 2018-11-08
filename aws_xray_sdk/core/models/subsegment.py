@@ -7,6 +7,20 @@ from .entity import Entity
 from ..exceptions.exceptions import SegmentNotFoundException
 
 
+SUBSEGMENT_PATCHED_ATTRIBUTE = '__SUBSEGMENT_PATCHED_ATTRIBUTE__'
+
+
+def is_already_patched(func):
+    return getattr(func, SUBSEGMENT_PATCHED_ATTRIBUTE, False)
+
+
+@wrapt.decorator
+def set_patched_attribute(wrapped, instance, args, kwargs):
+    decorated_func = wrapped(*args, **kwargs)
+    setattr(decorated_func, SUBSEGMENT_PATCHED_ATTRIBUTE, True)
+    return decorated_func
+
+
 class SubsegmentContextManager:
     """
     Wrapper for segment and recorder to provide segment context manager.
@@ -18,8 +32,13 @@ class SubsegmentContextManager:
         self.recorder = recorder
         self.subsegment = None
 
+    @set_patched_attribute
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
+        if is_already_patched(wrapped):
+            # The wrapped function is already decorated, the subsegment will be created later, just return the result
+            return wrapped(*args, **kwargs)
+
         func_name = self.name
         if not func_name:
             func_name = wrapped.__name__

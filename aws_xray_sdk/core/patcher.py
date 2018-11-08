@@ -5,6 +5,7 @@ import pkgutil
 import re
 import sys
 import wrapt
+from .models.subsegment import is_already_patched
 
 log = logging.getLogger(__name__)
 
@@ -101,18 +102,8 @@ def _patch(module_to_patch):
     log.info('successfully patched module %s', module_to_patch)
 
 
-def _is_func_decorated(func):
-    # Very naive approach to checking if a function is already decorated
-    code = inspect.getsource(func)
-    try:
-        return '@xray_recorder.capture(' in code[:code.index('def ')]
-    except ValueError:
-        pass
-    return False
-
-
 def _patch_func(parent, func_name, func):
-    if _is_func_decorated(func):
+    if is_already_patched(func):
         return
 
     from aws_xray_sdk.core import xray_recorder
