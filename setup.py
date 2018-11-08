@@ -45,7 +45,6 @@ setup(
         'jsonpickle',
         'enum34;python_version<"3.4"',
         'wrapt',
-        'requests',
         'future',
         'botocore>=1.11.3',
     ],

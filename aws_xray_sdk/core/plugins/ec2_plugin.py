@@ -1,5 +1,7 @@
 import logging
-import requests
+from future.standard_library import install_aliases
+install_aliases()
+from urllib.request import urlopen
 
 log = logging.getLogger(__name__)
 
@@ -18,11 +20,12 @@ def initialize():
     try:
         runtime_context = {}
 
-        r = requests.get('http://169.254.169.254/latest/meta-data/instance-id', timeout=1)
-        runtime_context['instance_id'] = r.text
+        r = urlopen('http://169.254.169.254/latest/meta-data/instance-id', timeout=1)
+        runtime_context['instance_id'] = r.read().decode('utf-8')
 
-        r = requests.get('http://169.254.169.254/latest/meta-data/placement/availability-zone', timeout=1)
-        runtime_context['availability_zone'] = r.text
+        r = urlopen('http://169.254.169.254/latest/meta-data/placement/availability-zone',
+                    timeout=1)
+        runtime_context['availability_zone'] = r.read().decode('utf-8')
 
     except Exception:
         runtime_context = None
