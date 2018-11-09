@@ -7,17 +7,24 @@ from .entity import Entity
 from ..exceptions.exceptions import SegmentNotFoundException
 
 
-SUBSEGMENT_PATCHED_ATTRIBUTE = '__SUBSEGMENT_PATCHED_ATTRIBUTE__'
+SUBSEGMENT_RECORDING_ATTRIBUTE = '__SUBSEGMENT_RECORDING_ATTRIBUTE__'
 
 
-def is_already_patched(func):
-    return getattr(func, SUBSEGMENT_PATCHED_ATTRIBUTE, False)
+def set_as_recording(decorated_func, wrapped):
+    # If the wrapped function has the attribute, then it has already been patched
+    setattr(decorated_func, SUBSEGMENT_RECORDING_ATTRIBUTE, hasattr(wrapped, SUBSEGMENT_RECORDING_ATTRIBUTE))
+
+
+def is_already_recording(func):
+    # The function might have the attribute, but its value might still be false
+    # as it might be the first decorator
+    return getattr(func, SUBSEGMENT_RECORDING_ATTRIBUTE, False)
 
 
 @wrapt.decorator
-def set_patched_attribute(wrapped, instance, args, kwargs):
-    decorated_func = wrapped(*args, **kwargs)
-    setattr(decorated_func, SUBSEGMENT_PATCHED_ATTRIBUTE, True)
+def subsegment_decorator(wrapped, instance, args, kwargs):
+    decorated_func = wrapt.decorator(wrapped)(*args, **kwargs)
+    set_as_recording(decorated_func, wrapped)
     return decorated_func
 
 
@@ -32,11 +39,11 @@ class SubsegmentContextManager:
         self.recorder = recorder
         self.subsegment = None
 
-    @set_patched_attribute
-    @wrapt.decorator
+    @subsegment_decorator
     def __call__(self, wrapped, instance, args, kwargs):
-        if is_already_patched(wrapped):
-            # The wrapped function is already decorated, the subsegment will be created later, just return the result
+        if is_already_recording(wrapped):
+            # The wrapped function is already decorated, the subsegment will be created later,
+            # just return the result
             return wrapped(*args, **kwargs)
 
         func_name = self.name
