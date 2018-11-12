@@ -1,6 +1,7 @@
 import importlib
 import inspect
 import logging
+import os
 import pkgutil
 import re
 import sys
@@ -41,12 +42,16 @@ def patch_all(double_patch=False):
 
 
 def _is_valid_import(module):
+    module = module.replace('.', '/')
     if PY2:
-        module = module.replace('.', '/')
-    try:
         return bool(pkgutil.get_loader(module))
-    except ImportError:
-        return False
+    else:
+        realpath = os.path.realpath(module)
+        is_module = os.path.isdir(realpath) and (
+            os.path.isfile('{}/__init__.py'.format(module)) or os.path.isfile('{}/__init__.pyc'.format(module))
+        )
+        is_file = os.path.isfile('{}.py'.format(module)) or os.path.isfile('{}.pyc'.format(module))
+        return is_module or is_file
 
 
 def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):

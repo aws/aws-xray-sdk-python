@@ -18,10 +18,10 @@ from aws_xray_sdk.core.context import Context
 
 
 TEST_MODULES = (
-    'aws_xray_sdk.tests.mock_module',
-    'aws_xray_sdk.tests.mock_module.mock_file',
-    'aws_xray_sdk.tests.mock_module.mock_submodule',
-    'aws_xray_sdk.tests.mock_module.mock_submodule.mock_subfile',
+    'tests.mock_module',
+    'tests.mock_module.mock_file',
+    'tests.mock_module.mock_submodule',
+    'tests.mock_module.mock_submodule.mock_subfile',
 )
 
 
@@ -71,7 +71,8 @@ def test_external_file():
     patcher.patch(['tests.mock_module.mock_file'])
     assert len(xray_recorder.current_segment().subsegments) == 0
     # We want to make sure patching does not load any of the patched modules
-    assert not any(module in sys.modules for module in TEST_MODULES)
+    imported_modules = [module for module in TEST_MODULES if module in sys.modules]
+    assert not imported_modules
 
     from .mock_module import mock_file, mock_init
     from .mock_module.mock_submodule import mock_subfile, mock_subinit
@@ -88,7 +89,8 @@ def test_external_module():
     patcher.patch(['tests.mock_module.mock_submodule'])
     assert len(xray_recorder.current_segment().subsegments) == 0
     # We want to make sure patching does not load any of the patched modules
-    assert not any(module in sys.modules for module in TEST_MODULES)
+    imported_modules = [module for module in TEST_MODULES if module in sys.modules]
+    assert not imported_modules
 
     from .mock_module import mock_file, mock_init
     from .mock_module.mock_submodule import mock_subfile, mock_subinit
@@ -106,7 +108,8 @@ def test_external_submodules():
     patcher.patch(['tests.mock_module'])
     assert len(xray_recorder.current_segment().subsegments) == 0
     # We want to make sure patching does not load any of the patched modules
-    assert not any(module in sys.modules for module in TEST_MODULES)
+    imported_modules = [module for module in TEST_MODULES if module in sys.modules]
+    assert not imported_modules
 
     from .mock_module import mock_file, mock_init
     from .mock_module.mock_submodule import mock_subfile, mock_subinit
