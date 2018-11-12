@@ -104,7 +104,7 @@ def test_external_module():
     assert xray_recorder.current_segment().subsegments[1].name == 'mock_subinit'
 
 
-def test_external_submodules():
+def test_external_submodules_full():
     patcher.patch(['tests.mock_module'])
     assert len(xray_recorder.current_segment().subsegments) == 0
     # We want to make sure patching does not load any of the patched modules
@@ -125,3 +125,46 @@ def test_external_submodules():
     assert xray_recorder.current_segment().subsegments[2].name == 'mock_func'
     assert xray_recorder.current_segment().subsegments[3].name == 'mock_subfunc'
     assert xray_recorder.current_segment().subsegments[4].name == 'mock_no_doublepatch'
+
+
+def test_external_submodules_ignores_file():
+    patcher.patch(['tests.mock_module'], ignore_module_patterns=['tests.mock_module.mock_file'])
+    assert len(xray_recorder.current_segment().subsegments) == 0
+    # We want to make sure patching does not load any of the patched modules
+    imported_modules = [module for module in TEST_MODULES if module in sys.modules]
+    assert not imported_modules
+
+    from .mock_module import mock_file, mock_init
+    from .mock_module.mock_submodule import mock_subfile, mock_subinit
+    mock_init()
+    mock_subinit()
+    mock_file.mock_func()
+    mock_subfile.mock_subfunc()
+    mock_subfile.mock_no_doublepatch()
+
+    assert len(xray_recorder.current_segment().subsegments) == 4
+    assert xray_recorder.current_segment().subsegments[0].name == 'mock_init'
+    assert xray_recorder.current_segment().subsegments[1].name == 'mock_subinit'
+    assert xray_recorder.current_segment().subsegments[2].name == 'mock_subfunc'
+    assert xray_recorder.current_segment().subsegments[3].name == 'mock_no_doublepatch'
+
+
+def test_external_submodules_ignores_module():
+    patcher.patch(['tests.mock_module'], ignore_module_patterns=['tests.mock_module.mock_submodule'])
+    assert len(xray_recorder.current_segment().subsegments) == 0
+    # We want to make sure patching does not load any of the patched modules
+    imported_modules = [module for module in TEST_MODULES if module in sys.modules]
+    assert not imported_modules
+
+    from .mock_module import mock_file, mock_init
+    from .mock_module.mock_submodule import mock_subfile, mock_subinit
+    mock_init()
+    mock_subinit()
+    mock_file.mock_func()
+    mock_subfile.mock_subfunc()
+    mock_subfile.mock_no_doublepatch()
+
+    assert len(xray_recorder.current_segment().subsegments) == 3
+    assert xray_recorder.current_segment().subsegments[0].name == 'mock_init'
+    assert xray_recorder.current_segment().subsegments[1].name == 'mock_func'
+    assert xray_recorder.current_segment().subsegments[2].name == 'mock_no_doublepatch'  # It is patched with decorator
