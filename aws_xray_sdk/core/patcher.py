@@ -50,7 +50,9 @@ def _is_valid_import(module):
         is_module = os.path.isdir(realpath) and (
             os.path.isfile('{}/__init__.py'.format(module)) or os.path.isfile('{}/__init__.pyc'.format(module))
         )
-        is_file = os.path.isfile('{}.py'.format(module)) or os.path.isfile('{}.pyc'.format(module))
+        is_file = not is_module and (
+                os.path.isfile('{}.py'.format(module)) or os.path.isfile('{}.pyc'.format(module))
+        )
         return is_module or is_file
 
 
@@ -113,6 +115,10 @@ def _patch(module_to_patch):
 
 
 def _patch_func(parent, func_name, func, modifier=lambda x: x):
+    if func_name not in parent.__dict__:
+        # Ignore functions not directly defined in parent, i.e. exclude inherited ones
+        return
+
     from aws_xray_sdk.core import xray_recorder
 
     capture_name = func_name
@@ -129,12 +135,12 @@ def _patch_class(module, cls):
 
     for member_name, member in inspect.getmembers(cls, inspect.ismethod):
         if member.__module__ == module.__name__:
-            # Only patch methods of the class defined in the module, ignore inherited
+            # Only patch methods of the class defined in the module, ignore other modules
             _patch_func(cls, member_name, member)
 
     for member_name, member in inspect.getmembers(cls, inspect.isfunction):
         if member.__module__ == module.__name__:
-            # Only patch static methods of the class defined in the module, ignore inherited
+            # Only patch static methods of the class defined in the module, ignore other modules
             if is_instance_method(cls, member_name, member):
                 _patch_func(cls, member_name, member)
             else:

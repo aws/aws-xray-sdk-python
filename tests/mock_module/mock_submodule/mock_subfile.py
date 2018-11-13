@@ -24,3 +24,11 @@ class MockClass(object):
     @staticmethod
     def mock_staticmethod():
         pass
+
+
+class MockSubclass(MockClass):
+    def __init__(self):
+        super(MockSubclass, self).__init__()
+
+    def mock_submethod(self):
+        pass

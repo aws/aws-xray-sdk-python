@@ -1,3 +1,4 @@
+import inspect
 import sys
 
 
@@ -13,4 +14,14 @@ else:
 
 
 def is_instance_method(parent_class, func_name, func):
-    return getattr(func, '__self__', None) is None and not isinstance(parent_class.__dict__[func_name], staticmethod)
+    try:
+        func_from_dict = parent_class.__dict__[func_name]
+    except KeyError:
+        for base in inspect.getmro(parent_class):
+            if func_name in base.__dict__:
+                func_from_dict = base.__dict__[func_name]
+                break
+        else:
+            return True
+
+    return getattr(func, '__self__', None) is None and not isinstance(func_from_dict, staticmethod)
