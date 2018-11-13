@@ -8,3 +8,19 @@ def mock_subfunc():
 @xray_recorder.capture()
 def mock_no_doublepatch():
     pass
+
+
+class MockClass(object):
+    def __init__(self):
+        pass
+
+    def mock_method(self):
+        pass
+
+    @classmethod
+    def mock_classmethod(cls):
+        pass
+
+    @staticmethod
+    def mock_staticmethod():
+        pass

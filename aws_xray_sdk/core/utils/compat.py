@@ -10,3 +10,7 @@ if PY2:
 else:
     annotation_value_types = (int, float, bool, str)
     string_types = str
+
+
+def is_instance_method(parent_class, func_name, func):
+    return getattr(func, '__self__', None) is None and not isinstance(parent_class.__dict__[func_name], staticmethod)

@@ -56,6 +56,20 @@ def construct_ctx():
             del sys.modules[module_name]
 
 
+def _call_all_mock_functions():
+    from .mock_module import mock_file, mock_init
+    from .mock_module.mock_submodule import mock_subfile, mock_subinit
+
+    mock_init()
+    mock_subinit()
+    mock_file.mock_func()
+    mock_subfile.mock_subfunc()
+    mock_subfile.mock_no_doublepatch()
+    mock_subfile.MockClass.mock_classmethod()
+    mock_subfile.MockClass.mock_staticmethod()
+    mock_subfile.MockClass().mock_method()
+
+
 @pytest.mark.parametrize('modules', [
     ('nonexisting.module',),
     ('psycopg2', 'nonexisting.module',),
@@ -74,15 +88,11 @@ def test_external_file():
     imported_modules = [module for module in TEST_MODULES if module in sys.modules]
     assert not imported_modules
 
-    from .mock_module import mock_file, mock_init
-    from .mock_module.mock_submodule import mock_subfile, mock_subinit
-    mock_file.mock_func()
-    mock_subfile.mock_subfunc()
-    mock_init()
-    mock_subinit()
+    _call_all_mock_functions()
 
-    assert len(xray_recorder.current_segment().subsegments) == 1
+    assert len(xray_recorder.current_segment().subsegments) == 2
     assert xray_recorder.current_segment().subsegments[0].name == 'mock_func'
+    assert xray_recorder.current_segment().subsegments[1].name == 'mock_no_doublepatch'  # It is patched with decorator
 
 
 def test_external_module():
@@ -92,16 +102,16 @@ def test_external_module():
     imported_modules = [module for module in TEST_MODULES if module in sys.modules]
     assert not imported_modules
 
-    from .mock_module import mock_file, mock_init
-    from .mock_module.mock_submodule import mock_subfile, mock_subinit
-    mock_file.mock_func()
-    mock_subfile.mock_subfunc()
-    mock_init()
-    mock_subinit()
+    _call_all_mock_functions()
 
-    assert len(xray_recorder.current_segment().subsegments) == 2
-    assert xray_recorder.current_segment().subsegments[0].name == 'mock_subfunc'
-    assert xray_recorder.current_segment().subsegments[1].name == 'mock_subinit'
+    assert len(xray_recorder.current_segment().subsegments) == 7
+    assert xray_recorder.current_segment().subsegments[0].name == 'mock_subinit'
+    assert xray_recorder.current_segment().subsegments[1].name == 'mock_subfunc'
+    assert xray_recorder.current_segment().subsegments[2].name == 'mock_no_doublepatch'  # Should appear only once
+    assert xray_recorder.current_segment().subsegments[3].name == 'mock_classmethod'
+    assert xray_recorder.current_segment().subsegments[4].name == 'mock_staticmethod'
+    assert xray_recorder.current_segment().subsegments[5].name == 'MockClass.__init__'
+    assert xray_recorder.current_segment().subsegments[6].name == 'mock_method'
 
 
 def test_external_submodules_full():
@@ -111,20 +121,18 @@ def test_external_submodules_full():
     imported_modules = [module for module in TEST_MODULES if module in sys.modules]
     assert not imported_modules
 
-    from .mock_module import mock_file, mock_init
-    from .mock_module.mock_submodule import mock_subfile, mock_subinit
-    mock_init()
-    mock_subinit()
-    mock_file.mock_func()
-    mock_subfile.mock_subfunc()
-    mock_subfile.mock_no_doublepatch()
+    _call_all_mock_functions()
 
-    assert len(xray_recorder.current_segment().subsegments) == 5
+    assert len(xray_recorder.current_segment().subsegments) == 9
     assert xray_recorder.current_segment().subsegments[0].name == 'mock_init'
     assert xray_recorder.current_segment().subsegments[1].name == 'mock_subinit'
     assert xray_recorder.current_segment().subsegments[2].name == 'mock_func'
     assert xray_recorder.current_segment().subsegments[3].name == 'mock_subfunc'
     assert xray_recorder.current_segment().subsegments[4].name == 'mock_no_doublepatch'
+    assert xray_recorder.current_segment().subsegments[5].name == 'mock_classmethod'
+    assert xray_recorder.current_segment().subsegments[6].name == 'mock_staticmethod'
+    assert xray_recorder.current_segment().subsegments[7].name == 'MockClass.__init__'
+    assert xray_recorder.current_segment().subsegments[8].name == 'mock_method'
 
 
 def test_external_submodules_ignores_file():
@@ -134,19 +142,17 @@ def test_external_submodules_ignores_file():
     imported_modules = [module for module in TEST_MODULES if module in sys.modules]
     assert not imported_modules
 
-    from .mock_module import mock_file, mock_init
-    from .mock_module.mock_submodule import mock_subfile, mock_subinit
-    mock_init()
-    mock_subinit()
-    mock_file.mock_func()
-    mock_subfile.mock_subfunc()
-    mock_subfile.mock_no_doublepatch()
+    _call_all_mock_functions()
 
-    assert len(xray_recorder.current_segment().subsegments) == 4
+    assert len(xray_recorder.current_segment().subsegments) == 8
     assert xray_recorder.current_segment().subsegments[0].name == 'mock_init'
     assert xray_recorder.current_segment().subsegments[1].name == 'mock_subinit'
     assert xray_recorder.current_segment().subsegments[2].name == 'mock_subfunc'
     assert xray_recorder.current_segment().subsegments[3].name == 'mock_no_doublepatch'
+    assert xray_recorder.current_segment().subsegments[4].name == 'mock_classmethod'
+    assert xray_recorder.current_segment().subsegments[5].name == 'mock_staticmethod'
+    assert xray_recorder.current_segment().subsegments[6].name == 'MockClass.__init__'
+    assert xray_recorder.current_segment().subsegments[7].name == 'mock_method'
 
 
 def test_external_submodules_ignores_module():
@@ -156,13 +162,7 @@ def test_external_submodules_ignores_module():
     imported_modules = [module for module in TEST_MODULES if module in sys.modules]
     assert not imported_modules
 
-    from .mock_module import mock_file, mock_init
-    from .mock_module.mock_submodule import mock_subfile, mock_subinit
-    mock_init()
-    mock_subinit()
-    mock_file.mock_func()
-    mock_subfile.mock_subfunc()
-    mock_subfile.mock_no_doublepatch()
+    _call_all_mock_functions()
 
     assert len(xray_recorder.current_segment().subsegments) == 3
     assert xray_recorder.current_segment().subsegments[0].name == 'mock_init'

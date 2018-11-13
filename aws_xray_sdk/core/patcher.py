@@ -6,7 +6,7 @@ import pkgutil
 import re
 import sys
 import wrapt
-from .utils.compat import PY2
+from .utils.compat import PY2, is_instance_method
 
 log = logging.getLogger(__name__)
 
@@ -112,10 +112,13 @@ def _patch(module_to_patch):
     log.info('successfully patched module %s', module_to_patch)
 
 
-def _patch_func(parent, func_name, func):
+def _patch_func(parent, func_name, func, modifier=lambda x: x):
     from aws_xray_sdk.core import xray_recorder
 
-    setattr(parent, func_name, xray_recorder.capture()(func))
+    capture_name = func_name
+    if func_name.startswith('__') and func_name.endswith('__'):
+        capture_name = '{}.{}'.format(parent.__name__, capture_name)
+    setattr(parent, func_name, modifier(xray_recorder.capture(name=capture_name)(func)))
 
 
 def _patch_class(module, cls):
@@ -128,6 +131,14 @@ def _patch_class(module, cls):
         if member.__module__ == module.__name__:
             # Only patch methods of the class defined in the module, ignore inherited
             _patch_func(cls, member_name, member)
+
+    for member_name, member in inspect.getmembers(cls, inspect.isfunction):
+        if member.__module__ == module.__name__:
+            # Only patch static methods of the class defined in the module, ignore inherited
+            if is_instance_method(cls, member_name, member):
+                _patch_func(cls, member_name, member)
+            else:
+                _patch_func(cls, member_name, member, modifier=staticmethod)
 
 
 def _on_import(module):

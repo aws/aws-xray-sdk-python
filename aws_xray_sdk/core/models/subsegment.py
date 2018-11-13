@@ -7,7 +7,8 @@ from .entity import Entity
 from ..exceptions.exceptions import SegmentNotFoundException
 
 
-SUBSEGMENT_RECORDING_ATTRIBUTE = '__SUBSEGMENT_RECORDING_ATTRIBUTE__'
+# Attribute starts with _self_ to prevent wrapt proxying to underlying function
+SUBSEGMENT_RECORDING_ATTRIBUTE = '_self___SUBSEGMENT_RECORDING_ATTRIBUTE__'
 
 
 def set_as_recording(decorated_func, wrapped):
