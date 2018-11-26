@@ -13,6 +13,10 @@ else:
     string_types = str
 
 
+def is_classmethod(func):
+    return getattr(func, '__self__', None) is not None
+
+
 def is_instance_method(parent_class, func_name, func):
     try:
         func_from_dict = parent_class.__dict__[func_name]
@@ -24,4 +28,4 @@ def is_instance_method(parent_class, func_name, func):
         else:
             return True
 
-    return getattr(func, '__self__', None) is None and not isinstance(func_from_dict, staticmethod)
+    return not is_classmethod(func) and not isinstance(func_from_dict, staticmethod)

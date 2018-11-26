@@ -6,7 +6,8 @@ import pkgutil
 import re
 import sys
 import wrapt
-from .utils.compat import PY2, is_instance_method
+
+from .utils.compat import PY2, is_classmethod, is_instance_method
 
 log = logging.getLogger(__name__)
 
@@ -136,7 +137,13 @@ def _patch_class(module, cls):
     for member_name, member in inspect.getmembers(cls, inspect.ismethod):
         if member.__module__ == module.__name__:
             # Only patch methods of the class defined in the module, ignore other modules
-            _patch_func(cls, member_name, member)
+            if is_classmethod(member):
+                # classmethods are internally generated through descriptors. The classmethod
+                # decorator must be the last applied, so we cannot apply another one on top
+                log.warning('Cannot automatically patch classmethod %s.%s, '
+                            'please apply decorator manually', cls.__name__, member_name)
+            else:
+                _patch_func(cls, member_name, member)
 
     for member_name, member in inspect.getmembers(cls, inspect.isfunction):
         if member.__module__ == module.__name__:

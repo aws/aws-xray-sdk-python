@@ -19,6 +19,7 @@ class MockClass(object):
 
     @classmethod
     def mock_classmethod(cls):
+        # Should not be automatically patched
         pass
 
     @staticmethod
