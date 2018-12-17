@@ -39,7 +39,7 @@ def test_execute_dsn_kwargs():
         cur = conn.cursor()
         cur.execute(q)
 
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[-1]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'PostgreSQL'
@@ -65,7 +65,7 @@ def test_execute_dsn_kwargs_alt_dbname():
         cur = conn.cursor()
         cur.execute(q)
 
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[-1]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'PostgreSQL'
@@ -87,7 +87,7 @@ def test_execute_dsn_string():
         cur = conn.cursor()
         cur.execute(q)
 
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[-1]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'PostgreSQL'
@@ -110,7 +110,7 @@ def test_execute_in_pool():
         cur = pool.getconn(key=dsn['user']).cursor()
         cur.execute(q)
 
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[-1]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'PostgreSQL'
@@ -135,7 +135,7 @@ def test_execute_bad_query():
         except Exception:
             pass
 
-    subsegment = xray_recorder.current_segment().subsegments[0]
+    subsegment = xray_recorder.current_segment().subsegments[-1]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'PostgreSQL'
