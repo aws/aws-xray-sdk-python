@@ -6,8 +6,7 @@ import testing.postgresql
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
-
-patch(('pg8000',))
+from aws_xray_sdk.ext.pg8000 import unpatch
 
 
 @pytest.fixture(autouse=True)
@@ -17,11 +16,13 @@ def construct_ctx():
     so that later subsegment can be attached. After each test run
     it cleans up context storage again.
     """
+    patch(('pg8000',))
     xray_recorder.configure(service='test', sampling=False, context=Context())
     xray_recorder.clear_trace_entities()
     xray_recorder.begin_segment('name')
     yield
     xray_recorder.clear_trace_entities()
+    unpatch()
 
 
 def test_execute_dsn_kwargs():
