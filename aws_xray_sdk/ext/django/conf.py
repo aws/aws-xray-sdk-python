@@ -14,7 +14,7 @@ DEFAULTS = {
     'DYNAMIC_NAMING': None,
     'STREAMING_THRESHOLD': None,
     'MAX_TRACE_BACK': None,
-    'STREAM_SQL': False,
+    'STREAM_SQL': True,
 }
 
 XRAY_NAMESPACE = 'XRAY_RECORDER'

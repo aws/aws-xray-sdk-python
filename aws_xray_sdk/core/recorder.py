@@ -72,7 +72,7 @@ class AWSXRayRecorder(object):
         self._dynamic_naming = None
         self._aws_metadata = copy.deepcopy(XRAY_META)
         self._origin = None
-        self._stream_sql = False
+        self._stream_sql = True
 
         if type(self.sampler).__name__ == 'DefaultSampler':
             self.sampler.load_settings(DaemonConfig(), self.context)
