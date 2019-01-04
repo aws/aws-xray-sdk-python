@@ -20,6 +20,7 @@ SUPPORTED_MODULES = (
     'httplib',
     'pymongo',
     'psycopg2',
+    'pg8000',
 )
 
 NO_DOUBLE_PATCH = (
@@ -30,6 +31,7 @@ NO_DOUBLE_PATCH = (
     'mysql',
     'pymongo',
     'psycopg2',
+    'pg8000',
 )
 
 _PATCHED_MODULES = set()
