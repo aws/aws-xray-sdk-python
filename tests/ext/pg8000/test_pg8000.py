@@ -9,6 +9,13 @@ from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.ext.pg8000 import unpatch
 
 
+@pytest.fixture(scope='module', autouse=True)
+def patch_module():
+    patch(('pg8000',))
+    yield
+    unpatch()
+
+
 @pytest.fixture(autouse=True)
 def construct_ctx():
     """
@@ -16,13 +23,11 @@ def construct_ctx():
     so that later subsegment can be attached. After each test run
     it cleans up context storage again.
     """
-    patch(('pg8000',))
     xray_recorder.configure(service='test', sampling=False, context=Context())
     xray_recorder.clear_trace_entities()
     xray_recorder.begin_segment('name')
     yield
     xray_recorder.clear_trace_entities()
-    unpatch()
 
 
 def test_execute_dsn_kwargs():
