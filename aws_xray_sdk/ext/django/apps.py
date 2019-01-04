@@ -39,7 +39,10 @@ class XRayConfig(AppConfig):
         )
 
         if settings.PATCH_MODULES:
-            with xray_recorder.in_segment('startup'):
+            if settings.AUTO_PATCH_PARENT_SEGMENT_NAME is not None:
+                with xray_recorder.in_segment(settings.AUTO_PATCH_PARENT_SEGMENT_NAME):
+                    patch(settings.PATCH_MODULES, ignore_module_patterns=settings.IGNORE_MODULE_PATTERNS)
+            else:
                 patch(settings.PATCH_MODULES, ignore_module_patterns=settings.IGNORE_MODULE_PATTERNS)
 
         # if turned on subsegment will be generated on

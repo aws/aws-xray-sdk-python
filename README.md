@@ -315,6 +315,9 @@ XRAY_RECORDER = {
     ...
 }
 ```
+If `AUTO_PATCH_PARENT_SEGMENT_NAME` is also specified, then a segment parent will be created 
+with the supplied name, wrapping the automatic patching so that it captures any dangling
+subsegments created on the import patching.
 
 ### Add Flask middleware
 
