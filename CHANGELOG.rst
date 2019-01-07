@@ -4,7 +4,7 @@ CHANGELOG
 
 unreleased
 ==========
-* feature: Stream dbapi2 SQL queries and add flag to toggle their streaming
+* feature: Stream Django ORM SQL queries and add flag to toggle their streaming
 
 2.2.0
 =====
