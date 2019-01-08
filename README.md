@@ -273,8 +273,29 @@ libs_to_patch = ('boto3', 'mysql', 'requests')
 patch(libs_to_patch)
 ```
 
+#### Automatic module patching
+
+Full modules in the local codebase can be recursively patched by providing the module references
+to the patch function.
+```python
+from aws_xray_sdk.core import patch
+
+libs_to_patch = ('boto3', 'requests', 'local.module.ref', 'other_module')
+patch(libs_to_patch)
+```
+An `xray_recorder.capture()` decorator will be applied to all functions and class methods in the
+given module and all the modules inside them recursively. Some files/modules can be excluded by
+providing to the `patch` function a regex that matches them.
+```python
+from aws_xray_sdk.core import patch
+
+libs_to_patch = ('boto3', 'requests', 'local.module.ref', 'other_module')
+ignore = ('local.module.ref.some_file', 'other_module.some_module\.*')
+patch(libs_to_patch, ignore_module_patterns=ignore)
+```
+
 ### Django
-#### Add middleware
+#### Add Django middleware
 
 In django settings.py, use the following.
 
@@ -293,6 +314,27 @@ MIDDLEWARE = [
 If Django's ORM is patched - either using the `AUTO_INSTRUMENT = True` in your settings file
 or explicitly calling `patch_db()` - the SQL query trace streaming can then be enabled or 
 disabled updating the `STREAM_SQL` variable in your settings file. It is enabled by default.
+
+#### Automatic patching
+The automatic module patching can also be configured through Django settings.
+```python
+XRAY_RECORDER = {
+    'PATCH_MODULES': [
+        'boto3',
+        'requests',
+        'local.module.ref',
+        'other_module',
+    ],
+    'IGNORE_MODULE_PATTERNS': [
+        'local.module.ref.some_file',
+        'other_module.some_module\.*',
+    ],
+    ...
+}
+```
+If `AUTO_PATCH_PARENT_SEGMENT_NAME` is also specified, then a segment parent will be created 
+with the supplied name, wrapping the automatic patching so that it captures any dangling
+subsegments created on the import patching.
 
 ### Add Flask middleware
 
