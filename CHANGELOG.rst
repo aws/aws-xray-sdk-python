@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+unreleased
+==========
+* feature: Recursively patch any given module functions with capture
+
 2.2.0
 =====
 * feature: Added context managers on segment/subsegment capture. `PR97 <https://github.com/aws/aws-xray-sdk-python/pull/97>`_.
@@ -32,11 +36,11 @@ CHANGELOG
 * **Breaking**: The original sampling modules for local defined rules are moved from `models.sampling` to `models.sampling.local`.
 * **Breaking**: The default behavior of `patch_all` changed to selectively patches libraries to avoid double patching. You can use `patch_all(double_patch=True)` to force it to patch ALL supported libraries. See more details on `ISSUE63 <https://github.com/aws/aws-xray-sdk-python/issues/63>`_
 * **Breaking**: The latest `botocore` that has new X-Ray service API `GetSamplingRules` and `GetSamplingTargets` are required.
-* **Breaking**: Version 2.x doesn't support pynamodb and aiobotocore as it requires botocore >= 1.11.3 which isn’t currently supported by the pynamodb and aiobotocore libraries. Please continue to use version 1.x if you’re using pynamodb or aiobotocore until those haven been updated to use botocore > = 1.11.3. 
+* **Breaking**: Version 2.x doesn't support pynamodb and aiobotocore as it requires botocore >= 1.11.3 which isn’t currently supported by the pynamodb and aiobotocore libraries. Please continue to use version 1.x if you’re using pynamodb or aiobotocore until those haven been updated to use botocore > = 1.11.3.
 * feature: Environment variable `AWS_XRAY_DAEMON_ADDRESS` now takes an additional notation in `tcp:127.0.0.1:2000 udp:127.0.0.2:2001` to set TCP and UDP destination separately. By default it assumes a X-Ray daemon listening to both UDP and TCP traffic on `127.0.0.1:2000`.
 * feature: Added MongoDB python client support. `PR65 <https://github.com/aws/aws-xray-sdk-python/pull/65>`_.
-* bugfix: Support binding connection in sqlalchemy as well as engine. `PR78 <https://github.com/aws/aws-xray-sdk-python/pull/78>`_. 
-* bugfix: Flask middleware safe request teardown. `ISSUE75 <https://github.com/aws/aws-xray-sdk-python/issues/75>`_. 
+* bugfix: Support binding connection in sqlalchemy as well as engine. `PR78 <https://github.com/aws/aws-xray-sdk-python/pull/78>`_.
+* bugfix: Flask middleware safe request teardown. `ISSUE75 <https://github.com/aws/aws-xray-sdk-python/issues/75>`_.
 
 
 1.1.2
@@ -68,7 +72,7 @@ CHANGELOG
 * bugfix: Fixed an issue where arbitrary fields in trace header being dropped when calling downstream.
 * bugfix: Fixed a compatibility issue between botocore and httplib patcher. `ISSUE48 <https://github.com/aws/aws-xray-sdk-python/issues/48>`_.
 * bugfix: Fixed a typo in sqlalchemy decorators. `PR50 <https://github.com/aws/aws-xray-sdk-python/pull/50>`_.
-* Updated `README` with more usage examples. 
+* Updated `README` with more usage examples.
 
 0.97
 ====

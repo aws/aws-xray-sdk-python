@@ -5,7 +5,7 @@ from django.apps import AppConfig
 from .conf import settings
 from .db import patch_db
 from .templates import patch_template
-from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core import patch, xray_recorder
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNameMissingException
 
 
@@ -37,6 +37,13 @@ class XRayConfig(AppConfig):
             streaming_threshold=settings.STREAMING_THRESHOLD,
             max_trace_back=settings.MAX_TRACE_BACK,
         )
+
+        if settings.PATCH_MODULES:
+            if settings.AUTO_PATCH_PARENT_SEGMENT_NAME is not None:
+                with xray_recorder.in_segment(settings.AUTO_PATCH_PARENT_SEGMENT_NAME):
+                    patch(settings.PATCH_MODULES, ignore_module_patterns=settings.IGNORE_MODULE_PATTERNS)
+            else:
+                patch(settings.PATCH_MODULES, ignore_module_patterns=settings.IGNORE_MODULE_PATTERNS)
 
         # if turned on subsegment will be generated on
         # built-in database and template rendering
