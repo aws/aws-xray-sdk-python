@@ -22,10 +22,15 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
 
 
-@pytest.fixture()
-def session():
+@pytest.fixture(
+    params=[
+        False,
+        True,
+    ],
+)
+def session(request):
     """Test Fixture to Create DataBase Tables and start a trace segment"""
-    xray_recorder.configure(service='test', sampling=False, context=Context())
+    xray_recorder.configure(service='test', sampling=False, context=Context(), stream_sql=request.param)
     xray_recorder.clear_trace_entities()
     xray_recorder.begin_segment('SQLAlchemyTest')
     db.create_all()
@@ -41,8 +46,8 @@ def test_all(capsys, session):
     User.query.all()
     subsegment = find_subsegment_by_annotation(xray_recorder.current_segment(), 'sqlalchemy', 'sqlalchemy.orm.query.all')
     assert subsegment['annotations']['sqlalchemy'] == 'sqlalchemy.orm.query.all'
-    assert subsegment['sql']['sanitized_query']
     assert subsegment['sql']['url']
+    assert bool(subsegment['sql'].get('sanitized_query', None)) is xray_recorder.stream_sql
 
 
 def test_add(capsys, session):

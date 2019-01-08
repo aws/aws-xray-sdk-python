@@ -47,7 +47,8 @@ def xray_on_call(cls, func):
                 if isinstance(arg, XRayQuery):
                     try:
                         sql = parse_bind(arg.session.bind)
-                        sql['sanitized_query'] = str(arg)
+                        if xray_recorder.stream_sql:
+                            sql['sanitized_query'] = str(arg)
                     except Exception:
                         sql = None
         if sql is not None:

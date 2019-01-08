@@ -72,6 +72,7 @@ class AWSXRayRecorder(object):
         self._dynamic_naming = None
         self._aws_metadata = copy.deepcopy(XRAY_META)
         self._origin = None
+        self._stream_sql = True
 
         if type(self.sampler).__name__ == 'DefaultSampler':
             self.sampler.load_settings(DaemonConfig(), self.context)
@@ -81,7 +82,8 @@ class AWSXRayRecorder(object):
                   daemon_address=None, service=None,
                   context=None, emitter=None, streaming=None,
                   dynamic_naming=None, streaming_threshold=None,
-                  max_trace_back=None, sampler=None):
+                  max_trace_back=None, sampler=None,
+                  stream_sql=True):
         """Configure global X-Ray recorder.
 
         Configure needs to run before patching thrid party libraries
@@ -130,6 +132,7 @@ class AWSXRayRecorder(object):
             maximum number of subsegments within a segment.
         :param int max_trace_back: The maxinum number of stack traces recorded
             by auto-capture. Lower this if a single document becomes too large.
+        :param bool stream_sql: Whether SQL query texts should be streamed.
 
         Environment variables AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
         and AWS_XRAY_TRACING_NAME respectively overrides arguments
@@ -159,6 +162,8 @@ class AWSXRayRecorder(object):
             self.streaming_threshold = streaming_threshold
         if max_trace_back:
             self.max_trace_back = max_trace_back
+        if stream_sql is not None:
+            self.stream_sql = stream_sql
 
         if plugins:
             plugin_modules = get_plugin_modules(plugins)
@@ -548,3 +553,11 @@ class AWSXRayRecorder(object):
     @max_trace_back.setter
     def max_trace_back(self, value):
         self._max_trace_back = value
+
+    @property
+    def stream_sql(self):
+        return self._stream_sql
+
+    @stream_sql.setter
+    def stream_sql(self, value):
+        self._stream_sql = value
