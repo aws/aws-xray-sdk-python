@@ -2,10 +2,13 @@
 CHANGELOG
 =========
 
-unreleased
+2.3.0
 ==========
-* feature: Stream Django ORM SQL queries and add flag to toggle their streaming
-* feature: Recursively patch any given module functions with capture
+* feature: Stream Django ORM SQL queries and add flag to toggle their streaming. `PR111 <https://github.com/aws/aws-xray-sdk-python/pull/111>`_.
+* feature: Recursively patch any given module functions with capture. `PR113 <https://github.com/aws/aws-xray-sdk-python/pull/113>`_.
+* feature: Add patch support for pg8000 (Pure Python Driver). `PR115 <https://github.com/aws/aws-xray-sdk-python/pull/115>`_.
+* improvement: Remove the dependency on Requests. `PR112 <https://github.com/aws/aws-xray-sdk-python/pull/112>`_.
+* bugfix: Fix psycop2 register type. `PR95 <https://github.com/aws/aws-xray-sdk-python/pull/95>`_.
 
 2.2.0
 =====
