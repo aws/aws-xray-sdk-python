@@ -283,3 +283,21 @@ async def test_concurrent(test_client, loop, recorder):
     # Ensure all ID's are different
     ids = [item.id for item in recorder.emitter.local]
     assert len(ids) == len(set(ids))
+
+
+async def test_disabled_sdk(test_client, loop, recorder):
+    """
+    Test a normal response when the SDK is disabled.
+
+    :param test_client: AioHttp test client fixture
+    :param loop: Eventloop fixture
+    :param recorder: X-Ray recorder fixture
+    """
+    recorder.configure(enabled=False)
+    client = await test_client(ServerTest.app(loop=loop))
+
+    resp = await client.get('/')
+    assert resp.status == 200
+
+    segment = recorder.emitter.pop()
+    assert not segment

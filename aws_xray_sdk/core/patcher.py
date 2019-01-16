@@ -7,6 +7,7 @@ import re
 import sys
 import wrapt
 
+from aws_xray_sdk.sdk_config import SDKConfig
 from .utils.compat import PY2, is_classmethod, is_instance_method
 
 log = logging.getLogger(__name__)
@@ -60,6 +61,9 @@ def _is_valid_import(module):
 
 
 def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):
+    enabled = SDKConfig.sdk_enabled()
+    if not enabled:
+        return  # Disable module patching if the SDK is disabled.
     modules = set()
     for module_to_patch in modules_to_patch:
         # boto3 depends on botocore and patching botocore is sufficient

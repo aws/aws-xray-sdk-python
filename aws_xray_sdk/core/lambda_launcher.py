@@ -2,10 +2,11 @@ import os
 import logging
 import threading
 
+from aws_xray_sdk.sdk_config import SDKConfig
 from .models.facade_segment import FacadeSegment
 from .models.trace_header import TraceHeader
+from .models.dummy_entities import DummySubsegment
 from .context import Context
-
 
 log = logging.getLogger(__name__)
 
@@ -73,6 +74,11 @@ class LambdaContext(Context):
         if not self._is_subsegment(current_entity) and current_entity.initializing:
             log.warning("Subsegment %s discarded due to Lambda worker still initializing" % subsegment.name)
             return
+
+        enabled = SDKConfig.sdk_enabled()
+        if not enabled:
+            # For lambda, if the SDK is not enabled, we force the subsegment to be a dummy segment.
+            subsegment = DummySubsegment(current_entity)
 
         current_entity.add_subsegment(subsegment)
         self._local.entities.append(subsegment)

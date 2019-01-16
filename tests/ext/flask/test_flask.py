@@ -143,3 +143,11 @@ def test_sampled_response_header():
     resp_header = resp.headers[http.XRAY_HEADER]
     assert segment.trace_id in resp_header
     assert 'Sampled=1' in resp_header
+
+
+def test_disabled_sdk():
+    recorder.configure(enabled=False)
+    path = '/ok'
+    app.get(path)
+    segment = recorder.emitter.pop()
+    assert not segment

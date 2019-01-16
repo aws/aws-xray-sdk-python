@@ -1,7 +1,9 @@
 import os
 
+from aws_xray_sdk.sdk_config import SDKConfig
 from aws_xray_sdk.core import lambda_launcher
 from aws_xray_sdk.core.models.subsegment import Subsegment
+from aws_xray_sdk.core.models.dummy_entities import DummySubsegment
 
 
 TRACE_ID = '1-5759e988-bd862e3fe1be46a994272793'
@@ -41,3 +43,11 @@ def test_put_subsegment():
 
     context.end_subsegment()
     assert context.get_trace_entity().id == segment.id
+
+
+def test_disable():
+    SDKConfig.set_sdk_enabled(False)
+    segment = context.get_trace_entity()
+    subsegment = Subsegment('name', 'local', segment)
+    context.put_subsegment(subsegment)
+    assert type(context.get_trace_entity()) is DummySubsegment

@@ -6,6 +6,7 @@ import platform
 import time
 
 from aws_xray_sdk.version import VERSION
+from aws_xray_sdk.sdk_config import SDKConfig
 from .models.segment import Segment, SegmentContextManager
 from .models.subsegment import Subsegment, SubsegmentContextManager
 from .models.default_dynamic_naming import DefaultDynamicNaming
@@ -18,12 +19,13 @@ from .context import Context
 from .daemon_config import DaemonConfig
 from .plugins.utils import get_plugin_modules
 from .lambda_launcher import check_in_lambda
-from .exceptions.exceptions import SegmentNameMissingException
+from .exceptions.exceptions import SegmentNameMissingException, SegmentNotFoundException
 from .utils.compat import string_types
 from .utils import stacktrace
 
 log = logging.getLogger(__name__)
 
+XRAY_ENABLED_KEY = 'AWS_XRAY_ENABLED'
 TRACING_NAME_KEY = 'AWS_XRAY_TRACING_NAME'
 DAEMON_ADDR_KEY = 'AWS_XRAY_DAEMON_ADDRESS'
 CONTEXT_MISSING_KEY = 'AWS_XRAY_CONTEXT_MISSING'
@@ -64,6 +66,7 @@ class AWSXRayRecorder(object):
             self._context = Context()
             self._sampler = DefaultSampler()
 
+        self._enabled = True
         self._emitter = UDPEmitter()
         self._sampling = True
         self._max_trace_back = 10
@@ -77,7 +80,7 @@ class AWSXRayRecorder(object):
         if type(self.sampler).__name__ == 'DefaultSampler':
             self.sampler.load_settings(DaemonConfig(), self.context)
 
-    def configure(self, sampling=None, plugins=None,
+    def configure(self, enabled=None, sampling=None, plugins=None,
                   context_missing=None, sampling_rules=None,
                   daemon_address=None, service=None,
                   context=None, emitter=None, streaming=None,
@@ -88,7 +91,16 @@ class AWSXRayRecorder(object):
 
         Configure needs to run before patching thrid party libraries
         to avoid creating dangling subsegment.
-
+        :param bool enabled: If not enabled, the recorder automatically
+            generates DummySegments for every segment creation, whether
+            through patched extensions nor middlewares, and thus
+            not send any Segments out to the Daemon. May be set through an
+            environmental variable, where the environmental variable will
+            always take precedence over hardcoded configurations. The environment
+            variable is set as a case-insensitive string boolean. If the environment
+            variable exists but is an invalid string boolean, this enabled flag
+            will automatically be set to true. If no enabled flag is given and the
+            env variable is not set, then it will also default to being enabled.
         :param bool sampling: If sampling is enabled, every time the recorder
             creates a segment it decides whether to send this segment to
             the X-Ray daemon. This setting is not used if the recorder
@@ -134,10 +146,11 @@ class AWSXRayRecorder(object):
             by auto-capture. Lower this if a single document becomes too large.
         :param bool stream_sql: Whether SQL query texts should be streamed.
 
-        Environment variables AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
+        Environment variables AWS_XRAY_ENABLED, AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
         and AWS_XRAY_TRACING_NAME respectively overrides arguments
-        daemon_address, context_missing and service.
+        enabled, daemon_address, context_missing and service.
         """
+
         if sampling is not None:
             self.sampling = sampling
         if sampler:
@@ -164,6 +177,12 @@ class AWSXRayRecorder(object):
             self.max_trace_back = max_trace_back
         if stream_sql is not None:
             self.stream_sql = stream_sql
+        if enabled is not None:
+            SDKConfig.set_sdk_enabled(enabled)
+        else:
+            # By default we enable if no enable parameter is given. Prevents unit tests from breaking
+            # if setup doesn't explicitly set enabled while other tests set enabled to false.
+            SDKConfig.set_sdk_enabled(True)
 
         if plugins:
             plugin_modules = get_plugin_modules(plugins)
@@ -219,6 +238,12 @@ class AWSXRayRecorder(object):
         # depending on if centralized or local sampling rule takes effect.
         decision = True
 
+        # To disable the recorder, we set the sampling decision to always be false.
+        # This way, when segments are generated, they become dummy segments and are ultimately never sent.
+        # The call to self._sampler.should_trace() is never called either so the poller threads are never started.
+        if not SDKConfig.sdk_enabled():
+            sampling = 0
+
         # we respect the input sampling decision
         # regardless of recorder configuration.
         if sampling == 0:
@@ -273,6 +298,7 @@ class AWSXRayRecorder(object):
         :param str name: the name of the subsegment.
         :param str namespace: currently can only be 'local', 'remote', 'aws'.
         """
+
         segment = self.current_segment()
         if not segment:
             log.warning("No segment found, cannot begin subsegment %s." % name)
@@ -396,6 +422,16 @@ class AWSXRayRecorder(object):
     def record_subsegment(self, wrapped, instance, args, kwargs, name,
                           namespace, meta_processor):
 
+        # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
+        # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
+        # This is to allow potential segment method calls to not throw exceptions in the captured method.
+        if not SDKConfig.sdk_enabled():
+            try:
+                self.current_segment()
+            except SegmentNotFoundException:
+                segment = DummySegment(name)
+                self.context.put_segment(segment)
+
         subsegment = self.begin_subsegment(name, namespace)
 
         exception = None
@@ -472,6 +508,14 @@ class AWSXRayRecorder(object):
     def _is_subsegment(self, entity):
 
         return (hasattr(entity, 'type') and entity.type == 'subsegment')
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        self._enabled = value
 
     @property
     def sampling(self):

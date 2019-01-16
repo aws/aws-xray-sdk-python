@@ -102,3 +102,10 @@ class XRayTestCase(TestCase):
 
         assert 'Sampled=1' in trace_header
         assert segment.trace_id in trace_header
+
+    def test_disabled_sdk(self):
+        xray_recorder.configure(enabled=False)
+        url = reverse('200ok')
+        self.client.get(url)
+        segment = xray_recorder.emitter.pop()
+        assert not segment

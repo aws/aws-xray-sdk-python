@@ -5,7 +5,14 @@ import pytest
 from aws_xray_sdk.version import VERSION
 from .util import get_new_stubbed_recorder
 
+import os
+from aws_xray_sdk.sdk_config import SDKConfig
+from aws_xray_sdk.core.models.segment import Segment
+from aws_xray_sdk.core.models.subsegment import Subsegment
+from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
+
 xray_recorder = get_new_stubbed_recorder()
+XRAY_ENABLED_KEY = SDKConfig.XRAY_ENABLED_KEY
 
 
 @pytest.fixture(autouse=True)
@@ -166,3 +173,45 @@ def test_in_segment_exception():
                     raise Exception('test exception')
 
     assert len(subsegment.cause['exceptions']) == 1
+
+
+def test_default_enabled():
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name')
+    assert type(xray_recorder.current_segment()) is Segment
+    assert type(xray_recorder.current_subsegment()) is Subsegment
+
+
+def test_disable_is_dummy():
+    xray_recorder.configure(enabled=False)
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name')
+    assert type(xray_recorder.current_segment()) is DummySegment
+    assert type(xray_recorder.current_subsegment()) is DummySubsegment
+
+
+def test_disable_env_precedence():
+    os.environ[XRAY_ENABLED_KEY] = "False"
+    xray_recorder.configure(enabled=True)
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name')
+    assert type(xray_recorder.current_segment()) is DummySegment
+    assert type(xray_recorder.current_subsegment()) is DummySubsegment
+
+
+def test_disable_env():
+    os.environ[XRAY_ENABLED_KEY] = "False"
+    xray_recorder.configure(enabled=False)
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name')
+    assert type(xray_recorder.current_segment()) is DummySegment
+    assert type(xray_recorder.current_subsegment()) is DummySubsegment
+
+
+def test_enable_env():
+    os.environ[XRAY_ENABLED_KEY] = "True"
+    xray_recorder.configure(enabled=True)
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name')
+    assert type(xray_recorder.current_segment()) is Segment
+    assert type(xray_recorder.current_subsegment()) is Subsegment
