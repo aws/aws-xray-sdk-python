@@ -2,6 +2,8 @@ from collections import namedtuple
 import sys
 import wrapt
 
+import urllib3.connection
+
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
@@ -92,7 +94,15 @@ def _send_request(wrapped, instance, args, kwargs):
         if subsegment:
             inject_trace_header(headers, subsegment)
 
-        ssl_cxt = getattr(instance, '_context', None)
+        if issubclass(instance.__class__, urllib3.connection.HTTPSConnection):
+            ssl_cxt = getattr(instance, 'ssl_context', None)
+        elif issubclass(instance.__class__, httplib.HTTPSConnection):
+            ssl_cxt = getattr(instance, '_context', None)
+        else:
+            # In this case, the patcher can't determine which module the connection instance is from.
+            # We default to it to check ssl_context but may be None so that the default scheme would be
+            # (and may falsely be) http.
+            ssl_cxt = getattr(instance, 'ssl_context', None)
         scheme = 'https' if ssl_cxt and type(ssl_cxt).__name__ == 'SSLContext' else 'http'
         xray_url = '{}://{}{}'.format(scheme, instance.host, url)
         xray_data = _XRay_Data(method, instance.host, xray_url)
