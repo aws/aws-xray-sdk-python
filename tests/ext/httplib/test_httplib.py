@@ -37,12 +37,15 @@ def construct_ctx():
     unpatch()
 
 
-def _do_req(url, method='GET'):
+def _do_req(url, method='GET', use_https=True):
     parts = urlparse(url)
     host, _, port = parts.netloc.partition(':')
     if port == '':
         port = None
-    conn = httplib.HTTPSConnection(parts.netloc, port)
+    if use_https:
+        conn = httplib.HTTPSConnection(parts.netloc, port)
+    else:
+        conn = httplib.HTTPConnection(parts.netloc, port)
 
     path = '{}?{}'.format(parts.path, parts.query) if parts.query else parts.path
     conn.request(method, path)
@@ -116,3 +119,25 @@ def test_invalid_url():
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'gaierror'
+
+
+def test_correct_identify_http():
+    status_code = 200
+    url = 'http://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
+    _do_req(url, use_https=False)
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.name == strip_url(url)
+
+    http_meta = subsegment.http
+    assert http_meta['request']['url'].split(":")[0] == 'http'
+
+
+def test_correct_identify_https():
+    status_code = 200
+    url = 'https://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
+    _do_req(url, use_https=True)
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.name == strip_url(url)
+
+    https_meta = subsegment.http
+    assert https_meta['request']['url'].split(":")[0] == 'https'
