@@ -9,6 +9,7 @@ from .rule_poller import RulePoller
 from .target_poller import TargetPoller
 from .connector import ServiceConnector
 from .reservoir import ReservoirDecision
+import aws_xray_sdk
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +38,9 @@ class DefaultSampler(object):
         Start rule poller and target poller once X-Ray daemon address
         and context manager is in place.
         """
+        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
+            return
+
         with self._lock:
             if not self._started:
                 self._rule_poller.start()
@@ -51,6 +55,9 @@ class DefaultSampler(object):
         All optional arguments are extracted from incoming requests by
         X-Ray middleware to perform path based sampling.
         """
+        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
+            return False
+
         if not self._started:
             self.start() # only front-end that actually uses the sampler spawns poller threads
 

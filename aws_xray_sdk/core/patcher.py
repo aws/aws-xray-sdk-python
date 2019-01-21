@@ -7,7 +7,7 @@ import re
 import sys
 import wrapt
 
-from aws_xray_sdk.sdk_config import SDKConfig
+import aws_xray_sdk
 from .utils.compat import PY2, is_classmethod, is_instance_method
 
 log = logging.getLogger(__name__)
@@ -61,7 +61,7 @@ def _is_valid_import(module):
 
 
 def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):
-    enabled = SDKConfig.sdk_enabled()
+    enabled = aws_xray_sdk.global_sdk_config.sdk_enabled()
     if not enabled:
         return  # Disable module patching if the SDK is disabled.
     modules = set()

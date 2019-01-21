@@ -6,7 +6,6 @@ import platform
 import time
 
 from aws_xray_sdk.version import VERSION
-from aws_xray_sdk.sdk_config import SDKConfig
 from .models.segment import Segment, SegmentContextManager
 from .models.subsegment import Subsegment, SubsegmentContextManager
 from .models.default_dynamic_naming import DefaultDynamicNaming
@@ -178,11 +177,7 @@ class AWSXRayRecorder(object):
         if stream_sql is not None:
             self.stream_sql = stream_sql
         if enabled is not None:
-            SDKConfig.set_sdk_enabled(enabled)
-        else:
-            # By default we enable if no enable parameter is given. Prevents unit tests from breaking
-            # if setup doesn't explicitly set enabled while other tests set enabled to false.
-            SDKConfig.set_sdk_enabled(True)
+            self.enabled = enabled
 
         if plugins:
             plugin_modules = get_plugin_modules(plugins)
@@ -241,7 +236,7 @@ class AWSXRayRecorder(object):
         # To disable the recorder, we set the sampling decision to always be false.
         # This way, when segments are generated, they become dummy segments and are ultimately never sent.
         # The call to self._sampler.should_trace() is never called either so the poller threads are never started.
-        if not SDKConfig.sdk_enabled():
+        if not self.enabled:
             sampling = 0
 
         # we respect the input sampling decision
@@ -425,7 +420,7 @@ class AWSXRayRecorder(object):
         # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
         # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
         # This is to allow potential segment method calls to not throw exceptions in the captured method.
-        if not SDKConfig.sdk_enabled():
+        if not self.enabled:
             try:
                 self.current_segment()
             except SegmentNotFoundException:

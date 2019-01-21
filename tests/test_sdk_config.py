@@ -1,9 +1,9 @@
-from aws_xray_sdk.sdk_config import SDKConfig
+import aws_xray_sdk
 import os
 import pytest
 
 
-XRAY_ENABLED_KEY = "AWS_XRAY_ENABLED"
+XRAY_ENABLED_KEY = "AWS_XRAY_SDK_ENABLED"
 
 
 @pytest.fixture(autouse=True)
@@ -19,58 +19,58 @@ def cleanup():
 
 
 def test_enable_key():
-    assert SDKConfig.XRAY_ENABLED_KEY == XRAY_ENABLED_KEY
+    assert aws_xray_sdk.global_sdk_config.XRAY_ENABLED_KEY == XRAY_ENABLED_KEY
 
 
 def test_default_enabled():
-    assert SDKConfig.sdk_enabled() is True
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
 
 def test_env_var_precedence():
     os.environ[XRAY_ENABLED_KEY] = "true"
-    SDKConfig.set_sdk_enabled(False)
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
     os.environ[XRAY_ENABLED_KEY] = "false"
-    SDKConfig.set_sdk_enabled(False)
-    assert SDKConfig.sdk_enabled() is False
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is False
     os.environ[XRAY_ENABLED_KEY] = "false"
-    SDKConfig.set_sdk_enabled(True)
-    assert SDKConfig.sdk_enabled() is False
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is False
     os.environ[XRAY_ENABLED_KEY] = "true"
-    SDKConfig.set_sdk_enabled(True)
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
     os.environ[XRAY_ENABLED_KEY] = "true"
-    SDKConfig.set_sdk_enabled(None)
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(None)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
 
 def test_env_enable_case():
     os.environ[XRAY_ENABLED_KEY] = "TrUE"
-    SDKConfig.set_sdk_enabled(True)  # Env Variable takes precedence. This is called to activate the internal check
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)  # Env Variable takes precedence. This is called to activate the internal check
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
     os.environ[XRAY_ENABLED_KEY] = "true"
-    SDKConfig.set_sdk_enabled(True)
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
     os.environ[XRAY_ENABLED_KEY] = "False"
-    SDKConfig.set_sdk_enabled(True)
-    assert SDKConfig.sdk_enabled() is False
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is False
 
     os.environ[XRAY_ENABLED_KEY] = "falSE"
-    SDKConfig.set_sdk_enabled(True)
-    assert SDKConfig.sdk_enabled() is False
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is False
 
 
 def test_invalid_env_string():
     os.environ[XRAY_ENABLED_KEY] = "INVALID"
-    SDKConfig.set_sdk_enabled(True)  # Env Variable takes precedence. This is called to activate the internal check
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)  # Env Variable takes precedence. This is called to activate the internal check
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
     os.environ[XRAY_ENABLED_KEY] = "1.0"
-    SDKConfig.set_sdk_enabled(True)
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
     os.environ[XRAY_ENABLED_KEY] = "1-.0"
-    SDKConfig.set_sdk_enabled(False)
-    assert SDKConfig.sdk_enabled() is True
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True

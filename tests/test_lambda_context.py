@@ -1,6 +1,6 @@
 import os
 
-from aws_xray_sdk.sdk_config import SDKConfig
+import aws_xray_sdk
 from aws_xray_sdk.core import lambda_launcher
 from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models.dummy_entities import DummySubsegment
@@ -12,6 +12,7 @@ HEADER_VAR = "Root=%s;Parent=%s;Sampled=1" % (TRACE_ID, PARENT_ID)
 
 os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = HEADER_VAR
 context = lambda_launcher.LambdaContext()
+aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
 
 
 def test_facade_segment_generation():
@@ -46,8 +47,11 @@ def test_put_subsegment():
 
 
 def test_disable():
-    SDKConfig.set_sdk_enabled(False)
+    context.clear_trace_entities()
     segment = context.get_trace_entity()
-    subsegment = Subsegment('name', 'local', segment)
-    context.put_subsegment(subsegment)
-    assert type(context.get_trace_entity()) is DummySubsegment
+    assert segment.sampled
+
+    context.clear_trace_entities()
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    segment = context.get_trace_entity()
+    assert not segment.sampled
