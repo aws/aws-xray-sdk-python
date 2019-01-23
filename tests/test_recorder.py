@@ -166,3 +166,24 @@ def test_in_segment_exception():
                     raise Exception('test exception')
 
     assert len(subsegment.cause['exceptions']) == 1
+
+
+def test_max_stack_trace_zero():
+    xray_recorder.configure(max_trace_back=1)
+    with pytest.raises(Exception):
+        with xray_recorder.in_segment('name') as segment_with_stack:
+            assert segment_with_stack.in_progress is True
+            assert 'exceptions' not in segment_with_stack.cause.__dict__
+            raise Exception('Test Exception')
+    assert len(segment_with_stack.cause['exceptions']) == 1
+
+    xray_recorder.configure(max_trace_back=0)
+    with pytest.raises(Exception):
+        with xray_recorder.in_segment('name') as segment_no_stack:
+            assert segment_no_stack.in_progress is True
+            assert 'exceptions' not in segment_no_stack.cause.__dict__
+            raise Exception('Test Exception')
+    assert len(segment_no_stack.cause['exceptions']) == 1
+
+    assert len(segment_with_stack.cause['exceptions'][0].stack) == 1
+    assert len(segment_no_stack.cause['exceptions'][0].stack) == 0
