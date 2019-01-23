@@ -35,7 +35,6 @@ def construct_ctx():
     """
     pre_run_modules = set(module for module in sys.modules.keys())
 
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
     xray_recorder.configure(service='test', sampling=False, context=Context())
     xray_recorder.clear_trace_entities()
     xray_recorder.begin_segment('name')

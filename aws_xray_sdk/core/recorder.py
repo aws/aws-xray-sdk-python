@@ -5,6 +5,7 @@ import os
 import platform
 import time
 
+import aws_xray_sdk
 from aws_xray_sdk.version import VERSION
 from .models.segment import Segment, SegmentContextManager
 from .models.subsegment import Subsegment, SubsegmentContextManager
@@ -65,7 +66,6 @@ class AWSXRayRecorder(object):
             self._context = Context()
             self._sampler = DefaultSampler()
 
-        self._enabled = True
         self._emitter = UDPEmitter()
         self._sampling = True
         self._max_trace_back = 10
@@ -79,7 +79,7 @@ class AWSXRayRecorder(object):
         if type(self.sampler).__name__ == 'DefaultSampler':
             self.sampler.load_settings(DaemonConfig(), self.context)
 
-    def configure(self, enabled=None, sampling=None, plugins=None,
+    def configure(self, sampling=None, plugins=None,
                   context_missing=None, sampling_rules=None,
                   daemon_address=None, service=None,
                   context=None, emitter=None, streaming=None,
@@ -90,16 +90,6 @@ class AWSXRayRecorder(object):
 
         Configure needs to run before patching thrid party libraries
         to avoid creating dangling subsegment.
-        :param bool enabled: If not enabled, the recorder automatically
-            generates DummySegments for every segment creation, whether
-            through patched extensions nor middlewares, and thus
-            not send any Segments out to the Daemon. May be set through an
-            environmental variable, where the environmental variable will
-            always take precedence over hardcoded configurations. The environment
-            variable is set as a case-insensitive string boolean. If the environment
-            variable exists but is an invalid string boolean, this enabled flag
-            will automatically be set to true. If no enabled flag is given and the
-            env variable is not set, then it will also default to being enabled.
         :param bool sampling: If sampling is enabled, every time the recorder
             creates a segment it decides whether to send this segment to
             the X-Ray daemon. This setting is not used if the recorder
@@ -145,9 +135,9 @@ class AWSXRayRecorder(object):
             by auto-capture. Lower this if a single document becomes too large.
         :param bool stream_sql: Whether SQL query texts should be streamed.
 
-        Environment variables AWS_XRAY_ENABLED, AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
+        Environment variables AWS_XRAY_DAEMON_ADDRESS, AWS_XRAY_CONTEXT_MISSING
         and AWS_XRAY_TRACING_NAME respectively overrides arguments
-        enabled, daemon_address, context_missing and service.
+        daemon_address, context_missing and service.
         """
 
         if sampling is not None:
@@ -176,8 +166,6 @@ class AWSXRayRecorder(object):
             self.max_trace_back = max_trace_back
         if stream_sql is not None:
             self.stream_sql = stream_sql
-        if enabled is not None:
-            self.enabled = enabled
 
         if plugins:
             plugin_modules = get_plugin_modules(plugins)
@@ -236,7 +224,7 @@ class AWSXRayRecorder(object):
         # To disable the recorder, we set the sampling decision to always be false.
         # This way, when segments are generated, they become dummy segments and are ultimately never sent.
         # The call to self._sampler.should_trace() is never called either so the poller threads are never started.
-        if not self.enabled:
+        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
             sampling = 0
 
         # we respect the input sampling decision
@@ -420,7 +408,7 @@ class AWSXRayRecorder(object):
         # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
         # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
         # This is to allow potential segment method calls to not throw exceptions in the captured method.
-        if not self.enabled:
+        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
             try:
                 self.current_segment()
             except SegmentNotFoundException:

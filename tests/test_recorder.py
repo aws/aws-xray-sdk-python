@@ -23,6 +23,7 @@ def construct_ctx():
     xray_recorder.clear_trace_entities()
     yield
     xray_recorder.clear_trace_entities()
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
 
 
 def test_default_runtime_context():
@@ -175,6 +176,7 @@ def test_in_segment_exception():
 
 
 def test_default_enabled():
+    assert aws_xray_sdk.global_sdk_config.sdk_enabled()
     segment = xray_recorder.begin_segment('name')
     subsegment = xray_recorder.begin_subsegment('name')
     assert type(xray_recorder.current_segment()) is Segment
@@ -182,7 +184,7 @@ def test_default_enabled():
 
 
 def test_disable_is_dummy():
-    xray_recorder.configure(enabled=False)
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
     segment = xray_recorder.begin_segment('name')
     subsegment = xray_recorder.begin_subsegment('name')
     assert type(xray_recorder.current_segment()) is DummySegment

@@ -4,7 +4,7 @@ Tests the middleware for aiohttp server
 Expects pytest-aiohttp
 """
 import asyncio
-import aws_xray_sdk.sdk_config_module
+import aws_xray_sdk
 from unittest.mock import patch
 
 from aiohttp import web
@@ -109,9 +109,8 @@ def recorder(loop):
     patcher.start()
 
     xray_recorder.clear_trace_entities()
-    sdk_enabled_state = aws_xray_sdk.global_sdk_config.sdk_enabled()
     yield xray_recorder
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(sdk_enabled_state)
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
     xray_recorder.clear_trace_entities()
     patcher.stop()
 

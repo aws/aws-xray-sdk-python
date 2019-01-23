@@ -16,6 +16,7 @@ def cleanup():
     yield
     if XRAY_ENABLED_KEY in os.environ:
         del os.environ[XRAY_ENABLED_KEY]
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
 
 
 def test_enable_key():
@@ -28,6 +29,7 @@ def test_default_enabled():
 
 def test_env_var_precedence():
     os.environ[XRAY_ENABLED_KEY] = "true"
+    # Env Variable takes precedence. This is called to activate the internal check
     aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
     assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
     os.environ[XRAY_ENABLED_KEY] = "false"
@@ -46,7 +48,8 @@ def test_env_var_precedence():
 
 def test_env_enable_case():
     os.environ[XRAY_ENABLED_KEY] = "TrUE"
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)  # Env Variable takes precedence. This is called to activate the internal check
+    # Env Variable takes precedence. This is called to activate the internal check
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
     assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
     os.environ[XRAY_ENABLED_KEY] = "true"
@@ -64,7 +67,8 @@ def test_env_enable_case():
 
 def test_invalid_env_string():
     os.environ[XRAY_ENABLED_KEY] = "INVALID"
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)  # Env Variable takes precedence. This is called to activate the internal check
+    # Env Variable takes precedence. This is called to activate the internal check
+    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
     assert aws_xray_sdk.global_sdk_config.sdk_enabled() is True
 
     os.environ[XRAY_ENABLED_KEY] = "1.0"
