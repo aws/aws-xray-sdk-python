@@ -160,7 +160,7 @@ class AWSXRayRecorder(object):
             self.streaming = streaming
         if streaming_threshold:
             self.streaming_threshold = streaming_threshold
-        if max_trace_back:
+        if type(max_trace_back) == int and max_trace_back >= 0:
             self.max_trace_back = max_trace_back
         if stream_sql is not None:
             self.stream_sql = stream_sql
