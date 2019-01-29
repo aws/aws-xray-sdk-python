@@ -48,7 +48,7 @@ class Throwable(object):
             setattr(exception, '_cause_id', self.id)
 
     def _normalize_stack_trace(self, stack):
-        if not stack:
+        if stack is None:
             return None
 
         self.stack = []
