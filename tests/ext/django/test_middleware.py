@@ -1,5 +1,5 @@
 import django
-import aws_xray_sdk
+from aws_xray_sdk import global_sdk_config
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
@@ -15,7 +15,7 @@ class XRayTestCase(TestCase):
         xray_recorder.configure(context=Context(),
                                 context_missing='LOG_ERROR')
         xray_recorder.clear_trace_entities()
-        aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+        global_sdk_config.set_sdk_enabled(True)
 
     def tearDown(self):
         xray_recorder.clear_trace_entities()
@@ -106,7 +106,7 @@ class XRayTestCase(TestCase):
         assert segment.trace_id in trace_header
 
     def test_disabled_sdk(self):
-        aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+        global_sdk_config.set_sdk_enabled(False)
         url = reverse('200ok')
         self.client.get(url)
         segment = xray_recorder.emitter.pop()

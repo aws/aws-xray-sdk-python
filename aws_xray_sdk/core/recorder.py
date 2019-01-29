@@ -5,7 +5,7 @@ import os
 import platform
 import time
 
-import aws_xray_sdk
+from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.version import VERSION
 from .models.segment import Segment, SegmentContextManager
 from .models.subsegment import Subsegment, SubsegmentContextManager
@@ -25,7 +25,6 @@ from .utils import stacktrace
 
 log = logging.getLogger(__name__)
 
-XRAY_ENABLED_KEY = 'AWS_XRAY_ENABLED'
 TRACING_NAME_KEY = 'AWS_XRAY_TRACING_NAME'
 DAEMON_ADDR_KEY = 'AWS_XRAY_DAEMON_ADDRESS'
 CONTEXT_MISSING_KEY = 'AWS_XRAY_CONTEXT_MISSING'
@@ -224,7 +223,7 @@ class AWSXRayRecorder(object):
         # To disable the recorder, we set the sampling decision to always be false.
         # This way, when segments are generated, they become dummy segments and are ultimately never sent.
         # The call to self._sampler.should_trace() is never called either so the poller threads are never started.
-        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
+        if not global_sdk_config.sdk_enabled():
             sampling = 0
 
         # we respect the input sampling decision
@@ -408,7 +407,7 @@ class AWSXRayRecorder(object):
         # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
         # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
         # This is to allow potential segment method calls to not throw exceptions in the captured method.
-        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
+        if not global_sdk_config.sdk_enabled():
             try:
                 self.current_segment()
             except SegmentNotFoundException:

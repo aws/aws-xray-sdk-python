@@ -1,6 +1,6 @@
 import os
 
-import aws_xray_sdk
+from aws_xray_sdk import global_sdk_config
 import pytest
 from aws_xray_sdk.core import lambda_launcher
 from aws_xray_sdk.core.models.subsegment import Subsegment
@@ -17,7 +17,7 @@ context = lambda_launcher.LambdaContext()
 @pytest.fixture(autouse=True)
 def setup():
     yield
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    global_sdk_config.set_sdk_enabled(True)
 
 
 def test_facade_segment_generation():
@@ -57,6 +57,6 @@ def test_disable():
     assert segment.sampled
 
     context.clear_trace_entities()
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    global_sdk_config.set_sdk_enabled(False)
     segment = context.get_trace_entity()
     assert not segment.sampled

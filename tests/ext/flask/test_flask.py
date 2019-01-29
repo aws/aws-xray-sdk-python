@@ -1,7 +1,7 @@
 import pytest
 from flask import Flask, render_template_string
 
-import aws_xray_sdk
+from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.core.models import http
@@ -52,7 +52,7 @@ def cleanup():
     recorder.clear_trace_entities()
     yield
     recorder.clear_trace_entities()
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    global_sdk_config.set_sdk_enabled(True)
 
 
 def test_ok():
@@ -148,7 +148,7 @@ def test_sampled_response_header():
 
 
 def test_disabled_sdk():
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    global_sdk_config.set_sdk_enabled(False)
     path = '/ok'
     app.get(path)
     segment = recorder.emitter.pop()

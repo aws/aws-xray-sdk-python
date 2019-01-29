@@ -2,7 +2,7 @@ import os
 import logging
 import threading
 
-import aws_xray_sdk
+from aws_xray_sdk import global_sdk_config
 from .models.facade_segment import FacadeSegment
 from .models.trace_header import TraceHeader
 from .context import Context
@@ -94,7 +94,7 @@ class LambdaContext(Context):
         """
         header_str = os.getenv(LAMBDA_TRACE_HEADER_KEY)
         trace_header = TraceHeader.from_header_str(header_str)
-        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
+        if not global_sdk_config.sdk_enabled():
             trace_header._sampled = False
 
         segment = getattr(self._local, 'segment', None)
@@ -128,7 +128,7 @@ class LambdaContext(Context):
         set by AWS Lambda and initialize storage for subsegments.
         """
         sampled = None
-        if not aws_xray_sdk.global_sdk_config.sdk_enabled():
+        if not global_sdk_config.sdk_enabled():
             # Force subsequent subsegments to be disabled and turned into DummySegments.
             sampled = False
         elif trace_header.sampled == 0:

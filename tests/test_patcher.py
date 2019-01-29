@@ -13,7 +13,7 @@ except ImportError:
         # Python versions < 3 have reload built-in
         pass
 
-import aws_xray_sdk
+from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.core import patcher, xray_recorder
 from aws_xray_sdk.core.context import Context
 
@@ -41,7 +41,7 @@ def construct_ctx():
     yield
     xray_recorder.end_segment()
     xray_recorder.clear_trace_entities()
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    global_sdk_config.set_sdk_enabled(True)
 
     # Reload wrapt.importer references to modules to start off clean
     reload(wrapt)
@@ -177,7 +177,7 @@ def test_external_submodules_ignores_module():
 
 
 def test_disable_sdk_disables_patching():
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    global_sdk_config.set_sdk_enabled(False)
     patcher.patch(['tests.mock_module'])
     imported_modules = [module for module in TEST_MODULES if module in sys.modules]
     assert not imported_modules

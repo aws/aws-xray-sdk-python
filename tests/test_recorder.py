@@ -5,13 +5,13 @@ import pytest
 from aws_xray_sdk.version import VERSION
 from .util import get_new_stubbed_recorder
 
-import aws_xray_sdk
+from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
 
 xray_recorder = get_new_stubbed_recorder()
-XRAY_ENABLED_KEY = aws_xray_sdk.global_sdk_config.XRAY_ENABLED_KEY
+XRAY_ENABLED_KEY = global_sdk_config.XRAY_ENABLED_KEY
 
 
 @pytest.fixture(autouse=True)
@@ -23,7 +23,7 @@ def construct_ctx():
     xray_recorder.clear_trace_entities()
     yield
     xray_recorder.clear_trace_entities()
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(True)
+    global_sdk_config.set_sdk_enabled(True)
 
 
 def test_default_runtime_context():
@@ -176,7 +176,7 @@ def test_in_segment_exception():
 
 
 def test_default_enabled():
-    assert aws_xray_sdk.global_sdk_config.sdk_enabled()
+    assert global_sdk_config.sdk_enabled()
     segment = xray_recorder.begin_segment('name')
     subsegment = xray_recorder.begin_subsegment('name')
     assert type(xray_recorder.current_segment()) is Segment
@@ -184,7 +184,7 @@ def test_default_enabled():
 
 
 def test_disable_is_dummy():
-    aws_xray_sdk.global_sdk_config.set_sdk_enabled(False)
+    global_sdk_config.set_sdk_enabled(False)
     segment = xray_recorder.begin_segment('name')
     subsegment = xray_recorder.begin_subsegment('name')
     assert type(xray_recorder.current_segment()) is DummySegment
