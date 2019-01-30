@@ -13,6 +13,7 @@ from .utils.compat import PY2, is_classmethod, is_instance_method
 log = logging.getLogger(__name__)
 
 SUPPORTED_MODULES = (
+    'aiobotocore',
     'botocore',
     'pynamodb',
     'requests',
@@ -25,6 +26,7 @@ SUPPORTED_MODULES = (
 )
 
 NO_DOUBLE_PATCH = (
+    'aiobotocore',
     'botocore',
     'pynamodb',
     'requests',
@@ -71,8 +73,8 @@ def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):
         if module_to_patch == 'boto3':
             modules.add('botocore')
         # aioboto3 depends on aiobotocore and patching aiobotocore is sufficient
-        # elif module_to_patch == 'aioboto3':
-        #     modules.add('aiobotocore')
+        elif module_to_patch == 'aioboto3':
+            modules.add('aiobotocore')
         # pynamodb requires botocore to be patched as well
         elif module_to_patch == 'pynamodb':
             modules.add('botocore')
