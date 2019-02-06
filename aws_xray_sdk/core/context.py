@@ -7,7 +7,7 @@ from .exceptions.exceptions import SegmentNotFoundException
 log = logging.getLogger(__name__)
 
 MISSING_SEGMENT_MSG = 'cannot find the current segment/subsegment, please make sure you have a segment open'
-SUPPORTED_CONTEXT_MISSING = ('RUNTIME_ERROR', 'LOG_ERROR')
+SUPPORTED_CONTEXT_MISSING = ('RUNTIME_ERROR', 'LOG_ERROR', 'IGNORE')
 CXT_MISSING_STRATEGY_KEY = 'AWS_XRAY_CONTEXT_MISSING'
 
 
@@ -116,6 +116,8 @@ class Context(object):
         if self.context_missing == 'RUNTIME_ERROR':
             log.error(MISSING_SEGMENT_MSG)
             raise SegmentNotFoundException(MISSING_SEGMENT_MSG)
+        elif self.context_missing == 'IGNORE':
+            return
         else:
             log.error(MISSING_SEGMENT_MSG)
 
