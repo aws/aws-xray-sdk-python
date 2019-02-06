@@ -1,11 +1,7 @@
 import os
+import logging
 
-
-class InvalidParameterTypeException(Exception):
-    """
-    Exception thrown when an invalid parameter is passed into SDKConfig.set_sdk_enabled.
-    """
-    pass
+log = logging.getLogger(__name__)
 
 
 class SDKConfig(object):
@@ -59,6 +55,4 @@ class SDKConfig(object):
                 cls.__SDK_ENABLED = value
             else:
                 cls.__SDK_ENABLED = True
-                raise InvalidParameterTypeException(
-                    "Invalid parameter type passed into set_sdk_enabled(). Defaulting to True..."
-                )
+                log.warning("Invalid parameter type passed into set_sdk_enabled(). Defaulting to True...")

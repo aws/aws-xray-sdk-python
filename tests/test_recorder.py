@@ -11,7 +11,6 @@ from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
 
 xray_recorder = get_new_stubbed_recorder()
-XRAY_ENABLED_KEY = global_sdk_config.XRAY_ENABLED_KEY
 
 
 @pytest.fixture(autouse=True)
