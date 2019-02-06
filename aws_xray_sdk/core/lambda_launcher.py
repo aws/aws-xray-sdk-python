@@ -2,10 +2,10 @@ import os
 import logging
 import threading
 
+from aws_xray_sdk import global_sdk_config
 from .models.facade_segment import FacadeSegment
 from .models.trace_header import TraceHeader
 from .context import Context
-
 
 log = logging.getLogger(__name__)
 
@@ -71,7 +71,8 @@ class LambdaContext(Context):
         current_entity = self.get_trace_entity()
 
         if not self._is_subsegment(current_entity) and current_entity.initializing:
-            log.warning("Subsegment %s discarded due to Lambda worker still initializing" % subsegment.name)
+            if sdk_config_module.sdk_enabled():
+                log.warning("Subsegment %s discarded due to Lambda worker still initializing" % subsegment.name)
             return
 
         current_entity.add_subsegment(subsegment)
@@ -93,6 +94,9 @@ class LambdaContext(Context):
         """
         header_str = os.getenv(LAMBDA_TRACE_HEADER_KEY)
         trace_header = TraceHeader.from_header_str(header_str)
+        if not global_sdk_config.sdk_enabled():
+            trace_header._sampled = False
+
         segment = getattr(self._local, 'segment', None)
 
         if segment:
@@ -124,7 +128,10 @@ class LambdaContext(Context):
         set by AWS Lambda and initialize storage for subsegments.
         """
         sampled = None
-        if trace_header.sampled == 0:
+        if not global_sdk_config.sdk_enabled():
+            # Force subsequent subsegments to be disabled and turned into DummySegments.
+            sampled = False
+        elif trace_header.sampled == 0:
             sampled = False
         elif trace_header.sampled == 1:
             sampled = True

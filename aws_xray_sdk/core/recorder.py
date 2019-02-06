@@ -5,6 +5,7 @@ import os
 import platform
 import time
 
+from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.version import VERSION
 from .models.segment import Segment, SegmentContextManager
 from .models.subsegment import Subsegment, SubsegmentContextManager
@@ -18,7 +19,7 @@ from .context import Context
 from .daemon_config import DaemonConfig
 from .plugins.utils import get_plugin_modules
 from .lambda_launcher import check_in_lambda
-from .exceptions.exceptions import SegmentNameMissingException
+from .exceptions.exceptions import SegmentNameMissingException, SegmentNotFoundException
 from .utils.compat import string_types
 from .utils import stacktrace
 
@@ -88,7 +89,6 @@ class AWSXRayRecorder(object):
 
         Configure needs to run before patching thrid party libraries
         to avoid creating dangling subsegment.
-
         :param bool sampling: If sampling is enabled, every time the recorder
             creates a segment it decides whether to send this segment to
             the X-Ray daemon. This setting is not used if the recorder
@@ -138,6 +138,7 @@ class AWSXRayRecorder(object):
         and AWS_XRAY_TRACING_NAME respectively overrides arguments
         daemon_address, context_missing and service.
         """
+
         if sampling is not None:
             self.sampling = sampling
         if sampler:
@@ -219,6 +220,12 @@ class AWSXRayRecorder(object):
         # depending on if centralized or local sampling rule takes effect.
         decision = True
 
+        # To disable the recorder, we set the sampling decision to always be false.
+        # This way, when segments are generated, they become dummy segments and are ultimately never sent.
+        # The call to self._sampler.should_trace() is never called either so the poller threads are never started.
+        if not global_sdk_config.sdk_enabled():
+            sampling = 0
+
         # we respect the input sampling decision
         # regardless of recorder configuration.
         if sampling == 0:
@@ -273,6 +280,7 @@ class AWSXRayRecorder(object):
         :param str name: the name of the subsegment.
         :param str namespace: currently can only be 'local', 'remote', 'aws'.
         """
+
         segment = self.current_segment()
         if not segment:
             log.warning("No segment found, cannot begin subsegment %s." % name)
@@ -396,6 +404,16 @@ class AWSXRayRecorder(object):
     def record_subsegment(self, wrapped, instance, args, kwargs, name,
                           namespace, meta_processor):
 
+        # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
+        # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
+        # This is to allow potential segment method calls to not throw exceptions in the captured method.
+        if not global_sdk_config.sdk_enabled():
+            try:
+                self.current_segment()
+            except SegmentNotFoundException:
+                segment = DummySegment(name)
+                self.context.put_segment(segment)
+
         subsegment = self.begin_subsegment(name, namespace)
 
         exception = None
@@ -472,6 +490,14 @@ class AWSXRayRecorder(object):
     def _is_subsegment(self, entity):
 
         return (hasattr(entity, 'type') and entity.type == 'subsegment')
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    @enabled.setter
+    def enabled(self, value):
+        self._enabled = value
 
     @property
     def sampling(self):

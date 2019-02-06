@@ -5,6 +5,11 @@ import pytest
 from aws_xray_sdk.version import VERSION
 from .util import get_new_stubbed_recorder
 
+from aws_xray_sdk import global_sdk_config
+from aws_xray_sdk.core.models.segment import Segment
+from aws_xray_sdk.core.models.subsegment import Subsegment
+from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
+
 xray_recorder = get_new_stubbed_recorder()
 
 
@@ -17,6 +22,7 @@ def construct_ctx():
     xray_recorder.clear_trace_entities()
     yield
     xray_recorder.clear_trace_entities()
+    global_sdk_config.set_sdk_enabled(True)
 
 
 def test_default_runtime_context():
@@ -166,6 +172,22 @@ def test_in_segment_exception():
                     raise Exception('test exception')
 
     assert len(subsegment.cause['exceptions']) == 1
+
+
+def test_default_enabled():
+    assert global_sdk_config.sdk_enabled()
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name')
+    assert type(xray_recorder.current_segment()) is Segment
+    assert type(xray_recorder.current_subsegment()) is Subsegment
+
+
+def test_disable_is_dummy():
+    global_sdk_config.set_sdk_enabled(False)
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name')
+    assert type(xray_recorder.current_segment()) is DummySegment
+    assert type(xray_recorder.current_subsegment()) is DummySubsegment
 
 
 def test_max_stack_trace_zero():
