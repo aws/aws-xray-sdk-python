@@ -1,7 +1,9 @@
 import logging
 
 from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core.lambda_launcher import check_in_lambda
 from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core.serverless_context import ServerlessContext
 from aws_xray_sdk.core.utils import stacktrace
 from aws_xray_sdk.ext.util import calculate_sampling_decision, \
     calculate_segment_name, construct_xray_header, prepare_response_header
@@ -24,6 +26,11 @@ class XRayMiddleware(object):
     def __init__(self, get_response):
 
         self.get_response = get_response
+
+        # The case when the middleware is initialized in a Lambda Context, we make sure
+        # to use the ServerlessContext so that the middleware properly functions.
+        if check_in_lambda() is not None:
+            xray_recorder.context = ServerlessContext()
 
     # hooks for django version >= 1.10
     def __call__(self, request):

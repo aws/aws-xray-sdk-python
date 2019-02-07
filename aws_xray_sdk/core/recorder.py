@@ -243,7 +243,8 @@ class AWSXRayRecorder(object):
             self._populate_runtime_context(segment, decision)
 
         self.context.put_segment(segment)
-        return segment
+        current_segment = self.get_trace_entity()
+        return current_segment
 
     def end_segment(self, end_time=None):
         """

@@ -22,6 +22,10 @@ class FacadeSegmentMutationException(Exception):
     pass
 
 
+class MimicSegmentInvalidException(Exception):
+    pass
+
+
 class MissingPluginNames(Exception):
     pass
 
