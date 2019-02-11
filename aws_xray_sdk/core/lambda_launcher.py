@@ -71,7 +71,7 @@ class LambdaContext(Context):
         current_entity = self.get_trace_entity()
 
         if not self._is_subsegment(current_entity) and current_entity.initializing:
-            if sdk_config_module.sdk_enabled():
+            if global_sdk_config.sdk_enabled():
                 log.warning("Subsegment %s discarded due to Lambda worker still initializing" % subsegment.name)
             return
 
