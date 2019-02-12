@@ -60,3 +60,22 @@ def test_disable():
     global_sdk_config.set_sdk_enabled(False)
     segment = context.get_trace_entity()
     assert not segment.sampled
+
+
+def test_non_initialized():
+    # Context that hasn't been initialized by lambda container should not add subsegments to the facade segment.
+    temp_header_var = os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
+    del os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
+
+    temp_context = lambda_launcher.LambdaContext()
+    facade_segment = temp_context.get_trace_entity()
+    subsegment = Subsegment("TestSubsegment", "local", facade_segment)
+    temp_context.put_subsegment(subsegment)
+
+    assert temp_context.get_trace_entity() == facade_segment
+
+    # "Lambda" container added metadata now. Should see subsegment now.
+    os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = temp_header_var
+    temp_context.put_subsegment(subsegment)
+
+    assert temp_context.get_trace_entity() == subsegment
