@@ -1,8 +1,7 @@
 import os
 import pytest
 
-from aws_xray_sdk.core import serverless_context
-from aws_xray_sdk.core import context
+from aws_xray_sdk.core.serverless_lambda_context import ServerlessLambdaContext
 from aws_xray_sdk.core.lambda_launcher import LAMBDA_TRACE_HEADER_KEY
 from aws_xray_sdk.core.exceptions.exceptions import AlreadyEndedException, SegmentNotFoundException
 from aws_xray_sdk.core.models.segment import Segment
@@ -16,7 +15,7 @@ PARENT_ID = '53995c3f42cd8ad8'
 HEADER_VAR = "Root=%s;Parent=%s;Sampled=1" % (TRACE_ID, PARENT_ID)
 
 os.environ[LAMBDA_TRACE_HEADER_KEY] = HEADER_VAR
-context = serverless_context.ServerlessContext()
+context = ServerlessLambdaContext()
 
 service_name = "Test Flask Server"
 

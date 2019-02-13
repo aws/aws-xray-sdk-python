@@ -6,13 +6,12 @@ from .models.segment import Segment
 from .models.mimic_segment import MimicSegment
 from .context import CXT_MISSING_STRATEGY_KEY
 from .lambda_launcher import LambdaContext
-from .context import Context
 
 
 log = logging.getLogger(__name__)
 
 
-class ServerlessContext(LambdaContext):
+class ServerlessLambdaContext(LambdaContext):
     """
     Context used specifically for running middlewares on Lambda through the
     Serverless design. This context is built on top of the LambdaContext, but
@@ -23,7 +22,7 @@ class ServerlessContext(LambdaContext):
     ensures that FacadeSegments exist through underlying calls to _refresh_context().
     """
     def __init__(self, context_missing='RUNTIME_ERROR'):
-        super(ServerlessContext, self).__init__()
+        super(ServerlessLambdaContext, self).__init__()
 
         strategy = os.getenv(CXT_MISSING_STRATEGY_KEY, context_missing)
         self._context_missing = strategy
@@ -38,7 +37,7 @@ class ServerlessContext(LambdaContext):
         parent_facade_segment = self.__get_facade_entity()  # type: FacadeSegment
         mimic_segment = MimicSegment(parent_facade_segment, segment)
         parent_facade_segment.add_subsegment(mimic_segment)
-        Context.put_segment(self, mimic_segment)
+        super(LambdaContext, self).put_segment(mimic_segment)
 
     def end_segment(self, end_time=None):
         """
@@ -46,7 +45,7 @@ class ServerlessContext(LambdaContext):
         """
         # Close the last mimic segment opened then remove it from our facade segment.
         mimic_segment = self.get_trace_entity()
-        Context.end_segment(self, end_time)
+        super(LambdaContext, self).end_segment(end_time)
         if type(mimic_segment) == MimicSegment:
             # The facade segment can only hold mimic segments.
             facade_segment = self.__get_facade_entity()
@@ -58,7 +57,7 @@ class ServerlessContext(LambdaContext):
         another subsegment if they are the last opened entity.
         :param subsegment: The subsegment to to be added as a subsegment.
         """
-        Context.put_subsegment(self, subsegment)
+        super(LambdaContext, self).put_subsegment(subsegment)
 
     def end_subsegment(self, end_time=None):
         """
@@ -69,7 +68,7 @@ class ServerlessContext(LambdaContext):
             system time will be used.
         :return: True on success, false if no parent mimic segment/subsegment is found.
         """
-        return Context.end_subsegment(self, end_time)
+        return super(LambdaContext, self).end_subsegment(end_time)
 
     def __get_facade_entity(self):
         """
@@ -92,12 +91,12 @@ class ServerlessContext(LambdaContext):
         # Call to Context.get_trace_entity() returns the latest mimic segment/subsegment if they exist.
         # Otherwise, returns None through the following way:
         # No mimic segment/subsegment exists so Context calls LambdaContext's handle_context_missing().
-        # By default, Lambda's method returns no-op, so it will return None to ServerlessContext.
+        # By default, Lambda's method returns no-op, so it will return None to ServerlessLambdaContext.
         # Take that None as an indication to return the rightful handle_context_missing(), otherwise
         # return the entity.
-        entity = Context.get_trace_entity(self)
+        entity = super(LambdaContext, self).get_trace_entity()
         if entity is None:
-            return Context.handle_context_missing(self)
+            return super(LambdaContext, self).handle_context_missing()
         else:
             return entity
 
@@ -116,11 +115,11 @@ class ServerlessContext(LambdaContext):
             # behavior would be invoked.
             mimic_segment = trace_entity
 
-        Context.set_trace_entity(self, mimic_segment)
+        super(LambdaContext, self).set_trace_entity(mimic_segment)
         self.__get_facade_entity().subsegments = [mimic_segment]
 
     def _is_subsegment(self, entity):
-        return super(ServerlessContext, self)._is_subsegment(entity) and type(entity) != MimicSegment
+        return super(ServerlessLambdaContext, self)._is_subsegment(entity) and type(entity) != MimicSegment
 
     @property
     def context_missing(self):

@@ -30,9 +30,17 @@ def test_ready():
 def test_invalid_init():
     with pytest.raises(MimicSegmentInvalidException):
         MimicSegment(facade_segment=None, original_segment=original_segment)
+    with pytest.raises(MimicSegmentInvalidException):
         MimicSegment(facade_segment=facade_segment, original_segment=None)
+    with pytest.raises(MimicSegmentInvalidException):
         MimicSegment(facade_segment=Subsegment("Test", "local", original_segment), original_segment=None)
+    with pytest.raises(MimicSegmentInvalidException):
         MimicSegment(facade_segment=None, original_segment=Subsegment("Test", "local", original_segment))
+    with pytest.raises(MimicSegmentInvalidException):
+        MimicSegment(facade_segment=facade_segment, original_segment=Subsegment("Test", "local", original_segment))
+    with pytest.raises(MimicSegmentInvalidException):
+        MimicSegment(facade_segment=original_segment, original_segment=facade_segment)
+    MimicSegment(facade_segment=facade_segment, original_segment=original_segment)
 
 
 def test_init_similar():
