@@ -104,7 +104,7 @@ def parse_bind(bind):
             # Strip password from URL
             host_info = u.netloc.rpartition('@')[-1]
             parts = u._replace(netloc='{}@{}'.format(u.username, host_info))
-            safe_url = u.geturl()
+            safe_url = parts.geturl()
         sql = {}
         sql['database_type'] = u.scheme
         sql['url'] = safe_url
