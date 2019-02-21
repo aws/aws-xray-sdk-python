@@ -18,7 +18,7 @@ class ServerlessLambdaContext(LambdaContext):
     creates a Segment masked as a Subsegment known as a MimicSegment underneath
     the Lambda-generated Facade Segment. This ensures that middleware->recorder's
     consequent calls to "put_segment()" will not throw exceptions but instead create
-    subsegments underneath the lambda-generated segment. This context also
+    subsegments underneath the lambda-generated Facade Segment. This context also
     ensures that FacadeSegments exist through underlying calls to _refresh_context().
     """
     def __init__(self, context_missing='RUNTIME_ERROR'):
@@ -31,7 +31,6 @@ class ServerlessLambdaContext(LambdaContext):
         """
         Convert the segment into a mimic segment and append it to FacadeSegment's subsegment list.
         :param Segment segment:
-        :return:
         """
         # When putting a segment, convert it to a mimic segment and make it a child of the Facade Segment.
         parent_facade_segment = self.__get_facade_entity()  # type: FacadeSegment
@@ -102,8 +101,9 @@ class ServerlessLambdaContext(LambdaContext):
 
     def set_trace_entity(self, trace_entity):
         """
-        Store the input trace_entity to local context. It will overwrite all
-        existing ones if there is any.
+        Stores the input trace_entity to local context. It will overwrite all
+        existing ones if there is any. If the entity passed in is a segment,
+        it will automatically be converted to a mimic segment.
         """
         if type(trace_entity) == Segment:
             # Convert to a mimic segment.

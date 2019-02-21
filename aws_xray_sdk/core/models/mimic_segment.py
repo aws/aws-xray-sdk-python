@@ -18,6 +18,9 @@ class MimicSegment(Segment):
     as a node on the service graph. For all purposes, the MimicSegment can be interacted as if it's
     a real segment, meaning that all methods that exist only in a Segment but not a subsegment
     is available to be used.
+
+    The following methods are no-ops and will not be sent to the service:
+    set_rule_name, set_service, and set_user
     """
 
     def __init__(self, facade_segment, original_segment):
@@ -28,10 +31,19 @@ class MimicSegment(Segment):
                                            traceid=facade_segment.trace_id, parent_id=facade_segment.id,
                                            sampled=facade_segment.sampled)
 
+    def set_rule_name(self, rule_name):
+        pass
+
+    def set_service(self, service_info):
+        pass
+
+    def set_user(self, user):
+        pass
+
     def __getstate__(self):
         """
-        Used during serialization. We mark the subsegment properties to let the dataplane know
-        that we want the mimic segment to be transformed as a subsegment.
+        Used during serialization. We mark the mimic segment as a subsegment to
+        let the X-Ray service know to create this mimic segment as a subsegment.
         """
         properties = super(MimicSegment, self).__getstate__()
         properties['type'] = 'subsegment'

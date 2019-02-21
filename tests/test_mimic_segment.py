@@ -71,6 +71,8 @@ def test_facade_segment_properties():
 
 def test_segment_methods_on_mimic():
     # Test to make sure that segment methods exist and function for the Mimic Segment
+    # And ensure that the methods (other than get/set origin_trace_header) don't modify
+    # the segment.
     mimic_segment = MimicSegment(facade_segment=facade_segment, original_segment=original_segment)  # type: MimicSegment
     assert not getattr(mimic_segment, "service", None)
     assert not getattr(mimic_segment, "user", None)
@@ -82,10 +84,6 @@ def test_segment_methods_on_mimic():
     assert getattr(original_segment, "ref_counter", None)
     assert getattr(original_segment, "_subsegments_counter", None)
 
-    mimic_segment.set_service("SomeService")
-    original_segment.set_service("SomeService")
-    assert original_segment.service == original_segment.service
-
     assert original_segment.get_origin_trace_header() == mimic_segment.get_origin_trace_header()
     mimic_segment.save_origin_trace_header("someheader")
     original_segment.save_origin_trace_header("someheader")
@@ -93,9 +91,37 @@ def test_segment_methods_on_mimic():
 
     # No exception is thrown
     test_dict = {"akey": "avalue"}
-    original_segment.set_aws(test_dict)
-    original_segment.set_rule_name(test_dict)
+    test_rule_name = {"arule": "name"}
+    original_segment.set_aws(test_dict.copy())
+    original_segment.set_rule_name(test_rule_name.copy())
     original_segment.set_user("SomeUser")
-    mimic_segment.set_aws(test_dict)
-    mimic_segment.set_rule_name(test_dict)
+    original_segment.set_service("SomeService")
+    mimic_segment.set_aws(test_dict.copy())
+    mimic_segment.set_rule_name(test_rule_name.copy())
     mimic_segment.set_user("SomeUser")
+    mimic_segment.set_service("SomeService")
+
+    # Original segment should contain these properties
+    # but not the mimic segment.
+    assert getattr(original_segment, "service", None)
+    assert getattr(original_segment, "user", None)
+    assert 'xray' in getattr(original_segment, "aws", None)
+    assert 'sampling_rule_name' in getattr(original_segment, "aws", None)['xray']
+
+    assert not getattr(mimic_segment, "service", None)
+    assert not getattr(mimic_segment, "user", None)
+    # Originally set by rule_name, but no-op so nothing is set.
+    assert 'xray' not in getattr(mimic_segment, "aws", None)
+
+    # Ensure serialization also doesn't have those properties in mimic but do in original
+    original_segment_serialized = original_segment.__getstate__()
+    mimic_segment_serialized = mimic_segment.__getstate__()
+
+    assert 'service' in original_segment_serialized
+    assert 'user' in original_segment_serialized
+    assert 'xray' in original_segment_serialized['aws']
+    assert 'sampling_rule_name' in original_segment_serialized['aws']['xray']
+
+    assert 'service' not in mimic_segment_serialized
+    assert 'user' not in mimic_segment_serialized
+    assert 'xray' not in mimic_segment_serialized['aws']
