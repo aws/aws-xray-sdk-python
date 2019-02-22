@@ -3,9 +3,11 @@ from aws_xray_sdk import global_sdk_config
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core import xray_recorder, lambda_launcher
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core.models import http, facade_segment
+from tests.util import get_new_stubbed_recorder
+import os
 
 
 class XRayTestCase(TestCase):
@@ -110,4 +112,23 @@ class XRayTestCase(TestCase):
         url = reverse('200ok')
         self.client.get(url)
         segment = xray_recorder.emitter.pop()
+        assert not segment
+
+    def test_lambda_serverless(self):
+        TRACE_ID = '1-5759e988-bd862e3fe1be46a994272793'
+        PARENT_ID = '53995c3f42cd8ad8'
+        HEADER_VAR = "Root=%s;Parent=%s;Sampled=1" % (TRACE_ID, PARENT_ID)
+
+        os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = HEADER_VAR
+        lambda_context = lambda_launcher.LambdaContext()
+
+        new_recorder = get_new_stubbed_recorder()
+        new_recorder.configure(service='test', sampling=False, context=lambda_context)
+        subsegment = new_recorder.begin_subsegment("subsegment")
+        assert type(subsegment.parent_segment) == facade_segment.FacadeSegment
+        new_recorder.end_subsegment()
+
+        url = reverse('200ok')
+        self.client.get(url)
+        segment = new_recorder.emitter.pop()
         assert not segment

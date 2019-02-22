@@ -155,20 +155,6 @@ class Segment(Entity):
             self.aws['xray'] = {}
         self.aws['xray']['sampling_rule_name'] = rule_name
 
-    def save_origin_trace_header(self, trace_header):
-        """
-        Temporarily store additional data fields in trace header
-        to the segment for later propagation. The data will be
-        cleaned up upon serilaization.
-        """
-        setattr(self, ORIGIN_TRACE_HEADER_ATTR_KEY, trace_header)
-
-    def get_origin_trace_header(self):
-        """
-        Retrieve saved trace header data.
-        """
-        return getattr(self, ORIGIN_TRACE_HEADER_ATTR_KEY, None)
-
     def __getstate__(self):
         """
         Used by jsonpikle to remove unwanted fields.
@@ -179,5 +165,4 @@ class Segment(Entity):
             del properties['user']
         del properties['ref_counter']
         del properties['_subsegments_counter']
-        properties.pop(ORIGIN_TRACE_HEADER_ATTR_KEY, None)
         return properties
