@@ -233,8 +233,8 @@ class Entity(object):
     def save_origin_trace_header(self, trace_header):
         """
         Temporarily store additional data fields in trace header
-        to the segment for later propagation. The data will be
-        cleaned up upon serilaization.
+        to the entity for later propagation. The data will be
+        cleaned up upon serialization.
         """
         setattr(self, ORIGIN_TRACE_HEADER_ATTR_KEY, trace_header)
 
