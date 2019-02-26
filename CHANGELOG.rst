@@ -2,6 +2,16 @@
 CHANGELOG
 =========
 
+2.4.0
+==========
+* feature: Add ability to enable/disable the SDK. `PR119 <https://github.com/aws/aws-xray-sdk-python/pull/119>`_.
+* feature: Add Serverless Framework Support `PR127 <https://github.com/aws/aws-xray-sdk-python/pull/127>`_.
+* feature: Bring aiobotocore support back. `PR125 <https://github.com/aws/aws-xray-sdk-python/pull/125>`_.
+* bugfix: Fix httplib invalid scheme detection for HTTPS. `PR122 <https://github.com/aws/aws-xray-sdk-python/pull/122>`_.
+* bugfix: Max_trace_back = 0 returns full exception stack trace bug fix. `PR123 <https://github.com/aws/aws-xray-sdk-python/pull/123>`_.
+* bugfix: Rename incorrect config module name to the correct global name. `PR130 <https://github.com/aws/aws-xray-sdk-python/pull/130>`_.
+* bugfix: Correctly remove password component from SQLAlchemy URLs, preventing... `PR132 <https://github.com/aws/aws-xray-sdk-python/pull/132>`_.
+
 2.3.0
 ==========
 * feature: Stream Django ORM SQL queries and add flag to toggle their streaming. `PR111 <https://github.com/aws/aws-xray-sdk-python/pull/111>`_.
