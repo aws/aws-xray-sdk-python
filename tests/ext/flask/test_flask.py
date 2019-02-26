@@ -4,8 +4,10 @@ from flask import Flask, render_template_string
 from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core import lambda_launcher
+from aws_xray_sdk.core.models import http, facade_segment
 from tests.util import get_new_stubbed_recorder
+import os
 
 
 # define a flask app for testing purpose
@@ -153,3 +155,45 @@ def test_disabled_sdk():
     app.get(path)
     segment = recorder.emitter.pop()
     assert not segment
+
+
+def test_lambda_serverless():
+    TRACE_ID = '1-5759e988-bd862e3fe1be46a994272793'
+    PARENT_ID = '53995c3f42cd8ad8'
+    HEADER_VAR = "Root=%s;Parent=%s;Sampled=1" % (TRACE_ID, PARENT_ID)
+
+    os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = HEADER_VAR
+    lambda_context = lambda_launcher.LambdaContext()
+
+    new_recorder = get_new_stubbed_recorder()
+    new_recorder.configure(service='test', sampling=False, context=lambda_context)
+    new_app = Flask(__name__)
+
+    @new_app.route('/subsegment')
+    def subsegment():
+        # Test in between request and make sure Serverless creates a subsegment instead of a segment.
+        # Ensure that the parent segment is a facade segment.
+        assert new_recorder.current_subsegment()
+        assert type(new_recorder.current_segment()) == facade_segment.FacadeSegment
+        return 'ok'
+
+    @new_app.route('/trace_header')
+    def trace_header():
+        # Ensure trace header is preserved.
+        subsegment = new_recorder.current_subsegment()
+        header = subsegment.get_origin_trace_header()
+        assert header.data['k1'] == 'v1'
+        return 'ok'
+
+    middleware = XRayMiddleware(new_app, new_recorder)
+    middleware.in_lambda = True
+
+    app_client = new_app.test_client()
+
+    path = '/subsegment'
+    app_client.get(path)
+    segment = recorder.emitter.pop()
+    assert not segment  # Segment should be none because it's created and ended by the middleware
+
+    path2 = '/trace_header'
+    app_client.get(path2, headers={http.XRAY_HEADER: 'k1=v1'})

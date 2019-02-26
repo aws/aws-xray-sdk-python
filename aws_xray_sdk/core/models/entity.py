@@ -18,6 +18,8 @@ log = logging.getLogger(__name__)
 _common_invalid_name_characters = '?;*()!$~^<>'
 _valid_annotation_key_characters = string.ascii_letters + string.digits + '_'
 
+ORIGIN_TRACE_HEADER_ATTR_KEY = '_origin_trace_header'
+
 
 class Entity(object):
     """
@@ -228,6 +230,20 @@ class Entity(object):
         self.cause['exceptions'] = exceptions
         self.cause['working_directory'] = os.getcwd()
 
+    def save_origin_trace_header(self, trace_header):
+        """
+        Temporarily store additional data fields in trace header
+        to the entity for later propagation. The data will be
+        cleaned up upon serialization.
+        """
+        setattr(self, ORIGIN_TRACE_HEADER_ATTR_KEY, trace_header)
+
+    def get_origin_trace_header(self):
+        """
+        Retrieve saved trace header data.
+        """
+        return getattr(self, ORIGIN_TRACE_HEADER_ATTR_KEY, None)
+
     def serialize(self):
         """
         Serialize to JSON document that can be accepted by the
@@ -258,6 +274,7 @@ class Entity(object):
             del properties['annotations']
         if not self.metadata:
             del properties['metadata']
+        properties.pop(ORIGIN_TRACE_HEADER_ATTR_KEY, None)
 
         del properties['sampled']
 
