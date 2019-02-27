@@ -5,7 +5,7 @@ from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.core import lambda_launcher
-from aws_xray_sdk.core.models import http, facade_segment
+from aws_xray_sdk.core.models import http, facade_segment, segment
 from tests.util import get_new_stubbed_recorder
 import os
 
@@ -186,7 +186,7 @@ def test_lambda_serverless():
         return 'ok'
 
     middleware = XRayMiddleware(new_app, new_recorder)
-    middleware.in_lambda = True
+    middleware.in_lambda_ctx = True
 
     app_client = new_app.test_client()
 
@@ -197,3 +197,25 @@ def test_lambda_serverless():
 
     path2 = '/trace_header'
     app_client.get(path2, headers={http.XRAY_HEADER: 'k1=v1'})
+
+
+def test_lambda_default_ctx():
+    # Track to make sure that Flask will default to generating segments if context is not the lambda context
+    new_recorder = get_new_stubbed_recorder()
+    new_recorder.configure(service='test', sampling=False)
+    new_app = Flask(__name__)
+
+    @new_app.route('/segment')
+    def subsegment():
+        # Test in between request and make sure Lambda that uses default context generates a segment.
+        assert new_recorder.current_segment()
+        assert type(new_recorder.current_segment()) == segment.Segment
+        return 'ok'
+
+    XRayMiddleware(new_app, new_recorder)
+    app_client = new_app.test_client()
+
+    path = '/segment'
+    app_client.get(path)
+    segment = recorder.emitter.pop()
+    assert not segment  # Segment should be none because it's created and ended by the middleware

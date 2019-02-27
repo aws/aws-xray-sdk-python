@@ -5,7 +5,7 @@ from aws_xray_sdk.core.models import http
 from aws_xray_sdk.core.utils import stacktrace
 from aws_xray_sdk.ext.util import calculate_sampling_decision, \
     calculate_segment_name, construct_xray_header, prepare_response_header
-from aws_xray_sdk.core.lambda_launcher import check_in_lambda
+from aws_xray_sdk.core.lambda_launcher import check_in_lambda, LambdaContext
 
 
 class XRayMiddleware(object):
@@ -18,10 +18,10 @@ class XRayMiddleware(object):
         self.app.before_request(self._before_request)
         self.app.after_request(self._after_request)
         self.app.teardown_request(self._handle_exception)
-        self.in_lambda = False
+        self.in_lambda_ctx = False
 
-        if check_in_lambda():
-            self.in_lambda = True
+        if check_in_lambda() and type(self._recorder.context) == LambdaContext:
+            self.in_lambda_ctx = True
 
         _patch_render(recorder)
 
@@ -44,7 +44,7 @@ class XRayMiddleware(object):
             sampling_req=sampling_req,
         )
 
-        if self.in_lambda:
+        if self.in_lambda_ctx:
             segment = self._recorder.begin_subsegment(name)
         else:
             segment = self._recorder.begin_segment(
@@ -67,7 +67,7 @@ class XRayMiddleware(object):
             segment.put_http_meta(http.CLIENT_IP, req.remote_addr)
 
     def _after_request(self, response):
-        if self.in_lambda:
+        if self.in_lambda_ctx:
             segment = self._recorder.current_subsegment()
         else:
             segment = self._recorder.current_segment()
@@ -81,7 +81,7 @@ class XRayMiddleware(object):
         if cont_len:
             segment.put_http_meta(http.CONTENT_LENGTH, int(cont_len))
 
-        if self.in_lambda:
+        if self.in_lambda_ctx:
             self._recorder.end_subsegment()
         else:
             self._recorder.end_segment()
@@ -92,7 +92,7 @@ class XRayMiddleware(object):
             return
         segment = None
         try:
-            if self.in_lambda:
+            if self.in_lambda_ctx:
                 segment = self._recorder.current_subsegment()
             else:
                 segment = self._recorder.current_segment()
@@ -104,7 +104,7 @@ class XRayMiddleware(object):
         segment.put_http_meta(http.STATUS, 500)
         stack = stacktrace.get_stacktrace(limit=self._recorder._max_trace_back)
         segment.add_exception(exception, stack)
-        if self.in_lambda:
+        if self.in_lambda_ctx:
             self._recorder.end_subsegment()
         else:
             self._recorder.end_segment()

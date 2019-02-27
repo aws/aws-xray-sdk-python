@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from aws_xray_sdk.core import xray_recorder, lambda_launcher
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.core.models import http, facade_segment
+from aws_xray_sdk.core.models import http, facade_segment, segment
 from tests.util import get_new_stubbed_recorder
 import os
 
@@ -132,3 +132,10 @@ class XRayTestCase(TestCase):
         self.client.get(url)
         segment = new_recorder.emitter.pop()
         assert not segment
+
+    def test_lambda_default_ctx(self):
+        # Track to make sure that Django will default to generating segments if context is not the lambda context
+        url = reverse('200ok')
+        self.client.get(url)
+        cur_segment = xray_recorder.emitter.pop()
+        assert type(cur_segment) == segment.Segment
