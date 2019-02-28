@@ -5,7 +5,7 @@ from aws_xray_sdk.core.models import http
 from aws_xray_sdk.core.utils import stacktrace
 from aws_xray_sdk.ext.util import calculate_sampling_decision, \
     calculate_segment_name, construct_xray_header, prepare_response_header
-from aws_xray_sdk.core.lambda_launcher import check_in_lambda
+from aws_xray_sdk.core.lambda_launcher import check_in_lambda, LambdaContext
 
 
 log = logging.getLogger(__name__)
@@ -25,10 +25,10 @@ class XRayMiddleware(object):
     def __init__(self, get_response):
 
         self.get_response = get_response
-        self.in_lambda = False
+        self.in_lambda_ctx = False
 
-        if check_in_lambda():
-            self.in_lambda = True
+        if check_in_lambda() and type(xray_recorder.context) == LambdaContext:
+            self.in_lambda_ctx = True
 
     # hooks for django version >= 1.10
     def __call__(self, request):
@@ -51,7 +51,7 @@ class XRayMiddleware(object):
             sampling_req=sampling_req,
         )
 
-        if self.in_lambda:
+        if self.in_lambda_ctx:
             segment = xray_recorder.begin_subsegment(name)
         else:
             segment = xray_recorder.begin_segment(
@@ -83,7 +83,7 @@ class XRayMiddleware(object):
             segment.put_http_meta(http.CONTENT_LENGTH, length)
         response[http.XRAY_HEADER] = prepare_response_header(xray_header, segment)
 
-        if self.in_lambda:
+        if self.in_lambda_ctx:
             xray_recorder.end_subsegment()
         else:
             xray_recorder.end_segment()
