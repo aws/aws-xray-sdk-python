@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+2.4.1
+==========
+* bugfix: Middlewares should create subsegments only when in the Lambda context running under a Lambda environment. `PR139 <https://github.com/aws/aws-xray-sdk-python/pull/139>`_.
+
 2.4.0
 ==========
 * feature: Add ability to enable/disable the SDK. `PR119 <https://github.com/aws/aws-xray-sdk-python/pull/119>`_.
