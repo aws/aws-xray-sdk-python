@@ -338,6 +338,15 @@ MIDDLEWARE = [
     # ... other middlewares
 ]
 ```
+
+You can configure the X-Ray recorder in a Django app under the ‘XRAY_RECORDER’ namespace. For a minimal configuration, the 'AWS_XRAY_TRACING_NAME' is required unless it is specified in an environment variable.
+```
+XRAY_RECORDER = {
+    'AWS_XRAY_TRACING_NAME': 'My application', # Required - the segment name for segments generated from incoming requests
+}
+```
+For more information about configuring Django with X-Ray read more about it in the [API reference](https://docs.aws.amazon.com/xray-sdk-for-python/latest/reference/frameworks.html)
+
 #### SQL tracing
 If Django's ORM is patched - either using the `AUTO_INSTRUMENT = True` in your settings file
 or explicitly calling `patch_db()` - the SQL query trace streaming can then be enabled or 
