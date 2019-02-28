@@ -19,7 +19,9 @@ class RulePoller(object):
         self._connector = connector
 
     def start(self):
-        threading.Thread(target=self._worker).start()
+        poller_thread = threading.Thread(target=self._worker)
+        poller_thread.daemon = True
+        poller_thread.start()
 
     def _worker(self):
         frequency = 1
