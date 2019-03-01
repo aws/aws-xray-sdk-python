@@ -20,7 +20,9 @@ class TargetPoller(object):
         self._interval = 10 # default 10 seconds interval on sampling targets fetch
 
     def start(self):
-        threading.Thread(target=self._worker).start()
+        poller_thread = threading.Thread(target=self._worker)
+        poller_thread.daemon = True
+        poller_thread.start()
 
     def _worker(self):
         while True:
