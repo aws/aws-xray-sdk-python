@@ -133,6 +133,25 @@ class XRayTestCase(TestCase):
         segment = new_recorder.emitter.pop()
         assert not segment
 
+        # Test Fault in Lambda
+        url = reverse('500fault')
+        try:
+            self.client.get(url)
+        except Exception:
+            pass
+        segment = xray_recorder.emitter.pop()
+        assert segment.fault
+
+        request = segment.http['request']
+        response = segment.http['response']
+
+        assert request['method'] == 'GET'
+        assert request['client_ip'] == '127.0.0.1'
+        assert response['status'] == 500
+
+        exception = segment.cause['exceptions'][0]
+        assert exception.type == 'KeyError'
+
     def test_lambda_default_ctx(self):
         # Track to make sure that Django will default to generating segments if context is not the lambda context
         url = reverse('200ok')
