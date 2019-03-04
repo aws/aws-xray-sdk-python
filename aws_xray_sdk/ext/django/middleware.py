@@ -95,7 +95,10 @@ class XRayMiddleware(object):
         Add exception information and fault flag to the
         current segment.
         """
-        segment = xray_recorder.current_segment()
+        if self.in_lambda_ctx:
+            segment = xray_recorder.current_subsegment()
+        else:
+            segment = xray_recorder.current_segment()
         segment.put_http_meta(http.STATUS, 500)
 
         stack = stacktrace.get_stacktrace(limit=xray_recorder._max_trace_back)
