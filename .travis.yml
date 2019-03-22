@@ -9,5 +9,12 @@ python:
 install:
   - pip install tox
 
+notifications:
+  email:
+    recipients:
+      - aws-xray-peryton@amazon.com
+    on_success: never
+    on_failure: always
+
 script:
   - tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
