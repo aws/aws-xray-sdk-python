@@ -253,6 +253,16 @@ class AWSXRayRecorder(object):
 
         :param float end_time: segment compeletion in unix epoch in seconds.
         """
+        # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
+        # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
+        # This is to allow potential segment method calls to not throw exceptions in the captured method.
+        if not global_sdk_config.sdk_enabled():
+            try:
+                self.current_segment()
+            except SegmentNotFoundException:
+                segment = DummySegment()
+                self.context.put_segment(segment)
+
         self.context.end_segment(end_time)
         segment = self.current_segment()
         if segment and segment.ready_to_send():
@@ -280,6 +290,15 @@ class AWSXRayRecorder(object):
         :param str name: the name of the subsegment.
         :param str namespace: currently can only be 'local', 'remote', 'aws'.
         """
+        # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
+        # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
+        # This is to allow potential segment method calls to not throw exceptions in the captured method.
+        if not global_sdk_config.sdk_enabled():
+            try:
+                self.current_segment()
+            except SegmentNotFoundException:
+                segment = DummySegment()
+                self.context.put_segment(segment)
 
         segment = self.current_segment()
         if not segment:
@@ -314,6 +333,16 @@ class AWSXRayRecorder(object):
 
         :param float end_time: subsegment compeletion in unix epoch in seconds.
         """
+        # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
+        # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
+        # This is to allow potential segment method calls to not throw exceptions in the captured method.
+        if not global_sdk_config.sdk_enabled():
+            try:
+                self.current_segment()
+            except SegmentNotFoundException:
+                segment = DummySegment()
+                self.context.put_segment(segment)
+
         if not self.context.end_subsegment(end_time):
             return
 
