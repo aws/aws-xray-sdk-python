@@ -27,13 +27,17 @@ class SDKConfig(object):
             to occur.
     """
     XRAY_ENABLED_KEY = 'AWS_XRAY_SDK_ENABLED'
-    __SDK_ENABLED = str(os.getenv(XRAY_ENABLED_KEY, 'true')).lower() != 'false'
+    DISABLED_ENTITY_NAME = 'dummy'
+
+    __SDK_ENABLED = None
 
     @classmethod
     def sdk_enabled(cls):
         """
         Returns whether the SDK is enabled or not.
         """
+        if cls.__SDK_ENABLED is None:
+            cls.__SDK_ENABLED = str(os.getenv(cls.XRAY_ENABLED_KEY, 'true')).lower() != 'false'
         return cls.__SDK_ENABLED
 
     @classmethod
