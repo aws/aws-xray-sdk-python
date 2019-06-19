@@ -144,7 +144,7 @@ def test_execute_bad_query():
     assert sql['database_version']
 
     exception = subsegment.cause['exceptions'][0]
-    assert exception.type == 'ProgrammingError'
+    assert exception.type == 'UndefinedColumn'
 
 
 def test_register_extensions():

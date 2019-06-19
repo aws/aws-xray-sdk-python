@@ -1,13 +1,21 @@
 language: python
-
+dist: xenial
 python:
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
+  - "3.7"
 
 install:
   - pip install tox
+
+notifications:
+  email:
+    recipients:
+      - aws-xray-peryton@amazon.com
+    on_success: never
+    on_failure: always
 
 script:
   - tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
