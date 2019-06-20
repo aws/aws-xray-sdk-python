@@ -1,5 +1,6 @@
 import os
 import logging
+from distutils.util import strtobool
 
 log = logging.getLogger(__name__)
 
@@ -32,12 +33,27 @@ class SDKConfig(object):
     __SDK_ENABLED = None
 
     @classmethod
+    def __get_enabled_from_env(cls):
+        """
+        Searches for the environment variable to see if the SDK should be disabled.
+        If no environment variable is found, it returns True by default.
+
+        :return: bool - True if it is enabled, False otherwise.
+        """
+        env_var_str = os.getenv(cls.XRAY_ENABLED_KEY, 'true')
+        try:
+            return bool(strtobool(env_var_str))
+        except ValueError:
+            log.warning("Invalid literal passed into environment variable `AWS_XRAY_SDK_ENABLED`. Defaulting to True...")
+            return True  # If an invalid parameter is passed in, we return True.
+
+    @classmethod
     def sdk_enabled(cls):
         """
         Returns whether the SDK is enabled or not.
         """
         if cls.__SDK_ENABLED is None:
-            cls.__SDK_ENABLED = str(os.getenv(cls.XRAY_ENABLED_KEY, 'true')).lower() != 'false'
+            cls.__SDK_ENABLED = cls.__get_enabled_from_env()
         return cls.__SDK_ENABLED
 
     @classmethod
@@ -53,7 +69,7 @@ class SDKConfig(object):
         """
         # Environment Variables take precedence over hardcoded configurations.
         if cls.XRAY_ENABLED_KEY in os.environ:
-            cls.__SDK_ENABLED = str(os.getenv(cls.XRAY_ENABLED_KEY, 'true')).lower() != 'false'
+            cls.__SDK_ENABLED = cls.__get_enabled_from_env()
         else:
             if type(value) == bool:
                 cls.__SDK_ENABLED = value
