@@ -20,6 +20,3 @@ pip-selfcheck.json
 
 .coverage*
 htmlcov
-
-# Pycharm
-.idea/
