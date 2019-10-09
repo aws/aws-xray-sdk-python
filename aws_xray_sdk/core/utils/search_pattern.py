@@ -9,7 +9,6 @@ def wildcard_match(pattern, text, case_insensitive=True):
     :param boolean case_insensitive: dafault is True
     return whether the text matches the pattern
     """
-
     if pattern is None or text is None:
         return False
 
@@ -19,21 +18,7 @@ def wildcard_match(pattern, text, case_insensitive=True):
     # Check the special case of a single * pattern, as it's common
     if pattern == '*':
         return True
-
-    # Infix globs are relatively rare, and the below search is expensive.
-    # Check for infix globs and, in their absence, do the simple thing.
-    # if '*' not in pattern or pattern.index('*') == len(pattern) - 1:
-    #     return _simple_wildcard_match(pattern, text)
-
-    # The res[i] is used to record if there is a match between
-    # the first i chars in text and the first j chars in pattern.
-    # So will return res[textLength+1] in the end
-    # Loop from the beginning of the pattern
-    # case not '*': if text[i]==pattern[j] or pattern[j] is '?',
-    # and res[i] is true, set res[i+1] to true, otherwise false.
-    # case '*': since '*' can match any globing, as long as there is a true
-    # in res before i, all the res[i+1], res[i+2],...,res[textLength]
-    # could be true
+        
     i = 0
     p = 0
     iStar = len(text)
