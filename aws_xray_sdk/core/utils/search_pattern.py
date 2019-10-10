@@ -18,7 +18,10 @@ def wildcard_match(pattern, text, case_insensitive=True):
     # Check the special case of a single * pattern, as it's common
     if pattern == '*':
         return True
-        
+
+    # If elif logic Checking different conditions like match between the first i chars in text
+    # and the first j chars in pattern, checking pattern has '?' or '*' also check for case_insensitivity
+    # iStar is introduced to store length of the text and i, p and pStar for indexing
     i = 0
     p = 0
     iStar = len(text)
@@ -53,30 +56,3 @@ def wildcard_match(pattern, text, case_insensitive=True):
         p = p + 1
 
     return p == len(pattern) and i == len(text)
-
-
-def _simple_wildcard_match(pattern, text):
-    j = 0
-    pattern_len = len(pattern)
-    text_len = len(text)
-    for i in range(0, pattern_len):
-        p = pattern[i]
-        if p == '*':
-            # Presumption for this method is that globs only occur at end
-            return True
-        elif p == '?':
-            if j == text_len:
-                # No character to match
-                return False
-            j += 1
-        else:
-            if j >= text_len:
-                return False
-
-            if p != text[j]:
-                return False
-            j += 1
-
-    # Ate up all the pattern and didn't end at a glob, so a match
-    # will have consumed all the text
-    return j == text_len
