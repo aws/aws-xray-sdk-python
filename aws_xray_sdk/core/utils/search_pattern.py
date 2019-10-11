@@ -20,7 +20,7 @@ def wildcard_match(pattern, text, case_insensitive=True):
         return True
 
     # If elif logic Checking different conditions like match between the first i chars in text
-    # and the first j chars in pattern, checking pattern has '?' or '*' also check for case_insensitivity
+    # and the first p chars in pattern, checking pattern has '?' or '*' also check for case_insensitivity
     # iStar is introduced to store length of the text and i, p and pStar for indexing
     i = 0
     p = 0
