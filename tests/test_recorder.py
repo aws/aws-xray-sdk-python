@@ -1,4 +1,5 @@
 import platform
+from unittest.mock import patch
 
 import pytest
 
@@ -10,7 +11,9 @@ from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
 
-xray_recorder = get_new_stubbed_recorder()
+with patch("aws_xray_sdk.core.sampling.connector.botocore.session.Session.get_credentials") as get_credentials:
+    xray_recorder = get_new_stubbed_recorder()
+    assert not get_credentials.called
 
 
 @pytest.fixture(autouse=True)
