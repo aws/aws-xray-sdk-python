@@ -49,6 +49,10 @@ setup(
         'botocore>=1.11.3',
     ],
 
+    tests_require=[
+        'mock;python_version<"3.3"',
+    ],
+
     keywords='aws xray sdk',
 
     packages=find_packages(exclude=['tests*']),
