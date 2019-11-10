@@ -21,6 +21,11 @@ def check_in_lambda():
     Return None if SDK is not loaded in AWS Lambda worker.
     Otherwise drop a touch file and return a lambda context.
     """
+
+    override_context = os.getenv('XRAY_OVERRIDE_CONTEXT')
+    if override_context == 'normal':
+        return None
+
     if not os.getenv(LAMBDA_TASK_ROOT_KEY):
         return None
 
