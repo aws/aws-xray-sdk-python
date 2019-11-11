@@ -1,4 +1,3 @@
-import botocore.vendored.requests.sessions
 import json
 import wrapt
 import pynamodb
@@ -13,16 +12,18 @@ PYNAMODB4 = int(pynamodb.__version__.split('.')[0]) >= 4
 def patch():
     """Patch PynamoDB so it generates subsegements when calling DynamoDB."""
 
-    if hasattr(botocore.vendored.requests.sessions, '_xray_enabled'):
-        return
-    setattr(botocore.vendored.requests.sessions, '_xray_enabled', True)
-
     if PYNAMODB4:
         module = 'botocore.httpsession'
         name = 'URLLib3Session.send'
     else:
+        import botocore.vendored.requests.sessions
+        if hasattr(botocore.vendored.requests.sessions, '_xray_enabled'):
+            return
+        setattr(botocore.vendored.requests.sessions, '_xray_enabled', True)
+
         module = 'botocore.vendored.requests.sessions'
         name = 'Session.send'
+
     wrapt.wrap_function_wrapper(
         module, name, _xray_traced_pynamodb,
     )
