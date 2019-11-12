@@ -1,24 +1,30 @@
 import botocore.vendored.requests.sessions
 import json
 import wrapt
+import pynamodb
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.ext.boto_utils import _extract_whitelisted_params
 
+PYNAMODB4 = int(pynamodb.__version__.split('.')[0]) >= 4
+
 
 def patch():
     """Patch PynamoDB so it generates subsegements when calling DynamoDB."""
-    import pynamodb
 
     if hasattr(botocore.vendored.requests.sessions, '_xray_enabled'):
         return
     setattr(botocore.vendored.requests.sessions, '_xray_enabled', True)
 
+    if PYNAMODB4:
+        module = 'botocore.httpsession'
+        name = 'URLLib3Session.send'
+    else:
+        module = 'botocore.vendored.requests.sessions'
+        name = 'Session.send'
     wrapt.wrap_function_wrapper(
-        'botocore.vendored.requests.sessions',
-        'Session.send',
-        _xray_traced_pynamodb,
+        module, name, _xray_traced_pynamodb,
     )
 
 
@@ -59,7 +65,10 @@ def pynamodb_meta_processor(wrapped, instance, args, kwargs, return_value,
         subsegment.add_error_flag()
         subsegment.add_exception(exception, stack, True)
 
-    resp = return_value.json() if return_value else None
+    if PYNAMODB4:
+        resp = json.loads(return_value.text) if return_value else None
+    else:
+        resp = return_value.json() if return_value else None
     _extract_whitelisted_params(subsegment.name, operation_name, aws_meta,
                                 [None, json.loads(args[0].body.decode('utf-8'))],
                                 None, resp)
