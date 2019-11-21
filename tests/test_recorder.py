@@ -14,10 +14,11 @@ xray_recorder = get_new_stubbed_recorder()
 
 
 @pytest.fixture(autouse=True)
-def construct_ctx():
+def construct_ctx(monkeypatch):
     """
     Clean up context storage before and after each test run.
     """
+    monkeypatch.delattr("botocore.session.Session.get_credentials")
     xray_recorder.configure(sampling=False)
     xray_recorder.clear_trace_entities()
     yield
