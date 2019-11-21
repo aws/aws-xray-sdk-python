@@ -1,8 +1,4 @@
 import platform
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
 
 import pytest
 
@@ -14,16 +10,15 @@ from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
 
-with patch("aws_xray_sdk.core.sampling.connector.botocore.session.Session.get_credentials") as get_credentials:
-    xray_recorder = get_new_stubbed_recorder()
-    assert not get_credentials.called
+xray_recorder = get_new_stubbed_recorder()
 
 
 @pytest.fixture(autouse=True)
-def construct_ctx():
+def construct_ctx(monkeypatch):
     """
     Clean up context storage before and after each test run.
     """
+    monkeypatch.delattr("botocore.session.Session.get_credentials")
     xray_recorder.configure(sampling=False)
     xray_recorder.clear_trace_entities()
     yield
