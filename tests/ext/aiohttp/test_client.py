@@ -34,7 +34,7 @@ async def test_ok(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == strip_url(url)
+    assert subsegment.name == BASE_URL
     assert subsegment.namespace == REMOTE_NAMESPACE
 
     http_meta = subsegment.http
@@ -66,7 +66,7 @@ async def test_error(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == BASE_URL
     assert subsegment.error
 
     http_meta = subsegment.http
@@ -85,7 +85,7 @@ async def test_throttle(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == BASE_URL
     assert subsegment.error
     assert subsegment.throttle
 
@@ -105,7 +105,7 @@ async def test_fault(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == BASE_URL
     assert subsegment.fault
 
     http_meta = subsegment.http

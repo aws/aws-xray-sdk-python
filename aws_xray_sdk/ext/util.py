@@ -1,10 +1,10 @@
 import re
 
-from aws_xray_sdk.core.models.trace_header import TraceHeader
-from aws_xray_sdk.core.models import http
-
 import wrapt
+from six.moves.urllib.parse import urlparse
 
+from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core.models.trace_header import TraceHeader
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -116,6 +116,16 @@ def strip_url(url):
     :return: validated url string
     """
     return url.partition('?')[0] if url else url
+
+
+def parse_hostname(url):
+    """
+    Parses the hostname from the given url.
+    The hostname is used as a segment name for external http requests.
+    :param url:
+    :return: hostname string
+    """
+    return urlparse(url).hostname
 
 
 def unwrap(obj, attr):

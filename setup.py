@@ -46,6 +46,7 @@ setup(
         'enum34;python_version<"3.4"',
         'wrapt',
         'future',
+        'six',
         'botocore>=1.11.3',
     ],
 

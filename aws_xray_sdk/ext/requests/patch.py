@@ -2,7 +2,7 @@ import wrapt
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.ext.util import inject_trace_header, strip_url
+from aws_xray_sdk.ext.util import inject_trace_header, parse_hostname
 
 
 def patch():
@@ -26,7 +26,7 @@ def _xray_traced_requests(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=strip_url(url),
+        name=parse_hostname(url),
         namespace='remote',
         meta_processor=requests_processor,
     )

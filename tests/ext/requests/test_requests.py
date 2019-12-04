@@ -4,7 +4,6 @@ import requests
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.ext.util import strip_url
 
 
 patch(('requests',))
@@ -32,7 +31,7 @@ def test_ok():
     url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
     requests.get(url)
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == strip_url(url)
+    assert subsegment.name == BASE_URL
 
     http_meta = subsegment.http
     assert http_meta['request']['url'] == url
@@ -45,7 +44,7 @@ def test_error():
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
     requests.post(url)
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == BASE_URL
     assert subsegment.error
 
     http_meta = subsegment.http
@@ -59,7 +58,7 @@ def test_throttle():
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
     requests.head(url)
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == BASE_URL
     assert subsegment.error
     assert subsegment.throttle
 
@@ -74,7 +73,7 @@ def test_fault():
     url = 'http://{}/status/{}'.format(BASE_URL, status_code)
     requests.put(url)
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == BASE_URL
     assert subsegment.fault
 
     http_meta = subsegment.http

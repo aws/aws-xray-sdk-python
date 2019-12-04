@@ -8,7 +8,7 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.core.patcher import _PATCHED_MODULES
-from aws_xray_sdk.ext.util import inject_trace_header, strip_url, unwrap
+from aws_xray_sdk.ext.util import inject_trace_header, parse_hostname, unwrap
 
 if sys.version_info >= (3, 0, 0):
     PY2 = False
@@ -57,7 +57,7 @@ def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=strip_url(xray_data.url),
+        name=parse_hostname(xray_data.url),
         namespace='remote',
         meta_processor=http_response_processor,
     )
@@ -111,7 +111,7 @@ def _send_request(wrapped, instance, args, kwargs):
         # we add a segment here in case connect fails
         return xray_recorder.record_subsegment(
             wrapped, instance, args, kwargs,
-            name=strip_url(xray_data.url),
+            name=parse_hostname(xray_data.url),
             namespace='remote',
             meta_processor=http_send_request_processor
         )
@@ -141,7 +141,7 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=strip_url(xray_data.url),
+        name=parse_hostname(xray_data.url),
         namespace='remote',
         meta_processor=http_read_processor
     )
