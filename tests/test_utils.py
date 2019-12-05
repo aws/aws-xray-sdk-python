@@ -1,4 +1,4 @@
-from aws_xray_sdk.ext.util import to_snake_case, get_hostname
+from aws_xray_sdk.ext.util import to_snake_case, get_hostname, strip_url
 
 
 def test_to_snake_case():
@@ -36,3 +36,17 @@ def test_get_hostname():
 
     s7 = get_hostname(None)
     assert not s7
+
+
+def test_strip_url():
+    s1 = strip_url("https://amazon.com/page?getdata=response&stuff=morestuff")
+    assert s1 == "https://amazon.com/page"
+
+    s2 = strip_url("aws.google.com/index.html?field=data&suchcool=data")
+    assert s2 == "aws.google.com/index.html"
+
+    s3 = strip_url("INVALID_URL")
+    assert s3 == "INVALID_URL"
+
+    assert strip_url("") == ""
+    assert not strip_url(None)
