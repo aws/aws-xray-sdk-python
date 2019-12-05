@@ -4,7 +4,7 @@ from aiohttp import ClientSession
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.async_context import AsyncContext
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
-from aws_xray_sdk.ext.util import strip_url
+from aws_xray_sdk.ext.util import strip_url, get_hostname
 from aws_xray_sdk.ext.aiohttp.client import aws_xray_trace_config
 from aws_xray_sdk.ext.aiohttp.client import REMOTE_NAMESPACE, LOCAL_NAMESPACE
 
@@ -34,11 +34,11 @@ async def test_ok(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == strip_url(url)
+    assert subsegment.name == get_hostname(url)
     assert subsegment.namespace == REMOTE_NAMESPACE
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'] == 'GET'
     assert http_meta['response']['status'] == status_code
 
@@ -66,11 +66,11 @@ async def test_error(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == get_hostname(url)
     assert subsegment.error
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'] == 'POST'
     assert http_meta['response']['status'] == status_code
 
@@ -85,12 +85,12 @@ async def test_throttle(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == get_hostname(url)
     assert subsegment.error
     assert subsegment.throttle
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'] == 'HEAD'
     assert http_meta['response']['status'] == status_code
 
@@ -105,11 +105,11 @@ async def test_fault(loop, recorder):
             pass
 
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == url
+    assert subsegment.name == get_hostname(url)
     assert subsegment.fault
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'] == 'PUT'
     assert http_meta['response']['status'] == status_code
 

@@ -4,6 +4,12 @@ from aws_xray_sdk.core.models.trace_header import TraceHeader
 from aws_xray_sdk.core.models import http
 
 import wrapt
+import sys
+
+if sys.version_info.major >= 3:  # Python 3 and above
+    from urllib.parse import urlparse
+else:  # Python 2 and below
+    from urlparse import urlparse
 
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -116,6 +122,14 @@ def strip_url(url):
     :return: validated url string
     """
     return url.partition('?')[0] if url else url
+
+
+def get_hostname(url):
+    if url is None:
+        return None
+    url_parse = urlparse(url)
+    hostname = url_parse.hostname
+    return hostname if hostname else url  # If hostname is none, we return the regular URL; indication of malformed url
 
 
 def unwrap(obj, attr):

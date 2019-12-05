@@ -8,7 +8,7 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.core.patcher import _PATCHED_MODULES
-from aws_xray_sdk.ext.util import inject_trace_header, strip_url, unwrap
+from aws_xray_sdk.ext.util import inject_trace_header, strip_url, unwrap, get_hostname
 
 if sys.version_info >= (3, 0, 0):
     PY2 = False
@@ -33,7 +33,7 @@ def http_response_processor(wrapped, instance, args, kwargs, return_value,
         return
 
     subsegment.put_http_meta(http.METHOD, xray_data.method)
-    subsegment.put_http_meta(http.URL, xray_data.url)
+    subsegment.put_http_meta(http.URL, strip_url(xray_data.url))
 
     if return_value:
         subsegment.put_http_meta(http.STATUS, return_value.status)
@@ -57,7 +57,7 @@ def _xray_traced_http_getresponse(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=strip_url(xray_data.url),
+        name=get_hostname(xray_data.url),
         namespace='remote',
         meta_processor=http_response_processor,
     )
@@ -71,7 +71,7 @@ def http_send_request_processor(wrapped, instance, args, kwargs, return_value,
 
     # we don't delete the attr as we can have multiple reads
     subsegment.put_http_meta(http.METHOD, xray_data.method)
-    subsegment.put_http_meta(http.URL, xray_data.url)
+    subsegment.put_http_meta(http.URL, strip_url(xray_data.url))
 
     if exception:
         subsegment.add_exception(exception, stack)
@@ -111,7 +111,7 @@ def _send_request(wrapped, instance, args, kwargs):
         # we add a segment here in case connect fails
         return xray_recorder.record_subsegment(
             wrapped, instance, args, kwargs,
-            name=strip_url(xray_data.url),
+            name=get_hostname(xray_data.url),
             namespace='remote',
             meta_processor=http_send_request_processor
         )
@@ -127,7 +127,7 @@ def http_read_processor(wrapped, instance, args, kwargs, return_value,
 
     # we don't delete the attr as we can have multiple reads
     subsegment.put_http_meta(http.METHOD, xray_data.method)
-    subsegment.put_http_meta(http.URL, xray_data.url)
+    subsegment.put_http_meta(http.URL, strip_url(xray_data.url))
     subsegment.put_http_meta(http.STATUS, instance.status)
 
     if exception:
@@ -141,7 +141,7 @@ def _xray_traced_http_client_read(wrapped, instance, args, kwargs):
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
-        name=strip_url(xray_data.url),
+        name=get_hostname(xray_data.url),
         namespace='remote',
         meta_processor=http_read_processor
     )
