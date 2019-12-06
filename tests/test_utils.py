@@ -1,5 +1,7 @@
 from aws_xray_sdk.ext.util import to_snake_case, get_hostname, strip_url
 
+UNKNOWN_HOST = "UNKNOWN HOST"
+
 
 def test_to_snake_case():
     s1 = to_snake_case('Bucket')
@@ -29,13 +31,13 @@ def test_get_hostname():
     assert s4 == "amazon.com"
 
     s5 = get_hostname("INVALID_URL")
-    assert s5 == "INVALID_URL"
+    assert s5 == UNKNOWN_HOST
 
     s6 = get_hostname("")
-    assert s6 == ""
+    assert s6 == UNKNOWN_HOST
 
     s7 = get_hostname(None)
-    assert not s7
+    assert s7 == UNKNOWN_HOST
 
 
 def test_strip_url():

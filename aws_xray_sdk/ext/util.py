@@ -14,6 +14,7 @@ else:  # Python 2 and below
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
+UNKNOWN_HOSTNAME = "UNKNOWN HOST"
 
 
 def inject_trace_header(headers, entity):
@@ -126,9 +127,11 @@ def strip_url(url):
 
 def get_hostname(url):
     if url is None:
-        return None
+        return UNKNOWN_HOSTNAME
     url_parse = urlparse(url)
     hostname = url_parse.hostname
+    if hostname is None:
+        return UNKNOWN_HOSTNAME
     return hostname if hostname else url  # If hostname is none, we return the regular URL; indication of malformed url
 
 

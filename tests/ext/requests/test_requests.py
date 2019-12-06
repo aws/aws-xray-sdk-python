@@ -84,7 +84,7 @@ def test_fault():
     assert http_meta['response']['status'] == status_code
 
 
-def test_invalid_url():
+def test_nonexistent_domain():
     try:
         requests.get('http://doesnt.exist')
     except Exception:
@@ -95,6 +95,24 @@ def test_invalid_url():
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'ConnectionError'
+
+
+def test_invalid_url():
+    url = 'KLSDFJKLSDFJKLSDJF'
+    try:
+        requests.get(url)
+    except Exception:
+        # prevent uncatch exception from breaking test run
+        pass
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.name == get_hostname(url)
+    assert subsegment.fault
+
+    http_meta = subsegment.http
+    assert http_meta['request']['url'] == strip_url(url)
+
+    exception = subsegment.cause['exceptions'][0]
+    assert exception.type == 'MissingSchema'
 
 
 def test_name_uses_hostname():
