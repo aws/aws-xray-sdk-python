@@ -2,6 +2,17 @@
 CHANGELOG
 =========
 
+2.4.3
+==========
+* bugfix: Downstream Http Calls should use hostname rather than full URL as subsegment name. `PR192 <https://github.com/aws/aws-xray-sdk-python/pull/192>`_.
+* improvement: Whitelist SageMakerRuntime InvokeEndpoint operation. `PR183 <https://github.com/aws/aws-xray-sdk-python/pull/183>`_.
+* bugfix: Fix patching for PynamoDB4 with botocore 1.13. `PR181 <https://github.com/aws/aws-xray-sdk-python/pull/181>`_.
+* bugfix: Add X-Ray client with default empty credentials. `PR180 <https://github.com/aws/aws-xray-sdk-python/pull/180>`_.
+* improvement: Faster implementation of Wildcard Matching. `PR178 <https://github.com/aws/aws-xray-sdk-python/pull/178>`_.
+* bugfix: Make patch compatible with PynamoDB4. `PR177 <https://github.com/aws/aws-xray-sdk-python/pull/177>`_.
+* bugfix: Fix unit tests for newer versions of psycopg2. `PR163 <https://github.com/aws/aws-xray-sdk-python/pull/163>`_.
+* improvement: Enable tests with python 3.7. `PR157 <https://github.com/aws/aws-xray-sdk-python/pull/157>`_.
+
 2.4.2
 ==========
 * bugfix: Fix exception processing in Django running in Lambda. `PR145 <https://github.com/aws/aws-xray-sdk-python/pull/145>`_.
