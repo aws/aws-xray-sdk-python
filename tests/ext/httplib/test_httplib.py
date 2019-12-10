@@ -4,7 +4,7 @@ import sys
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.ext.util import strip_url
+from aws_xray_sdk.ext.util import strip_url, get_hostname
 
 if sys.version_info >= (3, 0, 0):
     import http.client as httplib
@@ -57,10 +57,10 @@ def test_ok():
     url = 'https://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
     _do_req(url)
     subsegment = xray_recorder.current_segment().subsegments[1]
-    assert subsegment.name == strip_url(url)
+    assert subsegment.name == get_hostname(url)
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'].upper() == 'GET'
     assert http_meta['response']['status'] == status_code
 
@@ -70,11 +70,11 @@ def test_error():
     url = 'https://{}/status/{}'.format(BASE_URL, status_code)
     _do_req(url, 'POST')
     subsegment = xray_recorder.current_segment().subsegments[1]
-    assert subsegment.name == url
+    assert subsegment.name == get_hostname(url)
     assert subsegment.error
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'].upper() == 'POST'
     assert http_meta['response']['status'] == status_code
 
@@ -84,12 +84,12 @@ def test_throttle():
     url = 'https://{}/status/{}'.format(BASE_URL, status_code)
     _do_req(url, 'HEAD')
     subsegment = xray_recorder.current_segment().subsegments[1]
-    assert subsegment.name == url
+    assert subsegment.name == get_hostname(url)
     assert subsegment.error
     assert subsegment.throttle
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'].upper() == 'HEAD'
     assert http_meta['response']['status'] == status_code
 
@@ -99,11 +99,11 @@ def test_fault():
     url = 'https://{}/status/{}'.format(BASE_URL, status_code)
     _do_req(url, 'PUT')
     subsegment = xray_recorder.current_segment().subsegments[1]
-    assert subsegment.name == url
+    assert subsegment.name == get_hostname(url)
     assert subsegment.fault
 
     http_meta = subsegment.http
-    assert http_meta['request']['url'] == url
+    assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'].upper() == 'PUT'
     assert http_meta['response']['status'] == status_code
 
@@ -126,7 +126,7 @@ def test_correct_identify_http():
     url = 'http://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
     _do_req(url, use_https=False)
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == strip_url(url)
+    assert subsegment.name == get_hostname(url)
 
     http_meta = subsegment.http
     assert http_meta['request']['url'].split(":")[0] == 'http'
@@ -137,7 +137,7 @@ def test_correct_identify_https():
     url = 'https://{}/status/{}?foo=bar&baz=foo'.format(BASE_URL, status_code)
     _do_req(url, use_https=True)
     subsegment = xray_recorder.current_segment().subsegments[0]
-    assert subsegment.name == strip_url(url)
+    assert subsegment.name == get_hostname(url)
 
     https_meta = subsegment.http
     assert https_meta['request']['url'].split(":")[0] == 'https'

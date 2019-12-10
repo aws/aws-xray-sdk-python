@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
 from aws_xray_sdk.core.utils import stacktrace
-from aws_xray_sdk.ext.util import inject_trace_header, strip_url
+from aws_xray_sdk.ext.util import inject_trace_header, strip_url, get_hostname
 
 # All aiohttp calls will entail outgoing HTTP requests, only in some ad-hoc
 # exceptions the namespace will be flip back to local.
@@ -22,7 +22,7 @@ LOCAL_EXCEPTIONS = (
 
 
 async def begin_subsegment(session, trace_config_ctx, params):
-    name = trace_config_ctx.name if trace_config_ctx.name else strip_url(str(params.url))
+    name = trace_config_ctx.name if trace_config_ctx.name else get_hostname(str(params.url))
     subsegment = xray_recorder.begin_subsegment(name, REMOTE_NAMESPACE)
 
     # No-op if subsegment is `None` due to `LOG_ERROR`.
@@ -31,7 +31,7 @@ async def begin_subsegment(session, trace_config_ctx, params):
     else:
         trace_config_ctx.give_up = False
         subsegment.put_http_meta(http.METHOD, params.method)
-        subsegment.put_http_meta(http.URL, params.url.human_repr())
+        subsegment.put_http_meta(http.URL, strip_url(params.url.human_repr()))
         inject_trace_header(params.headers, subsegment)
 
 
