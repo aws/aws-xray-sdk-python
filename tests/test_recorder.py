@@ -78,7 +78,6 @@ def test_subsegment_streaming_set_zero():
     xray_recorder.configure(streaming_threshold=0)
     segment = xray_recorder.begin_segment('name')
     xray_recorder.begin_subsegment(name='sub')
-    # subsegment '0' will be streamed out upon close
     xray_recorder.end_subsegment()
 
     assert xray_recorder.streaming.streaming_threshold == 0
