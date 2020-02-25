@@ -74,6 +74,17 @@ def test_subsegments_streaming():
     assert xray_recorder.current_subsegment().name == '9'
 
 
+def test_subsegment_streaming_set_zero():
+    xray_recorder.configure(streaming_threshold=0)
+    segment = xray_recorder.begin_segment('name')
+    xray_recorder.begin_subsegment(name='sub')
+    # subsegment '0' will be streamed out upon close
+    xray_recorder.end_subsegment()
+
+    assert xray_recorder.streaming.streaming_threshold == 0
+    assert segment.get_total_subsegments_size() == 0
+
+
 def test_put_annotation_metadata():
     segment = xray_recorder.begin_segment('name')
     xray_recorder.put_annotation('key1', 'value1')
