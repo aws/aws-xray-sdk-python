@@ -1,6 +1,6 @@
 import django
 from aws_xray_sdk import global_sdk_config
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase
 
 from aws_xray_sdk.core import xray_recorder, lambda_launcher
