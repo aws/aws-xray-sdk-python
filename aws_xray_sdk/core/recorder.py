@@ -249,7 +249,7 @@ class AWSXRayRecorder(object):
         if it is ready to send. Ready means segment and
         all its subsegments are closed.
 
-        :param float end_time: segment compeletion in unix epoch in seconds.
+        :param float end_time: segment completion in unix epoch in seconds.
         """
         # When the SDK is disabled we return
         if not global_sdk_config.sdk_enabled():
@@ -266,9 +266,6 @@ class AWSXRayRecorder(object):
         this will make sure the segment returned is the one created by the
         same thread.
         """
-        # Generate a segment and return it when the SDK is disabled
-        if not global_sdk_config.sdk_enabled():
-            return DummySegment(global_sdk_config.DISABLED_ENTITY_NAME)
 
         entity = self.get_trace_entity()
         if self._is_subsegment(entity):

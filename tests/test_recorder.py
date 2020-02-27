@@ -241,6 +241,14 @@ def test_disabled_force_sampling():
     assert type(subsegment_entity) is DummySubsegment
 
 
+# When disabled, get_trace_entity should return DummySegment if an entity is not present in the context
+def test_disabled_get_context_entity():
+    global_sdk_config.set_sdk_enabled(False)
+    entity = xray_recorder.get_trace_entity()
+    assert type(entity) is DummySegment
+
+
+
 def test_max_stack_trace_zero():
     xray_recorder.configure(max_trace_back=1)
     with pytest.raises(Exception):
