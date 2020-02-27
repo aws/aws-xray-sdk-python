@@ -901,6 +901,15 @@
           }
         }
       }
+    },
+    "runtime.sagemaker": {
+      "operations": {
+        "InvokeEndpoint": {
+          "request_parameters": [
+            "EndpointName"
+          ]
+        }
+      }
     }
   }
 }

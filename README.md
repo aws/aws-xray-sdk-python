@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/aws/aws-xray-sdk-python.svg?branch=master)](https://travis-ci.org/aws/aws-xray-sdk-python)
+[![codecov](https://codecov.io/gh/aws/aws-xray-sdk-python/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-xray-sdk-python)
 
 # AWS X-Ray SDK for Python
 
@@ -6,7 +7,7 @@
 
 ## Installing
 
-The AWS X-Ray SDK for Python is compatible with Python 2.7, 3.4, 3.5, 3.6, and 3.7.
+The AWS X-Ray SDK for Python is compatible with Python 2.7, 3.4, 3.5, 3.6, 3.7, and 3.8.
 
 Install the SDK using the following command (the SDK's non-testing dependencies will be installed).
 

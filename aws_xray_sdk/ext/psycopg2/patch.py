@@ -18,6 +18,11 @@ def patch():
         'register_type',
         _xray_register_type_fix
     )
+    wrapt.wrap_function_wrapper(
+        'psycopg2.extensions',
+        'quote_ident',
+        _xray_register_type_fix
+    )
 
 
 def _xray_traced_connect(wrapped, instance, args, kwargs):
