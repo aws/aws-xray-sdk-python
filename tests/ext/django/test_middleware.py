@@ -6,6 +6,7 @@ from django.test import TestCase
 from aws_xray_sdk.core import xray_recorder, lambda_launcher
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.core.models import http, facade_segment, segment
+from aws_xray_sdk.core import patch
 from tests.util import get_new_stubbed_recorder
 import os
 
@@ -66,6 +67,7 @@ class XRayTestCase(TestCase):
         assert exception.type == 'KeyError'
 
     def test_db(self):
+        patch(('sqlite3',))
         url = reverse('call_db')
         self.client.get(url)
         segment = xray_recorder.emitter.pop()
