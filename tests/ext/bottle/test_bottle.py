@@ -187,7 +187,7 @@ def test_render_template():
 def test_render_view():
     path = '/view'
     response = app.get(path)
-    assert response.text == "<h1>Hello Bottle!</h1>\r\n<p>How are you?</p>\r\n"
+    assert response.text == "<h1>Hello Bottle!</h1>\n<p>How are you?</p>\n"
     segment = recorder.emitter.pop()
     assert not segment.in_progress
     # segment should contain a template render subsegment
