@@ -3,7 +3,7 @@ from bottle import Bottle, request, response, template, view, HTTPError, TEMPLAT
 from webtest import TestApp as WebApp
 
 from aws_xray_sdk import global_sdk_config
-from aws_xray_sdk.ext.bottle.plugin import XRayPlugin
+from aws_xray_sdk.ext.bottle.middleware import XRayMiddleware
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.core import lambda_launcher
 from aws_xray_sdk.core.models import http, facade_segment, segment as segment_model
@@ -14,6 +14,7 @@ import os
 # define Bottle app for testing purpose
 TEMPLATE_PATH.insert(0, os.path.dirname(__file__) + '/views')
 app = Bottle()
+
 
 @app.route('/ok')
 def ok():
@@ -56,14 +57,14 @@ def template_():
 
 @app.route('/view')
 @view('index')
-def view_(name='World'):
+def view_(name='bottle'):
     return dict(name=name)
 
 
 # add X-Ray plugin to Bottle app
 recorder = get_new_stubbed_recorder()
 recorder.configure(service='test', sampling=False, context=Context())
-app.install(XRayPlugin(recorder))
+app.install(XRayMiddleware(recorder))
 
 app = WebApp(app)
 
@@ -185,7 +186,8 @@ def test_render_template():
 
 def test_render_view():
     path = '/view'
-    app.get(path)
+    response = app.get(path)
+    assert response.text == "<h1>Hello Bottle!</h1>\r\n<p>How are you?</p>\r\n"
     segment = recorder.emitter.pop()
     assert not segment.in_progress
     # segment should contain a template render subsegment
@@ -264,7 +266,7 @@ def test_lambda_serverless():
         assert header.data['k1'] == 'v1'
         return 'ok'
 
-    plugin = XRayPlugin(new_recorder)
+    plugin = XRayMiddleware(new_recorder)
     plugin._in_lambda_ctx = True
     new_app.install(plugin)
 
@@ -293,7 +295,7 @@ def test_lambda_default_ctx():
         assert type(new_recorder.current_segment()) == segment_model.Segment
         return 'ok'
 
-    new_app.install(XRayPlugin(new_recorder))
+    new_app.install(XRayMiddleware(new_recorder))
     app_client = WebApp(new_app)
 
     path = '/segment'

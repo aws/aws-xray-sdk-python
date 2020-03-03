@@ -386,16 +386,16 @@ xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
 ```
 
-### Add Bottle plugin
+### Add Bottle middleware(plugin)
 
 ```python
 from aws_xray_sdk.core import xray_recorder
-from aws_xray_sdk.ext.bottle.plugin import XRayPlugin
+from aws_xray_sdk.ext.bottle.middleware import XRayMiddleware
 
 app = Bottle()
 
 xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
-app.install(XRayPlugin(xray_recorder))
+app.install(XRayMiddleware(xray_recorder))
 ```
 
 ### Serverless Support for Flask & Django & Bottle Using X-Ray
