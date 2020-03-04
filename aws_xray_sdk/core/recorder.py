@@ -159,7 +159,7 @@ class AWSXRayRecorder(object):
             self.dynamic_naming = dynamic_naming
         if streaming:
             self.streaming = streaming
-        if streaming_threshold:
+        if streaming_threshold is not None:
             self.streaming_threshold = streaming_threshold
         if type(max_trace_back) == int and max_trace_back >= 0:
             self.max_trace_back = max_trace_back
