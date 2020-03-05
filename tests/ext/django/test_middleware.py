@@ -90,6 +90,17 @@ class XRayTestCase(TestCase):
         assert not subsegment.in_progress
         assert subsegment.namespace == 'local'
 
+    def test_template_block(self):
+        url = reverse('template_block')
+        self.client.get(url)
+        segment = xray_recorder.emitter.pop()
+        assert len(segment.subsegments) == 1
+
+        subsegment = segment.subsegments[0]
+        assert subsegment.name == 'block_user.html'
+        assert not subsegment.in_progress
+        assert subsegment.namespace == 'local'
+
     def test_trace_header_data_perservation(self):
         url = reverse('200ok')
         self.client.get(url, HTTP_X_AMZN_TRACE_ID='k1=v1')
