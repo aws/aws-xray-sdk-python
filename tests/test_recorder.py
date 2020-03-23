@@ -201,6 +201,65 @@ def test_disable_is_dummy():
     assert type(xray_recorder.current_subsegment()) is DummySubsegment
 
 
+def test_disabled_empty_context_current_calls():
+    global_sdk_config.set_sdk_enabled(False)
+    assert type(xray_recorder.current_segment()) is DummySegment
+    assert type(xray_recorder.current_subsegment()) is DummySubsegment
+
+
+def test_disabled_out_of_order_begins():
+    global_sdk_config.set_sdk_enabled(False)
+    xray_recorder.begin_subsegment("Test")
+    xray_recorder.begin_segment("Test")
+    xray_recorder.begin_subsegment("Test1")
+    xray_recorder.begin_subsegment("Test2")
+    assert type(xray_recorder.begin_subsegment("Test3")) is DummySubsegment
+    assert type(xray_recorder.begin_segment("Test4")) is DummySegment
+
+
+def test_disabled_put_methods():
+    global_sdk_config.set_sdk_enabled(False)
+    xray_recorder.put_annotation("Test", "Value")
+    xray_recorder.put_metadata("Test", "Value", "Namespace")
+
+
+# Test for random end segments/subsegments without any entities in context.
+# Should not throw any exceptions
+def test_disabled_ends():
+    global_sdk_config.set_sdk_enabled(False)
+    xray_recorder.end_segment()
+    xray_recorder.end_subsegment()
+    xray_recorder.end_segment()
+    xray_recorder.end_segment()
+    xray_recorder.end_subsegment()
+    xray_recorder.end_subsegment()
+
+
+# Begin subsegment should not fail on its own.
+def test_disabled_begin_subsegment():
+    global_sdk_config.set_sdk_enabled(False)
+    subsegment_entity = xray_recorder.begin_subsegment("Test")
+    assert type(subsegment_entity) is DummySubsegment
+
+
+# When disabled, force sampling should still return dummy entities.
+def test_disabled_force_sampling():
+    global_sdk_config.set_sdk_enabled(False)
+    xray_recorder.configure(sampling=True)
+    segment_entity = xray_recorder.begin_segment("Test1")
+    subsegment_entity = xray_recorder.begin_subsegment("Test2")
+    assert type(segment_entity) is DummySegment
+    assert type(subsegment_entity) is DummySubsegment
+
+
+# When disabled, get_trace_entity should return DummySegment if an entity is not present in the context
+def test_disabled_get_context_entity():
+    global_sdk_config.set_sdk_enabled(False)
+    entity = xray_recorder.get_trace_entity()
+    assert type(entity) is DummySegment
+
+
+
 def test_max_stack_trace_zero():
     xray_recorder.configure(max_trace_back=1)
     with pytest.raises(Exception):

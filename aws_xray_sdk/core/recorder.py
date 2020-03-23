@@ -211,6 +211,10 @@ class AWSXRayRecorder(object):
         :param str traceid: trace id of the segment
         :param int sampling: 0 means not sampled, 1 means sampled
         """
+        # Disable the recorder; return a generated dummy segment.
+        if not global_sdk_config.sdk_enabled():
+            return DummySegment(global_sdk_config.DISABLED_ENTITY_NAME)
+
         seg_name = name or self.service
         if not seg_name:
             raise SegmentNameMissingException("Segment name is required.")
@@ -219,12 +223,6 @@ class AWSXRayRecorder(object):
         # In a sampled case it could be either a string or 1
         # depending on if centralized or local sampling rule takes effect.
         decision = True
-
-        # To disable the recorder, we set the sampling decision to always be false.
-        # This way, when segments are generated, they become dummy segments and are ultimately never sent.
-        # The call to self._sampler.should_trace() is never called either so the poller threads are never started.
-        if not global_sdk_config.sdk_enabled():
-            sampling = 0
 
         # we respect the input sampling decision
         # regardless of recorder configuration.
@@ -251,8 +249,12 @@ class AWSXRayRecorder(object):
         if it is ready to send. Ready means segment and
         all its subsegments are closed.
 
-        :param float end_time: segment compeletion in unix epoch in seconds.
+        :param float end_time: segment completion in unix epoch in seconds.
         """
+        # When the SDK is disabled we return
+        if not global_sdk_config.sdk_enabled():
+            return
+
         self.context.end_segment(end_time)
         segment = self.current_segment()
         if segment and segment.ready_to_send():
@@ -264,6 +266,7 @@ class AWSXRayRecorder(object):
         this will make sure the segment returned is the one created by the
         same thread.
         """
+
         entity = self.get_trace_entity()
         if self._is_subsegment(entity):
             return entity.parent_segment
@@ -280,6 +283,11 @@ class AWSXRayRecorder(object):
         :param str name: the name of the subsegment.
         :param str namespace: currently can only be 'local', 'remote', 'aws'.
         """
+        # Generating the parent dummy segment is necessary.
+        # We don't need to store anything in context. Assumption here
+        # is that we only work with recorder-level APIs.
+        if not global_sdk_config.sdk_enabled():
+            return DummySubsegment(DummySegment(global_sdk_config.DISABLED_ENTITY_NAME))
 
         segment = self.current_segment()
         if not segment:
@@ -301,6 +309,9 @@ class AWSXRayRecorder(object):
         this will make sure the subsegment returned is one created
         by the same thread.
         """
+        if not global_sdk_config.sdk_enabled():
+            return DummySubsegment(DummySegment(global_sdk_config.DISABLED_ENTITY_NAME))
+
         entity = self.get_trace_entity()
         if self._is_subsegment(entity):
             return entity
@@ -314,6 +325,9 @@ class AWSXRayRecorder(object):
 
         :param float end_time: subsegment compeletion in unix epoch in seconds.
         """
+        if not global_sdk_config.sdk_enabled():
+            return
+
         if not self.context.end_subsegment(end_time):
             return
 
@@ -333,6 +347,8 @@ class AWSXRayRecorder(object):
         :param object value: annotation value. Any type other than
             string/number/bool will be dropped
         """
+        if not global_sdk_config.sdk_enabled():
+            return
         entity = self.get_trace_entity()
         if entity and entity.sampled:
             entity.put_annotation(key, value)
@@ -348,6 +364,8 @@ class AWSXRayRecorder(object):
         :param str key: metadata key under specified namespace
         :param object value: any object that can be serialized into JSON string
         """
+        if not global_sdk_config.sdk_enabled():
+            return
         entity = self.get_trace_entity()
         if entity and entity.sampled:
             entity.put_metadata(key, value, namespace)
@@ -357,6 +375,9 @@ class AWSXRayRecorder(object):
         Check if the current trace entity is sampled or not.
         Return `False` if no active entity found.
         """
+        if not global_sdk_config.sdk_enabled():
+            # Disabled SDK is never sampled
+            return False
         entity = self.get_trace_entity()
         if entity:
             return entity.sampled
@@ -403,16 +424,6 @@ class AWSXRayRecorder(object):
 
     def record_subsegment(self, wrapped, instance, args, kwargs, name,
                           namespace, meta_processor):
-
-        # In the case when the SDK is disabled, we ensure that a parent segment exists, because this is usually
-        # handled by the middleware. We generate a dummy segment as the parent segment if one doesn't exist.
-        # This is to allow potential segment method calls to not throw exceptions in the captured method.
-        if not global_sdk_config.sdk_enabled():
-            try:
-                self.current_segment()
-            except SegmentNotFoundException:
-                segment = DummySegment(name)
-                self.context.put_segment(segment)
 
         subsegment = self.begin_subsegment(name, namespace)
 
