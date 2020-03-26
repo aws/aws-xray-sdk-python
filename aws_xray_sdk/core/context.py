@@ -3,6 +3,9 @@ import logging
 import os
 
 from .exceptions.exceptions import SegmentNotFoundException
+from .models.dummy_entities import DummySegment
+from aws_xray_sdk import global_sdk_config
+
 
 log = logging.getLogger(__name__)
 
@@ -88,8 +91,11 @@ class Context(object):
         """
         Return the current trace entity(segment/subsegment). If there is none,
         it behaves based on pre-defined ``context_missing`` strategy.
+        If the SDK is disabled, returns a DummySegment
         """
         if not getattr(self._local, 'entities', None):
+            if not global_sdk_config.sdk_enabled():
+                return DummySegment()
             return self.handle_context_missing()
 
         return self._local.entities[-1]
