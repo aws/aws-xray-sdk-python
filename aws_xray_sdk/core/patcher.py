@@ -21,6 +21,7 @@ SUPPORTED_MODULES = (
     'mysql',
     'httplib',
     'pymongo',
+    'pymysql',
     'psycopg2',
     'pg8000',
 )
@@ -33,6 +34,7 @@ NO_DOUBLE_PATCH = (
     'sqlite3',
     'mysql',
     'pymongo',
+    'pymysql',
     'psycopg2',
     'pg8000',
 )
