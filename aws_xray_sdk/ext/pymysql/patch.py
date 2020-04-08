@@ -1,15 +1,9 @@
-import wrapt
 import pymysql
+import wrapt
 
 from aws_xray_sdk.ext.dbapi2 import XRayTracedConn
 from aws_xray_sdk.core.patcher import _PATCHED_MODULES
 from aws_xray_sdk.ext.util import unwrap
-
-
-MYSQL_ATTR = {
-    '_host': 'name',
-    '_user': 'user',
-}
 
 
 def patch():
@@ -28,11 +22,11 @@ def patch():
 def _xray_traced_connect(wrapped, instance, args, kwargs):
 
     conn = wrapped(*args, **kwargs)
-    meta = {}
-
-    for attr, key in MYSQL_ATTR.items():
-        if hasattr(conn, attr):
-            meta[key] = getattr(conn, attr)
+    meta = {
+        'database_type': 'MySQL',
+        'user': conn.user.decode('utf-8'),
+        'driver_version': 'PyMySQL'
+    }
 
     if hasattr(conn, 'server_version'):
         version = sanitize_db_ver(getattr(conn, 'server_version'))
