@@ -29,7 +29,7 @@ def test_execute_dsn_kwargs():
     with testing.mysqld.Mysqld() as mysqld:
         dsn = mysqld.dsn()
         conn = pymysql.connect(
-            database=dsn["database"],
+            database=dsn["db"],
             user=dsn["user"],
             password="",
             host=dsn["host"],
@@ -52,7 +52,7 @@ def test_execute_bad_query():
     with testing.mysqld.Mysqld() as mysqld:
         dsn = mysqld.dsn()
         conn = pymysql.connect(
-            database=dsn["database"],
+            database=dsn["db"],
             user=dsn["user"],
             password="",
             host=dsn["host"],
