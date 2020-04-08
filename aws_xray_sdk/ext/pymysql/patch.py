@@ -2,6 +2,8 @@ import wrapt
 import pymysql
 
 from aws_xray_sdk.ext.dbapi2 import XRayTracedConn
+from aws_xray_sdk.core.patcher import _PATCHED_MODULES
+from aws_xray_sdk.ext.util import unwrap
 
 
 MYSQL_ATTR = {
@@ -46,3 +48,12 @@ def sanitize_db_ver(raw):
         return raw
 
     return '.'.join(str(num) for num in raw)
+
+
+def unpatch():
+    """
+    Unpatch any previously patched modules.
+    This operation is idempotent.
+    """
+    _PATCHED_MODULES.discard('pymysql')
+    unwrap(pymysql, 'connect')
