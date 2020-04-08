@@ -34,7 +34,7 @@ def test_execute_dsn_kwargs():
     q = 'SELECT 1'
     with testing.mysqld.Mysqld() as mysqld:
         dsn = mysqld.dsn()
-        conn = pg8000.connect(database=dsn['db'],
+        conn = pymysql.connect(database=dsn['db'],
                               user=dsn['user'],
                               password='',
                               host=dsn['host'],
@@ -54,7 +54,7 @@ def test_execute_bad_query():
     q = "SELECT blarg"
     with testing.mysqld.Mysqld() as mysqld:
         dsn = mysqld.dsn()
-        conn = pg8000.connect(database=dsn['db'],
+        conn = pymysql.connect(database=dsn['db'],
                               user=dsn['user'],
                               password='',
                               host=dsn['host'],
