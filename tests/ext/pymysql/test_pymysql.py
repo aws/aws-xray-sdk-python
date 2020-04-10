@@ -47,6 +47,7 @@ def test_execute_dsn_kwargs():
     sql = subsegment.sql
     assert sql['database_type'] == 'MySQL'
     assert sql['user'] == dsn['user']
+    assert sql['driver_version'] == 'PyMySql'
     assert sql['database_version']
 
 
@@ -71,6 +72,7 @@ def test_execute_bad_query():
     sql = subsegment.sql
     assert sql['database_type'] == 'MySQL'
     assert sql['user'] == dsn['user']
+    assert sql['driver_version'] == 'PyMySql'
     assert sql['database_version']
 
     exception = subsegment.cause['exceptions'][0]
