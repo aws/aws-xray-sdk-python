@@ -67,7 +67,10 @@ class TaskLocalStorage(object):
             # Return references to local objects
             return object.__getattribute__(self, item)
 
-        task = asyncio.current_task(loop=self._loop)
+        if _GTE_PY37:
+            task = asyncio.current_task(loop=self._loop)
+        else:
+            task = asyncio.Task.current_task(loop=self._loop)
         if task is None:
             return None
 
