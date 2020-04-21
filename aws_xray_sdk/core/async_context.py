@@ -3,7 +3,7 @@ import sys
 
 from .context import Context as _Context
 
-_GTE_PY37 = sys.version_info.minor >= 7
+_GTE_PY37 = sys.version_info.major == 3 and sys.version_info.minor >= 7
 
 
 class AsyncContext(_Context):
