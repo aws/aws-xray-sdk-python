@@ -3,7 +3,6 @@ from aws_xray_sdk.core.models import http
 
 
 def test_not_sampled():
-
     segment = DummySegment()
     subsegment = DummySubsegment(segment)
 
@@ -12,7 +11,6 @@ def test_not_sampled():
 
 
 def test_no_ops():
-
     segment = DummySegment()
     segment.put_metadata('key', 'value')
     segment.put_annotation('key', 'value')
@@ -63,3 +61,12 @@ def test_invalid_entity_name():
 
     assert segment.name == 'DummySegment Test'
     assert subsegment.name == 'DummySubsegment'
+
+
+def test_dummy_segment_trace_id():
+    segment = DummySegment()
+
+    assert segment.trace_id != 'dummy'
+    assert '-' in segment.trace_id
+    # checking version of trace id
+    assert segment.trace_id[:1] == '1'

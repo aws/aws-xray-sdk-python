@@ -1,3 +1,4 @@
+from .traceid import TraceId
 from .segment import Segment
 from .subsegment import Subsegment
 
@@ -13,7 +14,7 @@ class DummySegment(Segment):
     """
     def __init__(self, name='dummy'):
 
-        super(DummySegment, self).__init__(name=name, traceid='dummy')
+        super(DummySegment, self).__init__(name=name, traceid=TraceId().to_id())
         self.sampled = False
 
     def set_aws(self, aws_meta):

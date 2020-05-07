@@ -2,6 +2,16 @@
 CHANGELOG
 =========
 
+2.5.0
+==========
+* bugfix: Downgrade Coverage to 4.5.4. `PR197 <https://github.com/aws/aws-xray-sdk-python/pull/197>`_.
+* bugfix: Unwrap context provided to psycopg2.extensions.quote_ident. `PR198 <https://github.com/aws/aws-xray-sdk-python/pull/198>`_.
+* feature: extension support as Bottle plugin. `PR204 <https://github.com/aws/aws-xray-sdk-python/pull/204>`_.
+* bugfix: streaming_threshold not None check. `PR205 <https://github.com/aws/aws-xray-sdk-python/pull/205>`_.
+* bugfix: Add support for Django 2.0 to 3.0. `PR206 <https://github.com/aws/aws-xray-sdk-python/pull/206>`_.
+* bugfix: add puttracesegments to boto whitelist avoid a catch 22. `PR210 <https://github.com/aws/aws-xray-sdk-python/pull/210>`_.
+* feature: Add patch support for pymysql. `PR215 <https://github.com/aws/aws-xray-sdk-python/pull/215>`_.
+
 2.4.3
 ==========
 * bugfix: Downstream Http Calls should use hostname rather than full URL as subsegment name. `PR192 <https://github.com/aws/aws-xray-sdk-python/pull/192>`_.
