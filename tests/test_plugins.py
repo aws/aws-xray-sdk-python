@@ -1,5 +1,5 @@
 from aws_xray_sdk.core.plugins.utils import get_plugin_modules
-from unittest.mock import patch
+from mock import patch
 
 supported_plugins = (
     'ec2_plugin',
@@ -16,13 +16,12 @@ def test_runtime_context_available():
         assert hasattr(plugin, 'runtime_context')
 
 
-@patch('urllib.request.urlopen')
-def test_ec2_plugin(mock_urlopen):
-    # set up mock response
-    mock_urlopen.return_value.read.return_value.decode.side_effect = ['token', 'i-0a1d026d92d4709cd', 'us-west-2b',
-                                                                      Exception("Boom!"), 'i-0a1d026d92d4709ab',
-                                                                      'us-west-2a',
-                                                                      Exception("Boom v2!"), Exception("Boom v1!")]
+@patch('aws_xray_sdk.core.plugins.ec2_plugin.do_request')
+def test_ec2_plugin(mock_do_request):
+    mock_do_request.side_effect = ['token', 'i-0a1d026d92d4709cd', 'us-west-2b',
+                                   Exception("Boom!"), 'i-0a1d026d92d4709ab',
+                                   'us-west-2a',
+                                   Exception("Boom v2!"), Exception("Boom v1!")]
 
     ec2_plugin = get_plugin_modules(('ec2_plugin',))
     for plugin in ec2_plugin:
