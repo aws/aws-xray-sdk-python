@@ -23,9 +23,9 @@ def initialize():
     try:
         runtime_context = {}
 
-        # get session token
+        # get session token with 60 seconds TTL to not have the token lying around for a long time
         token = do_request(url=IMDS_URL + "api/token",
-                           headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"},
+                           headers={"X-aws-ec2-metadata-token-ttl-seconds": "60"},
                            method="PUT")
 
         # get instance-id metadata
