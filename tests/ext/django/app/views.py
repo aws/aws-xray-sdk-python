@@ -9,6 +9,10 @@ class IndexView(TemplateView):
     template_name = 'index.html'
 
 
+class TemplateBlockView(TemplateView):
+    template_name = 'block_user.html'
+
+
 def ok(request):
     return HttpResponse(status=200)
 
@@ -32,4 +36,5 @@ urlpatterns = [
     url(r'^500fault/$', fault, name='500fault'),
     url(r'^call_db/$', call_db, name='call_db'),
     url(r'^template/$', IndexView.as_view(), name='template'),
+    url(r'^template_block/$', TemplateBlockView.as_view(), name='template_block'),
 ]

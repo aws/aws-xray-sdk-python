@@ -1,6 +1,9 @@
 import asyncio
+import sys
 
 from .context import Context as _Context
+
+_GTE_PY37 = sys.version_info.major == 3 and sys.version_info.minor >= 7
 
 
 class AsyncContext(_Context):
@@ -47,7 +50,10 @@ class TaskLocalStorage(object):
 
         else:
             # Set task local attributes
-            task = asyncio.Task.current_task(loop=self._loop)
+            if _GTE_PY37:
+                task = asyncio.current_task(loop=self._loop)
+            else:
+                task = asyncio.Task.current_task(loop=self._loop)
             if task is None:
                 return None
 
@@ -61,7 +67,10 @@ class TaskLocalStorage(object):
             # Return references to local objects
             return object.__getattribute__(self, item)
 
-        task = asyncio.Task.current_task(loop=self._loop)
+        if _GTE_PY37:
+            task = asyncio.current_task(loop=self._loop)
+        else:
+            task = asyncio.Task.current_task(loop=self._loop)
         if task is None:
             return None
 
@@ -72,7 +81,10 @@ class TaskLocalStorage(object):
 
     def clear(self):
         # If were in a task, clear the context dictionary
-        task = asyncio.Task.current_task(loop=self._loop)
+        if _GTE_PY37:
+            task = asyncio.current_task(loop=self._loop)
+        else:
+            task = asyncio.Task.current_task(loop=self._loop)
         if task is not None and hasattr(task, 'context'):
             task.context.clear()
 
@@ -91,7 +103,10 @@ def task_factory(loop, coro):
         del task._source_traceback[-1]  # flake8: noqa
 
     # Share context with new task if possible
-    current_task = asyncio.Task.current_task(loop=loop)
+    if _GTE_PY37:
+        current_task = asyncio.current_task(loop=loop)
+    else:
+        current_task = asyncio.Task.current_task(loop=loop)
     if current_task is not None and hasattr(current_task, 'context'):
         setattr(task, 'context', current_task.context)
 

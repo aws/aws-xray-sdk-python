@@ -386,7 +386,19 @@ xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
 XRayMiddleware(app, xray_recorder)
 ```
 
-### Serverless Support for Flask & Django Using X-Ray
+### Add Bottle middleware(plugin)
+
+```python
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.ext.bottle.middleware import XRayMiddleware
+
+app = Bottle()
+
+xray_recorder.configure(service='fallback_name', dynamic_naming='*mysite.com*')
+app.install(XRayMiddleware(xray_recorder))
+```
+
+### Serverless Support for Flask & Django & Bottle Using X-Ray
 Serverless is an application model that enables you to shift more of your operational responsibilities to AWS. As a result, you can focus only on your applications and services, instead of the infrastructure management tasks such as server provisioning, patching, operating system maintenance, and capacity provisioning. With serverless, you can deploy your web application to [AWS Lambda](https://aws.amazon.com/lambda/) and have customers interact with it through a Lambda-invoking endpoint, such as [Amazon API Gateway](https://aws.amazon.com/api-gateway/). 
 
 X-Ray supports the Serverless model out of the box and requires no extra configuration. The middlewares in Lambda generate `Subsegments` instead of `Segments` when an endpoint is reached. This is because `Segments` cannot be generated inside the Lambda function, but it is generated automatically by the Lambda container. Therefore, when using the middlewares with this model, it is important to make sure that your methods only generate `Subsegments`.

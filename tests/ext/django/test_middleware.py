@@ -1,11 +1,12 @@
 import django
 from aws_xray_sdk import global_sdk_config
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase
 
 from aws_xray_sdk.core import xray_recorder, lambda_launcher
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.core.models import http, facade_segment, segment
+from aws_xray_sdk.core import patch
 from tests.util import get_new_stubbed_recorder
 import os
 
@@ -66,6 +67,7 @@ class XRayTestCase(TestCase):
         assert exception.type == 'KeyError'
 
     def test_db(self):
+        patch(('sqlite3',))
         url = reverse('call_db')
         self.client.get(url)
         segment = xray_recorder.emitter.pop()
@@ -87,6 +89,17 @@ class XRayTestCase(TestCase):
 
         subsegment = segment.subsegments[0]
         assert subsegment.name == 'index.html'
+        assert not subsegment.in_progress
+        assert subsegment.namespace == 'local'
+
+    def test_template_block(self):
+        url = reverse('template_block')
+        self.client.get(url)
+        segment = xray_recorder.emitter.pop()
+        assert len(segment.subsegments) == 1
+
+        subsegment = segment.subsegments[0]
+        assert subsegment.name == 'block_user.html'
         assert not subsegment.in_progress
         assert subsegment.namespace == 'local'
 

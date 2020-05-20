@@ -6,8 +6,11 @@ from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
 
-patch(('sqlite3',))
-db = sqlite3.connect(":memory:")
+
+@pytest.fixture(scope="module")
+def db():
+    patch(('sqlite3',))
+    return sqlite3.connect(":memory:")
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +27,8 @@ def construct_ctx():
     xray_recorder.clear_trace_entities()
 
 
-def test_execute():
+def test_execute(db):
+
     q = 'SELECT name FROM sqlite_master'
     db.execute(q)
 
@@ -35,7 +39,7 @@ def test_execute():
     assert sql['database_version']
 
 
-def test_invalid_syntax():
+def test_invalid_syntax(db):
     q = 'some_query'
     try:
         db.execute(q)

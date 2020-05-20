@@ -9,7 +9,7 @@ python:
   - "3.8"
 
 install:
-  - pip install tox
+  - pip install tox tox-travis
 
 notifications:
   email:
@@ -19,4 +19,4 @@ notifications:
     on_failure: always
 
 script:
-  - tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
+  - tox
