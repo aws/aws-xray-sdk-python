@@ -40,7 +40,7 @@ def initialize():
 
     except Exception as e:
         # Falling back to IMDSv1 endpoint
-        log.warning("failed to get ec2 instance metadata from IMDSv2 due to {}. Falling back to IMDSv1".format(e))
+        log.debug("failed to get ec2 instance metadata from IMDSv2 due to {}. Falling back to IMDSv1".format(e))
 
         try:
             runtime_context = {}
@@ -51,19 +51,19 @@ def initialize():
 
         except Exception as e:
             runtime_context = None
-            log.warning("failed to get ec2 instance metadata from IMDSv1 due to {}".format(e))
+            log.debug("failed to get ec2 instance metadata from IMDSv1 due to {}".format(e))
+            log.warning("Failed to get ec2 instance metadata")
 
 
 def do_request(url, headers=None, method="GET"):
     if headers is None:
         headers = {}
-    try:
-        if url is None:
-            return None
-        req = Request(url=url)
-        req.headers = headers
-        req.method = method
-        res = urlopen(req, timeout=1)
-        return res.read().decode('utf-8')
-    except Exception:
-        raise
+
+    if url is None:
+        return None
+        
+    req = Request(url=url)
+    req.headers = headers
+    req.method = method
+    res = urlopen(req, timeout=1)
+    return res.read().decode('utf-8')

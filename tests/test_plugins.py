@@ -17,30 +17,38 @@ def test_runtime_context_available():
 
 
 @patch('aws_xray_sdk.core.plugins.ec2_plugin.do_request')
-def test_ec2_plugin(mock_do_request):
-    mock_do_request.side_effect = ['token', 'i-0a1d026d92d4709cd', 'us-west-2b',
-                                   Exception("Boom!"), 'i-0a1d026d92d4709ab',
-                                   'us-west-2a',
-                                   Exception("Boom v2!"), Exception("Boom v1!")]
+def test_ec2_plugin_imdsv2_success(mock_do_request):
+    mock_do_request.side_effect = ['token', 'i-0a1d026d92d4709cd', 'us-west-2b']
 
-    ec2_plugin = get_plugin_modules(('ec2_plugin',))
-    for plugin in ec2_plugin:
-        # for IMDSv2 success
-        plugin.initialize()
-        assert hasattr(plugin, 'runtime_context')
-        r_c = getattr(plugin, 'runtime_context')
-        assert r_c['instance_id'] == 'i-0a1d026d92d4709cd'
-        assert r_c['availability_zone'] == 'us-west-2b'
+    ec2_plugin = get_plugin_modules(('ec2_plugin',))[0]
+    # for IMDSv2 success
+    ec2_plugin.initialize()
+    assert hasattr(ec2_plugin, 'runtime_context')
+    r_c = getattr(ec2_plugin, 'runtime_context')
+    assert r_c['instance_id'] == 'i-0a1d026d92d4709cd'
+    assert r_c['availability_zone'] == 'us-west-2b'
 
-        # for IMDSv2 fail and IMDSv1 success
-        plugin.initialize()
-        assert hasattr(plugin, 'runtime_context')
-        r_c = getattr(plugin, 'runtime_context')
-        assert r_c['instance_id'] == 'i-0a1d026d92d4709ab'
-        assert r_c['availability_zone'] == 'us-west-2a'
 
-        # for both failure
-        plugin.initialize()
-        assert hasattr(plugin, 'runtime_context')
-        r_c = getattr(plugin, 'runtime_context')
-        assert r_c is None
+@patch('aws_xray_sdk.core.plugins.ec2_plugin.do_request')
+def test_ec2_plugin_v2_fail_v1_success(mock_do_request):
+    mock_do_request.side_effect = [Exception("Boom!"), 'i-0a1d026d92d4709ab', 'us-west-2a']
+
+    ec2_plugin = get_plugin_modules(('ec2_plugin',))[0]
+    # for IMDSv2 success
+    ec2_plugin.initialize()
+    assert hasattr(ec2_plugin, 'runtime_context')
+    r_c = getattr(ec2_plugin, 'runtime_context')
+    assert r_c['instance_id'] == 'i-0a1d026d92d4709ab'
+    assert r_c['availability_zone'] == 'us-west-2a'
+
+
+@patch('aws_xray_sdk.core.plugins.ec2_plugin.do_request')
+def test_ec2_plugin_v2_fail_v1_fail(mock_do_request):
+    mock_do_request.side_effect = [Exception("Boom v2!"), Exception("Boom v1!")]
+
+    ec2_plugin = get_plugin_modules(('ec2_plugin',))[0]
+    # for IMDSv2 success
+    ec2_plugin.initialize()
+    assert hasattr(ec2_plugin, 'runtime_context')
+    r_c = getattr(ec2_plugin, 'runtime_context')
+    assert r_c is None
