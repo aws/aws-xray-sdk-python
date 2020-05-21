@@ -474,7 +474,7 @@ db = XRayFlaskSqlAlchemy(app)
 
 ```
 
-### Trigger pipeline 2
+### Trigger pipeline 3
 
 
 ## License
