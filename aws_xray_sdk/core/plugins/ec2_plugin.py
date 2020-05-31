@@ -1,3 +1,4 @@
+import json
 import logging
 from future.standard_library import install_aliases
 from urllib.request import urlopen, Request
@@ -19,40 +20,51 @@ def initialize():
     """
     global runtime_context
 
-    # Try the IMDSv2 endpoint for metadata
+    # get session token with 60 seconds TTL to not have the token lying around for a long time
+    token = get_token()
+
+    # get instance metadata
+    runtime_context = get_metadata(token)
+
+
+def get_token():
+    token = None
     try:
-        runtime_context = {}
-
-        # get session token with 60 seconds TTL to not have the token lying around for a long time
+        headers = {"X-aws-ec2-metadata-token-ttl-seconds": "60"}
         token = do_request(url=IMDS_URL + "api/token",
-                           headers={"X-aws-ec2-metadata-token-ttl-seconds": "60"},
+                           headers=headers,
                            method="PUT")
+    except Exception:
+        log.warning("Failed to get token for IMDSv2")
+    return token
 
-        # get instance-id metadata
-        runtime_context['instance_id'] = do_request(url=IMDS_URL + "meta-data/instance-id",
-                                                    headers={"X-aws-ec2-metadata-token": token},
-                                                    method="GET")
 
-        # get availability-zone metadata
-        runtime_context['availability_zone'] = do_request(url=IMDS_URL + "meta-data/placement/availability-zone",
-                                                          headers={"X-aws-ec2-metadata-token": token},
-                                                          method="GET")
+def get_metadata(token=None):
+    try:
+        header = None
+        if token:
+            header = {"X-aws-ec2-metadata-token": token}
 
-    except Exception as e:
-        # Falling back to IMDSv1 endpoint
-        log.debug("failed to get ec2 instance metadata from IMDSv2 due to {}. Falling back to IMDSv1".format(e))
+        metadata_json = do_request(url=IMDS_URL + "dynamic/instance-identity/document",
+                                   headers=header,
+                                   method="GET")
 
-        try:
-            runtime_context = {}
+        return parse_metadata_json(metadata_json)
+    except Exception:
+        log.warning("Failed to get EC2 metadata")
+        return {}
 
-            runtime_context['instance_id'] = do_request(url=IMDS_URL + "meta-data/instance-id")
 
-            runtime_context['availability_zone'] = do_request(url=IMDS_URL + "meta-data/placement/availability-zone-1")
+def parse_metadata_json(json_str):
+    data = json.loads(json_str)
+    dict = {
+        'instance_id': data['instanceId'],
+        'availability_zone': data['availabilityZone'],
+        'instance_type': data['instanceType'],
+        'ami_id': data['imageId']
+    }
 
-        except Exception as e:
-            runtime_context = None
-            log.debug("failed to get ec2 instance metadata from IMDSv1 due to {}".format(e))
-            log.warning("Failed to get ec2 instance metadata")
+    return dict
 
 
 def do_request(url, headers=None, method="GET"):
@@ -61,7 +73,7 @@ def do_request(url, headers=None, method="GET"):
 
     if url is None:
         return None
-        
+
     req = Request(url=url)
     req.headers = headers
     req.method = method
