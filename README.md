@@ -473,7 +473,6 @@ XRayMiddleware(app, xray_recorder)
 db = XRayFlaskSqlAlchemy(app)
 
 ```
-
 ## License
 
 The AWS X-Ray SDK for Python is licensed under the Apache 2.0 License. See LICENSE and NOTICE.txt for more information.
