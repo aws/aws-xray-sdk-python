@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+2.6.0
+==========
+* bugfix: asyncio.Task.current_task PendingDeprecation fix. `PR217 <https://github.com/aws/aws-xray-sdk-python/pull/217>`_.
+* bugfix: Added proper TraceID in dummy segments. `PR223 <https://github.com/aws/aws-xray-sdk-python/pull/223>`_.
+* improvement: Add testing for current Django versions. `PR200 <https://github.com/aws/aws-xray-sdk-python/pull/200>`_.
+* improvement: IMDSv2 support for EC2 plugin. `PR226 <https://github.com/aws/aws-xray-sdk-python/pull/226>`_.
+* improvement: Using instance doc to fetch EC2 metadata. Added 2 additional fields. `PR227 <https://github.com/aws/aws-xray-sdk-python/pull/227>`_.
+* improvement: Added StaleBot. `PR228 <https://github.com/aws/aws-xray-sdk-python/pull/228>`_.
+
 2.5.0
 ==========
 * bugfix: Downgrade Coverage to 4.5.4. `PR197 <https://github.com/aws/aws-xray-sdk-python/pull/197>`_.
