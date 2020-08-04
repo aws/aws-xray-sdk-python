@@ -76,4 +76,4 @@ def test_execute_bad_query():
     assert sql['database_version']
 
     exception = subsegment.cause['exceptions'][0]
-    assert exception.type == 'InternalError'
+    assert exception.type is not None
