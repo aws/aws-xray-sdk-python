@@ -107,12 +107,12 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Plan
-        run: terraform plan -var-file="fixtures.us-east-2.tfvars" -no-color
+        run: terraform plan -var-file="fixtures.us-west-2.tfvars" -no-color
         continue-on-error: true
         working-directory: ./terraform
 
       - name: Terraform Apply
-        run: terraform apply -var-file="fixtures.us-east-2.tfvars" -auto-approve
+        run: terraform apply -var-file="fixtures.us-west-2.tfvars" -auto-approve
         working-directory: ./terraform
 
       - name: Upload terraform state files for destorying resources
@@ -185,4 +185,4 @@ jobs:
         run: terraform init
 
       - name: Destroy resources
-        run: terraform destroy -var-file="fixtures.us-east-2.tfvars" -auto-approve
+        run: terraform destroy -var-file="fixtures.us-west-2.tfvars" -auto-approve
