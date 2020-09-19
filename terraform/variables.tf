@@ -37,3 +37,8 @@ variable "eb_env_cname_prefix" {
   type = string
   description = "Elastic Beanstalk environment CNAME prefix"
 }
+
+variable "resource_prefix" {
+  type = string
+  description = "constant variable to create unique resource name"
+}

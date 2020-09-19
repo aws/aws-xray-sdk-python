@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest]
         python-version: [3.8]
 
     steps:
@@ -34,7 +34,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest]
         python-version: [3.8]
 
     steps:
@@ -71,7 +71,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest]
         python-version: [3.8]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -127,7 +127,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest]
         python-version: [3.8]
 
     steps:
@@ -153,16 +153,17 @@ jobs:
       - name: Run Integration Test
         run: |
           pip3 install -r requirements.txt
-          python testrunner.py --t webapp --e http://eb-flask-app-env.us-west-2.elasticbeanstalk.com  --l python
+          python testrunner.py --t webapp --e http://${{ github.run_id }}eb-flask-app-env.us-west-2.elasticbeanstalk.com  --l python
 
 
   cleanup:
     name: Resource tear down
     needs: test_WebApp
+    if: true
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest]
         python-version: [3.8]
 
     steps:
