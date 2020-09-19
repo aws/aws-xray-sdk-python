@@ -40,5 +40,5 @@ variable "eb_env_cname_prefix" {
 
 variable "resource_prefix" {
   type = string
-  description = "constant variable to create unique resource name"
+  description = "constant variable to provide unique name to resources"
 }
