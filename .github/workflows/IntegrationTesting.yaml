@@ -135,7 +135,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: bhautikpip/TestRunner
-          ref: ${{ github.head_ref }}
+  #        ref: ${{ github.head_ref }}
           token: ${{  secrets.PAT }}
 
       - name: Setup python
