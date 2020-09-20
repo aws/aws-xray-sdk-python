@@ -58,4 +58,3 @@ resource "aws_elastic_beanstalk_environment" "eb_env" {
     value = "true"
   }
 }
-

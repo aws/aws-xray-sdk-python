@@ -107,12 +107,12 @@ jobs:
         working-directory: ./terraform
 
       - name: Terraform Plan
-        run: terraform plan -var-file="fixtures.us-west-2.tfvars" -var="resource_prefix=${{ github.run_id }}" -no-color
+        run: terraform plan -var-file="fixtures.us-west-2.tfvars" -no-color
         continue-on-error: true
         working-directory: ./terraform
 
       - name: Terraform Apply
-        run: terraform apply -var-file="fixtures.us-west-2.tfvars" -var="resource_prefix=${{ github.run_id }}" -auto-approve
+        run: terraform apply -var-file="fixtures.us-west-2.tfvars" -auto-approve
         working-directory: ./terraform
 
       - name: Upload terraform state files for destorying resources
@@ -153,7 +153,7 @@ jobs:
       - name: Run Integration Test
         run: |
           pip3 install -r requirements.txt
-          python testrunner.py --t webapp --e http://${{ github.run_id }}eb-flask-app-env.us-west-2.elasticbeanstalk.com  --l python
+          python testrunner.py --t webapp --e http://eb-flask-app-env.us-west-2.elasticbeanstalk.com  --l python
 
 
   cleanup:
@@ -186,4 +186,4 @@ jobs:
         run: terraform init
 
       - name: Destroy resources
-        run: terraform destroy -var-file="fixtures.us-west-2.tfvars" -var="resource_prefix=${{ github.run_id }}" -auto-approve
+        run: terraform destroy -var-file="fixtures.us-west-2.tfvars" -auto-approve
