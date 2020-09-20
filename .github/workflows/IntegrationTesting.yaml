@@ -186,10 +186,10 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: check plugins dir
-        run: |
-          cd ~/.terraform.d
-          ls
+#      - name: check plugins dir
+#        run: |
+#          cd ~/.terraform.d
+#          ls
 
       - name: check current plugins location
         run: |
