@@ -188,4 +188,4 @@ jobs:
         run: chmod -R a+x .terraform/plugins/registry.terraform.io/hashicorp/aws/3.5.0/linux_amd64/*
 
       - name: Destroy resources
-        run: terraform destroy -state="terraform.tfstate" -auto-approve
+        run: terraform destroy -state="terraform.tfstate" -var-file="fixtures.us-west-2.tfvars" -auto-approve
