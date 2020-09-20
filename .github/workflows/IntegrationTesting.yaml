@@ -189,5 +189,9 @@ jobs:
       - name: set permissions to terraform plugins
         run: chmod -R a+x .terraform/plugins/registry.terraform.io/hashicorp/aws/3.5.0/linux_amd64/*
 
+      - name: Terraform Plan
+        run: terraform plan -var-file="fixtures.us-west-2.tfvars" -no-color
+        continue-on-error: true
+
       - name: Destroy resources
         run: terraform destroy -var-file="fixtures.us-west-2.tfvars" -auto-approve
