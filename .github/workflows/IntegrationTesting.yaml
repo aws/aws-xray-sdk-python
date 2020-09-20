@@ -186,9 +186,6 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: check current plugins location
-        run: chmod -R a+x ~/.terraform.d/plugins
-
       - name: set permissions to terraform plugins
         run: chmod -R a+x ./.terraform/plugins/linux_amd64/*
 
