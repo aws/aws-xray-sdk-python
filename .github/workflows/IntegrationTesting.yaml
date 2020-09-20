@@ -194,4 +194,4 @@ jobs:
         continue-on-error: true
 
       - name: Destroy resources
-        run: terraform destroy -var-file="fixtures.us-west-2.tfvars" -auto-approve
+        run: terraform destroy -state="terraform.tfstate" -var-file="fixtures.us-west-2.tfvars" -auto-approve
