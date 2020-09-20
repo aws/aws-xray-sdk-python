@@ -168,17 +168,17 @@ jobs:
         python-version: [3.8]
 
     steps:
-      - name: Download terraform state artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: terraform-state-artifact
+#      - name: Download terraform state artifact
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: terraform-state-artifact
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
+#      - name: Configure AWS Credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: us-west-2
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
