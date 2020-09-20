@@ -2,128 +2,128 @@ name: Integration Testing
 on: [pull_request]
 
 jobs:
-  build_SDK:
-    name: Build X-Ray Python SDK
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
-
-    steps:
-      - name: Pull in source code from aws-xray-sdk-python Github repository
-        uses: actions/checkout@v2
-
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Build X-Ray Python SDK
-        run: python setup.py sdist
-
-      - name: Upload SDK build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: sdk-build-artifact
-          path: .
-
-  build_WebApp:
-    name: Build Web Application
-    needs: build_SDK
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
-
-    steps:
-      - name: Pull in source code from WebApp Github repo
-        uses: actions/checkout@v2
-        with:
-          repository: 'bhautikpip/FlaskApp'
-
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Download X-Ray SDK build artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: sdk-build-artifact
-
-      - name: Build WebApp with X-Ray Python SDK
-        run: pip3 install . -t .
-
-      - name: Zip up the deployment package
-        run: zip -r deploy.zip . -x '*.git*'
-
-      - name: Upload WebApp with X-Ray SDK build artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: sdk-flask-build-artifact
-          path: deploy.zip
-
-  deploy_WebApp:
-    name: Deploy Web Application
-    needs: build_WebApp
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-      - name: Checkout X-Ray SDK to get terraform source
-        uses: actions/checkout@v2
-
-      - name: Download WebApp with X-Ray SDK build artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: sdk-flask-build-artifact
-
-      - name: Copy deployment package to terraform directory
-        run: cp deploy.zip ./terraform
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform
-
-      - name: Terraform Validate
-        run: terraform validate -no-color
-        working-directory: ./terraform
-
-      - name: Terraform Plan
-        run: terraform plan -var-file="fixtures.us-west-2.tfvars" -no-color
-        continue-on-error: true
-        working-directory: ./terraform
-
-      - name: Terraform Apply
-        run: terraform apply -var-file="fixtures.us-west-2.tfvars" -auto-approve
-        working-directory: ./terraform
-
-      - name: Upload terraform state files for destorying resources
-        uses: actions/upload-artifact@v2
-        with:
-          name: terraform-state-artifact
-          path: ./terraform
+#  build_SDK:
+#    name: Build X-Ray Python SDK
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest]
+#        python-version: [3.8]
+#
+#    steps:
+#      - name: Pull in source code from aws-xray-sdk-python Github repository
+#        uses: actions/checkout@v2
+#
+#      - name: Setup python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Build X-Ray Python SDK
+#        run: python setup.py sdist
+#
+#      - name: Upload SDK build artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: sdk-build-artifact
+#          path: .
+#
+#  build_WebApp:
+#    name: Build Web Application
+#    needs: build_SDK
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest]
+#        python-version: [3.8]
+#
+#    steps:
+#      - name: Pull in source code from WebApp Github repo
+#        uses: actions/checkout@v2
+#        with:
+#          repository: 'bhautikpip/FlaskApp'
+#
+#      - name: Setup python
+#        uses: actions/setup-python@v2
+#        with:
+#          python-version: ${{ matrix.python-version }}
+#
+#      - name: Download X-Ray SDK build artifact
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: sdk-build-artifact
+#
+#      - name: Build WebApp with X-Ray Python SDK
+#        run: pip3 install . -t .
+#
+#      - name: Zip up the deployment package
+#        run: zip -r deploy.zip . -x '*.git*'
+#
+#      - name: Upload WebApp with X-Ray SDK build artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: sdk-flask-build-artifact
+#          path: deploy.zip
+#
+#  deploy_WebApp:
+#    name: Deploy Web Application
+#    needs: build_WebApp
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest]
+#        python-version: [3.8]
+#    env:
+#      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#    steps:
+#      - name: Checkout X-Ray SDK to get terraform source
+#        uses: actions/checkout@v2
+#
+#      - name: Download WebApp with X-Ray SDK build artifact
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: sdk-flask-build-artifact
+#
+#      - name: Copy deployment package to terraform directory
+#        run: cp deploy.zip ./terraform
+#
+#      - name: Configure AWS Credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: us-west-2
+#
+#      - name: Setup Terraform
+#        uses: hashicorp/setup-terraform@v1
+#
+#      - name: Terraform Init
+#        run: terraform init
+#        working-directory: ./terraform
+#
+#      - name: Terraform Validate
+#        run: terraform validate -no-color
+#        working-directory: ./terraform
+#
+#      - name: Terraform Plan
+#        run: terraform plan -var-file="fixtures.us-west-2.tfvars" -no-color
+#        continue-on-error: true
+#        working-directory: ./terraform
+#
+#      - name: Terraform Apply
+#        run: terraform apply -var-file="fixtures.us-west-2.tfvars" -auto-approve
+#        working-directory: ./terraform
+#
+#      - name: Upload terraform state files for destorying resources
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: terraform-state-artifact
+#          path: ./terraform
 
   test_WebApp:
     name: Test WebApp
-    needs: deploy_WebApp
+#    needs: deploy_WebApp
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
