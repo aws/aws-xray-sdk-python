@@ -111,15 +111,17 @@ jobs:
         continue-on-error: true
         working-directory: ./terraform
 
-      - name: Terraform Apply
-        run: terraform apply -var-file="fixtures.us-west-2.tfvars" -auto-approve
-        working-directory: ./terraform
-
       - name: Upload terraform state files for destorying resources
         uses: actions/upload-artifact@v2
         with:
           name: terraform-state-artifact
           path: ./terraform
+
+      - name: Terraform Apply
+        run: terraform apply -var-file="fixtures.us-west-2.tfvars" -auto-approve
+        working-directory: ./terraform
+
+
 
   test_WebApp:
     name: Test WebApp
@@ -183,6 +185,19 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+
+      - name: check plugins dir
+        run: |
+          cd ~/.terraform.d/plugins
+          ls
+
+      - name: check current plugins location
+        run: |
+          cd ./.terraform/plugins/linux_amd64
+          ls
+
+      - name: set permissions to terraform plugins
+        run: chmod -R a+x ./.terraform/plugins/linux_amd64/*
 
       - name: Destroy resources
         run: terraform destroy -var-file="fixtures.us-west-2.tfvars" -auto-approve
