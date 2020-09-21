@@ -38,3 +38,8 @@ variable "eb_env_cname_prefix" {
   description = "Elastic Beanstalk environment CNAME prefix"
 }
 
+variable "resource_prefix" {
+  type = string
+  description = "provide unique names to terraform resources"
+}
+
