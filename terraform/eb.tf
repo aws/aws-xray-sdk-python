@@ -13,7 +13,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "eb_app_bucket" {
-  bucket = "${var.resource_prefix}.eb.flask.applicationversion"
+  bucket = "${var.resource_prefix}.eb.app.applicationversion"
 
   versioning {
     enabled = true
@@ -27,24 +27,24 @@ resource "aws_s3_bucket_object" "eb_app_package" {
 }
 
 resource "aws_elastic_beanstalk_application" "eb_app" {
-  name        = "${var.resource_prefix}-EB-Flask-App"
+  name        = "${var.resource_prefix}-EB-App"
   description = "Deployment of EB App for integration testing"
 }
 
 resource "aws_elastic_beanstalk_application_version" "eb_app_version" {
-  name        = "${var.resource_prefix}-EB-Flask-App-1"
+  name        = "${var.resource_prefix}-EB-App-1"
   application = aws_elastic_beanstalk_application.eb_app.name
   bucket      = aws_s3_bucket.eb_app_bucket.id
   key         = aws_s3_bucket_object.eb_app_package.id
 }
 
 resource "aws_elastic_beanstalk_environment" "eb_env" {
-  name                = "${var.resource_prefix}-EB-Flask-App-Env"
+  name                = "${var.resource_prefix}-EB-App-Env"
   application         = aws_elastic_beanstalk_application.eb_app.name
   solution_stack_name = "64bit Amazon Linux 2 v3.1.1 running Python 3.7"
   tier = "WebServer"
   version_label = aws_elastic_beanstalk_application_version.eb_app_version.name
-  cname_prefix = "${var.resource_prefix}-Eb-flask-app-env"
+  cname_prefix = "${var.resource_prefix}-Eb-app-env"
 
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
