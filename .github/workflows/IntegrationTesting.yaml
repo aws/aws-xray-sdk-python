@@ -152,7 +152,7 @@ jobs:
       - name: Run Integration Test
         run: |
           pip3 install -r requirements.txt
-          python testrunner.py --t webapp --e http://${{ github.run_id }}-eb-flask-app-env.us-west-2.elasticbeanstalk.com  --l python
+          python testrunner.py --t webapp --e http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com  --l python
 
 
   cleanup:
