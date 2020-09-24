@@ -71,10 +71,4 @@ resource "aws_elastic_beanstalk_environment" "eb_env" {
     name = "XRayEnabled"
     value = "true"
   }
-
-  setting {
-    name = "EnhancedHealthAuthEnabled"
-    namespace = "aws:elasticbeanstalk:healthreporting:system"
-    value = "true"
-  }
 }
