@@ -4,11 +4,7 @@ on: [pull_request]
 jobs:
   build_SDK:
     name: Build X-Ray Python SDK
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Pull in source code from aws-xray-sdk-python Github repository
@@ -17,7 +13,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.8'
 
       - name: Build X-Ray Python SDK
         run: python setup.py sdist
@@ -31,11 +27,7 @@ jobs:
   build_WebApp:
     name: Build Web Application
     needs: build_SDK
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Pull in source code from WebApp Github repo
@@ -46,7 +38,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.8'
 
       - name: Download X-Ray SDK build artifact
         uses: actions/download-artifact@v2
@@ -68,11 +60,7 @@ jobs:
   deploy_WebApp:
     name: Deploy Web Application
     needs: build_WebApp
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout X-Ray SDK to get terraform source
@@ -126,11 +114,7 @@ jobs:
   test_WebApp:
     name: Test WebApp
     needs: deploy_WebApp
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Pull in source code from TestRunner Github repository
@@ -142,7 +126,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.8'
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -161,11 +145,7 @@ jobs:
     name: Resource tear down
     needs: test_WebApp
     if: true
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: [3.8]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Download terraform state artifact
