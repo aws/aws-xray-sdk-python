@@ -12,6 +12,12 @@ provider "aws" {
   region  = var.region
 }
 
+resource "aws_s3_bucket_public_access_block" "bucket_access" {
+  bucket = aws_s3_bucket.eb_app_bucket.id
+
+  restrict_public_buckets   = true
+}
+
 resource "aws_s3_bucket" "eb_app_bucket" {
   bucket = "${var.resource_prefix}.eb.app.applicationversion"
 
@@ -22,7 +28,7 @@ resource "aws_s3_bucket" "eb_app_bucket" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        sse_algorithm     = "aes256"
+        sse_algorithm     = "AES256"
       }
     }
   }
