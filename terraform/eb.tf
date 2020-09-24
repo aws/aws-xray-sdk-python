@@ -18,6 +18,14 @@ resource "aws_s3_bucket" "eb_app_bucket" {
   versioning {
     enabled = true
   }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm     = "aes256"
+      }
+    }
+  }
 }
 
 resource "aws_s3_bucket_object" "eb_app_package" {
@@ -55,6 +63,12 @@ resource "aws_elastic_beanstalk_environment" "eb_env" {
   setting {
     namespace = "aws:elasticbeanstalk:xray"
     name = "XRayEnabled"
+    value = "true"
+  }
+
+  setting {
+    name = "EnhancedHealthAuthEnabled"
+    namespace = "aws:elasticbeanstalk:healthreporting:system"
     value = "true"
   }
 }
