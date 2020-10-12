@@ -33,7 +33,7 @@ jobs:
       - name: Pull in source code from WebApp Github repo
         uses: actions/checkout@v2
         with:
-          repository: 'bhautikpip/FlaskApp'
+          repository: 'aws-samples/aws-xray-sdk-test-runner-flask-sample'
 
       - name: Setup python
         uses: actions/setup-python@v2
@@ -120,7 +120,7 @@ jobs:
       - name: Pull in source code from TestRunner Github repository
         uses: actions/checkout@v2
         with:
-          repository: aws-observability/aws-xray-sdk-integration-test-runner
+          repository: 'aws-observability/aws-xray-sdk-integration-test-runner'
 
       - name: Setup python
         uses: actions/setup-python@v2
