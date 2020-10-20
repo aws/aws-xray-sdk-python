@@ -125,7 +125,8 @@ jobs:
       - name: Checkout test framework
         uses: actions/checkout@v2
         with:
-          repository: bhautikpip/aws-otel-test-framework@merge-conflict-trace-validator
+          repository: bhautikpip/aws-otel-test-framework
+          ref: merge-conflict-trace-validator
           token: ${{  secrets.PAT }}
 
       - name: Run testing suite
