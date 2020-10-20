@@ -122,8 +122,6 @@ jobs:
         with:
           java-version: 14
 
-      - uses: gradle/wrapper-validation-action@v1
-
       - name: Checkout test framework
         uses: actions/checkout@v2
         with:
