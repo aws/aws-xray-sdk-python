@@ -124,11 +124,14 @@ jobs:
 
       - uses: gradle/wrapper-validation-action@v1
 
-      - name: Run Integration Test
-        uses: bhautikpip/aws-otel-test-framework@merge-conflict-trace-validator
+      - name: Checkout test framework
+        uses: actions/checkout@v2
         with:
-          running_type: validator
-          opts: "-c default-trace-validation.yml --endpoint http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com"
+          repository: bhautikpip/aws-otel-test-framework@merge-conflict-trace-validator
+          token: ${{  secrets.PAT }}
+
+      - name: Run testing suite
+        run: ./gradlew :validator:run --args='-c default-trace-validation.yml --endpoint http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com'
 
 
 
