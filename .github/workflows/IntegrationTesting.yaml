@@ -118,28 +118,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pull in source code from TestRunner Github repository
-        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
         with:
-          repository: aws-observability/aws-xray-sdk-integration-test-runner
-          token: ${{  secrets.PAT }}
+          java-version: 14
 
-      - name: Setup python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
+      - uses: gradle/wrapper-validation-action@v1
 
       - name: Run Integration Test
-        run: |
-          pip3 install -r requirements.txt
-          python testrunner.py --t webapp --e http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com  --l python
+        uses: bhautikpip/aws-otel-test-framework@merge-conflict-trace-validator
+        with:
+          running_type: validator
+          opts: "-c default-trace-validation.yml --endpoint http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com"
+
 
 
   cleanup:
