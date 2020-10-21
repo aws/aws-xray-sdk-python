@@ -137,7 +137,7 @@ jobs:
           token: ${{  secrets.PAT }}
 
       - name: Run testing suite
-        run: ./gradlew :validator:run --args='-c default-trace-validation.yml --endpoint http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com'
+        run: ./gradlew :validator:run --args='-c default-xray-trace-validation.yml --endpoint http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com'
 
 
 
