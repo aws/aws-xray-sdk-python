@@ -33,13 +33,16 @@ jobs:
       - name: Pull in source code from WebApp Github repo
         uses: actions/checkout@v2
         with:
-          repository: aws-samples/aws-xray-sdk-test-runner-flask-sample
+          repository: aws-observability/aws-otel-test-framework-sample-apps
           token: ${{  secrets.PAT }}
 
       - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
+
+      - name: Copy flask app to root dir
+        run: cp -r sample-apps/sdk/xray-python-sample-apps/flask/* .
 
       - name: Download X-Ray SDK build artifact
         uses: actions/download-artifact@v2
@@ -132,8 +135,8 @@ jobs:
       - name: Checkout test framework
         uses: actions/checkout@v2
         with:
-          repository: bhautikpip/aws-otel-test-framework
-          ref: merge-conflict-trace-validator
+          repository: aws-observability/aws-otel-test-framework
+          ref: terraform
 
       - name: Run testing suite
         run: ./gradlew :validator:run --args='-c default-xray-trace-validation.yml --endpoint http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com'
