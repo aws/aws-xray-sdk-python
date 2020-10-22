@@ -99,14 +99,14 @@ jobs:
       - name: Terraform Plan
         run: terraform plan -var-file="fixtures.us-west-2.tfvars" -no-color
         env:
-          TF_VAR_resource_prefix: ${{ github.run_id }}
+          TF_VAR_resource_prefix: '${{ github.run_id }}-${{ github.run_number }}'
         continue-on-error: true
         working-directory: ./terraform
 
       - name: Terraform Apply
         run: terraform apply -var-file="fixtures.us-west-2.tfvars" -auto-approve
         env:
-          TF_VAR_resource_prefix: ${{ github.run_id }}
+          TF_VAR_resource_prefix: '${{ github.run_id }}-${{ github.run_number }}'
         working-directory: ./terraform
 
       - name: Upload terraform state files for destorying resources
@@ -139,7 +139,7 @@ jobs:
           ref: terraform
 
       - name: Run testing suite
-        run: ./gradlew :validator:run --args='-c default-xray-trace-validation.yml --endpoint http://${{ github.run_id }}-eb-app-env.us-west-2.elasticbeanstalk.com'
+        run: ./gradlew :validator:run --args='-c default-xray-trace-validation.yml --endpoint http://${{ github.run_id }}-${{ github.run_number }}-eb-app-env.us-west-2.elasticbeanstalk.com'
 
   cleanup:
     name: Resource tear down
@@ -172,4 +172,4 @@ jobs:
       - name: Destroy resources
         run: terraform destroy -state="terraform.tfstate" -var-file="fixtures.us-west-2.tfvars" -auto-approve
         env:
-          TF_VAR_resource_prefix: ${{ github.run_id }}
+          TF_VAR_resource_prefix: '${{ github.run_id }}-${{ github.run_number }}'
