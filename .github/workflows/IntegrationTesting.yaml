@@ -41,7 +41,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: sdk-build-artifact
-        working-directory: ./sample-apps/flask
+          path: ./sample-apps/flask
 
       - name: Build WebApp with X-Ray Python SDK
         run: pip3 install . -t .
@@ -55,8 +55,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: sdk-flask-build-artifact
-          path: deploy.zip
-        working-directory: ./sample-apps/flask
+          path: ./sample-apps/flask/deploy.zip
 
   deploy_WebApp:
     name: Deploy Web Application
