@@ -30,36 +30,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pull in source code from WebApp Github repo
-        uses: actions/checkout@v2
-        with:
-          repository: aws-observability/aws-otel-test-framework-sample-apps
-          token: ${{  secrets.PAT }}
+      - uses: actions/checkout@v2
 
       - name: Setup python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
 
-      - name: Copy flask app to root dir
-        run: cp -r sample-apps/sdk/xray-python-sample-apps/flask/* .
-
       - name: Download X-Ray SDK build artifact
         uses: actions/download-artifact@v2
         with:
           name: sdk-build-artifact
+        working-directory: sample-apps/flask
 
       - name: Build WebApp with X-Ray Python SDK
         run: pip3 install . -t .
+        working-directory: sample-apps/flask
 
       - name: Zip up the deployment package
         run: zip -r deploy.zip . -x '*.git*'
+        working-directory: sample-apps/flask
 
       - name: Upload WebApp with X-Ray SDK build artifact
         uses: actions/upload-artifact@v2
         with:
           name: sdk-flask-build-artifact
           path: deploy.zip
+        working-directory: sample-apps/flask
 
   deploy_WebApp:
     name: Deploy Web Application
