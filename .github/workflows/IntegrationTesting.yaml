@@ -1,4 +1,4 @@
-name: Integration Testing Workflow
+name: Integration Testing
 on: push
 
 jobs:
