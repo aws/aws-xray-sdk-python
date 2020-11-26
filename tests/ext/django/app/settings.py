@@ -2,6 +2,7 @@
 Config file for a django app used by django testing client
 """
 import os
+from aws_xray_sdk.core.sampling.sampler import LocalSampler
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -60,6 +61,7 @@ INSTALLED_APPS = [
 XRAY_RECORDER = {
     'AWS_XRAY_TRACING_NAME': 'django',
     'SAMPLING': False,
+    'SAMPLER': LocalSampler(),
 }
 
 LANGUAGE_CODE = 'en-us'

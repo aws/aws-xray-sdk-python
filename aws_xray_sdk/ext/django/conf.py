@@ -10,6 +10,7 @@ DEFAULTS = {
     'PLUGINS': (),
     'SAMPLING': True,
     'SAMPLING_RULES': None,
+    'SAMPLER': None,
     'AWS_XRAY_TRACING_NAME': None,
     'DYNAMIC_NAMING': None,
     'STREAMING_THRESHOLD': None,

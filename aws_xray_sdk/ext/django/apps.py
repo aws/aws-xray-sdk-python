@@ -30,6 +30,7 @@ class XRayConfig(AppConfig):
             daemon_address=settings.AWS_XRAY_DAEMON_ADDRESS,
             sampling=settings.SAMPLING,
             sampling_rules=settings.SAMPLING_RULES,
+            sampler=settings.SAMPLER,
             context_missing=settings.AWS_XRAY_CONTEXT_MISSING,
             plugins=settings.PLUGINS,
             service=settings.AWS_XRAY_TRACING_NAME,
