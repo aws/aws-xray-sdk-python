@@ -439,7 +439,7 @@ async def foo():
 ```
 
 ### Use SQLAlchemy ORM
-The SQLAlchemy integration requires you to override the Session and Query Classes for SQL Alchemy
+The SQLAlchemy integration requires you to override the Session and Query Classes for SQL Alchemy.
 
 SQLAlchemy integration uses subsegments so you need to have a segment started before you make a query.
 
