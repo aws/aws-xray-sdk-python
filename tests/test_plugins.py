@@ -29,7 +29,7 @@ def test_ec2_plugin_imdsv2_success(mock_do_request):
     r_c = getattr(ec2_plugin, 'runtime_context')
     assert r_c['instance_id'] == 'i-07a181803de94c666'
     assert r_c['availability_zone'] == 'us-east-2a'
-    assert r_c['instance_type'] == 't3.xlarge_FAIL_THIS'
+    assert r_c['instance_type'] == 't3.xlarge'
     assert r_c['ami_id'] == 'ami-03cca83dd001d4666'
 
 
