@@ -1,9 +1,9 @@
 import json
 import logging
 from future.standard_library import install_aliases
-from urllib.request import urlopen, Request
-
 install_aliases()
+
+from urllib.request import urlopen, Request
 
 log = logging.getLogger(__name__)
 
