@@ -53,7 +53,7 @@ class AsyncAWSXRayRecorder(AWSXRayRecorder):
 
     def in_segment_async(self, name=None, **segment_kwargs):
         """
-        Return a segment async context manger.
+        Return a segment async context manager.
 
         :param str name: the name of the segment
         :param dict segment_kwargs: remaining arguments passed directly to `begin_segment`
@@ -62,7 +62,7 @@ class AsyncAWSXRayRecorder(AWSXRayRecorder):
 
     def in_subsegment_async(self, name=None, **subsegment_kwargs):
         """
-        Return a subsegment async context manger.
+        Return a subsegment async context manager.
 
         :param str name: the name of the segment
         :param dict segment_kwargs: remaining arguments passed directly to `begin_segment`
