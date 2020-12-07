@@ -184,7 +184,7 @@ class AWSXRayRecorder(object):
 
     def in_segment(self, name=None, **segment_kwargs):
         """
-        Return a segment context manger.
+        Return a segment context manager.
 
         :param str name: the name of the segment
         :param dict segment_kwargs: remaining arguments passed directly to `begin_segment`
@@ -193,7 +193,7 @@ class AWSXRayRecorder(object):
 
     def in_subsegment(self, name=None, **subsegment_kwargs):
         """
-        Return a subsegment context manger.
+        Return a subsegment context manager.
 
         :param str name: the name of the subsegment
         :param dict subsegment_kwargs: remaining arguments passed directly to `begin_subsegment`
