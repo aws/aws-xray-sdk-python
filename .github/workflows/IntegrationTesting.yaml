@@ -140,7 +140,7 @@ jobs:
   cleanup:
     name: Resource tear down
     needs: test_WebApp
-    if: true
+    if: always()
     runs-on: ubuntu-latest
 
     steps:
