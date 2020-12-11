@@ -2,10 +2,10 @@ name: Unit Testing
 on:
   push:
     branches:
-      - gh_actions_unit_tests
+      - master
   pull_request:
     branches:
-      - gh_actions_unit_tests
+      - master
 
 jobs:
   build:
