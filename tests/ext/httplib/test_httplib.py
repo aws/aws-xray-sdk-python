@@ -141,3 +141,55 @@ def test_correct_identify_https():
 
     https_meta = subsegment.http
     assert https_meta['request']['url'].split(":")[0] == 'https'
+
+
+def test_ignore_url():
+    from aws_xray_sdk.ext.httplib import add_ignored, reset_ignored
+    path = '/status/200'
+    url = 'https://{}{}'.format(BASE_URL, path)
+    add_ignored(urls=[path])
+    _do_req(url, use_https=True)
+    assert len(xray_recorder.current_segment().subsegments) == 0
+    reset_ignored()
+
+
+def test_ignore_hostname():
+    from aws_xray_sdk.ext.httplib import add_ignored, reset_ignored
+    path = '/status/200'
+    url = 'https://{}{}'.format(BASE_URL, path)
+    add_ignored(hostname=BASE_URL)
+    _do_req(url, use_https=True)
+    assert len(xray_recorder.current_segment().subsegments) == 0
+    reset_ignored()
+
+
+def test_ignore_subclass():
+    class TestClass(httplib.HTTPSConnection):
+        pass
+    from aws_xray_sdk.ext.httplib import add_ignored, reset_ignored
+    path = '/status/200'
+    add_ignored(subclass='TestClass')
+    conn = TestClass(BASE_URL)
+    conn.request('GET', path)
+    conn.getresponse()
+    assert len(xray_recorder.current_segment().subsegments) == 0
+    reset_ignored()
+
+
+def test_ignore_multiple():
+    class TestClass(httplib.HTTPSConnection):
+        pass
+    from aws_xray_sdk.ext.httplib import add_ignored, reset_ignored
+    path = '/status/200'
+    add_ignored(subclass='TestClass', hostname=BASE_URL)
+    conn = TestClass(BASE_URL)
+    conn.request('GET', path)
+    conn.getresponse()
+    assert len(xray_recorder.current_segment().subsegments) == 0
+    reset_ignored()
+    add_ignored(subclass='TestClass', hostname='fake.host')
+    conn = TestClass(BASE_URL)
+    conn.request('GET', path)
+    conn.getresponse()
+    assert len(xray_recorder.current_segment().subsegments) > 0
+    reset_ignored()
