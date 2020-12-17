@@ -1,7 +1,7 @@
 from collections import namedtuple
 import sys
 import wrapt
-
+import fnmatch
 import urllib3.connection
 
 from aws_xray_sdk.core import xray_recorder
@@ -106,7 +106,7 @@ def _ignore_request(subclass, hostname, url):
     global _XRAY_IGNORE
     for rule in _XRAY_IGNORE:
         subclass_match = subclass == rule.subclass if rule.subclass is not None else True
-        host_match = hostname == rule.hostname if rule.hostname is not None else True
+        host_match = fnmatch.fnmatch(hostname, rule.hostname) if rule.hostname is not None else True
         url_match = url in rule.urls if rule.urls is not None else True
         if url_match and host_match and subclass_match:
             return True

@@ -163,6 +163,16 @@ def test_ignore_hostname():
     reset_ignored()
 
 
+def test_ignore_hostname_glob():
+    from aws_xray_sdk.ext.httplib import add_ignored, reset_ignored
+    path = '/status/200'
+    url = 'https://{}{}'.format(BASE_URL, path)
+    add_ignored(hostname='http*.org')
+    _do_req(url, use_https=True)
+    assert len(xray_recorder.current_segment().subsegments) == 0
+    reset_ignored()
+
+
 def test_ignore_subclass():
     class TestClass(httplib.HTTPSConnection):
         pass
