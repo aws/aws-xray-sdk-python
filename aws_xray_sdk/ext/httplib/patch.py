@@ -102,8 +102,13 @@ def http_send_request_processor(wrapped, instance, args, kwargs, return_value,
         subsegment.add_exception(exception, stack)
 
 
-def _ignore_request(subclass, hostname, url):
+def _ignore_request(instance, hostname, url):
     global _XRAY_IGNORE
+    module = instance.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+        subclass = instance.__class__.__name__
+    else:
+        subclass = module + '.' + instance.__class__.__name__
     for rule in _XRAY_IGNORE:
         subclass_match = subclass == rule.subclass if rule.subclass is not None else True
         host_match = fnmatch.fnmatch(hostname, rule.hostname) if rule.hostname is not None else True
@@ -116,7 +121,7 @@ def _ignore_request(subclass, hostname, url):
 def _send_request(wrapped, instance, args, kwargs):
     def decompose_args(method, url, body, headers, encode_chunked=False):
         # skip any ignored requests
-        if _ignore_request(type(instance).__name__, instance.host, url):
+        if _ignore_request(instance, instance.host, url):
             return wrapped(*args, **kwargs)
 
         # Only injects headers when the subsegment for the outgoing

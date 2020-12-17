@@ -171,15 +171,16 @@ def test_ignore_hostname_glob():
     assert len(xray_recorder.current_segment().subsegments) == 0
 
 
-class TestClass(httplib.HTTPSConnection):
+class CustomHttpsConnection(httplib.HTTPSConnection):
     pass
 
 
 def test_ignore_subclass():
     from aws_xray_sdk.ext.httplib import add_ignored
     path = '/status/200'
-    add_ignored(subclass='TestClass')
-    conn = TestClass(BASE_URL)
+    subclass = 'tests.ext.httplib.test_httplib.CustomHttpsConnection'
+    add_ignored(subclass=subclass)
+    conn = CustomHttpsConnection(BASE_URL)
     conn.request('GET', path)
     conn.getresponse()
     assert len(xray_recorder.current_segment().subsegments) == 0
@@ -188,8 +189,9 @@ def test_ignore_subclass():
 def test_ignore_multiple_match():
     from aws_xray_sdk.ext.httplib import add_ignored
     path = '/status/200'
-    add_ignored(subclass='TestClass', hostname=BASE_URL)
-    conn = TestClass(BASE_URL)
+    subclass = 'tests.ext.httplib.test_httplib.CustomHttpsConnection'
+    add_ignored(subclass=subclass, hostname=BASE_URL)
+    conn = CustomHttpsConnection(BASE_URL)
     conn.request('GET', path)
     conn.getresponse()
     assert len(xray_recorder.current_segment().subsegments) == 0
@@ -198,8 +200,9 @@ def test_ignore_multiple_match():
 def test_ignore_multiple_no_match():
     from aws_xray_sdk.ext.httplib import add_ignored
     path = '/status/200'
-    add_ignored(subclass='TestClass', hostname='fake.host')
-    conn = TestClass(BASE_URL)
+    subclass = 'tests.ext.httplib.test_httplib.CustomHttpsConnection'
+    add_ignored(subclass=subclass, hostname='fake.host')
+    conn = CustomHttpsConnection(BASE_URL)
     conn.request('GET', path)
     conn.getresponse()
     assert len(xray_recorder.current_segment().subsegments) > 0
