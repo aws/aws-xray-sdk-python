@@ -473,6 +473,27 @@ XRayMiddleware(app, xray_recorder)
 db = XRayFlaskSqlAlchemy(app)
 
 ```
+
+### Ignoring httplib requests
+
+If you want to ignore certain httplib requests you can do so based on the hostname or URL that is being requsted. 
+
+```python
+from aws_xray_sdk.ext.httplib import add_ignored as xray_add_ignored
+
+# ignore requests to test.myapp.com
+xray_add_ignored(hostname='test.myapp.com')
+
+# ignore requests to a subdomain of myapp.com with a glob pattern
+xray_add_ignored(hostname='*.myapp.com')
+
+# ignore requests to /test-url and /other-test-url
+xray_add_ignored(urls=['/test-path', '/other-test-path'])
+
+# ignore requests to myapp.com for /test-url
+xray_add_ignored(hostname='myapp.com', urls=['/test-url'])
+```
+
 ## License
 
 The AWS X-Ray SDK for Python is licensed under the Apache 2.0 License. See LICENSE and NOTICE.txt for more information.
