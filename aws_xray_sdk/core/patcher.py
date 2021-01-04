@@ -24,6 +24,7 @@ SUPPORTED_MODULES = (
     'pymysql',
     'psycopg2',
     'pg8000',
+    'sqlalchemy_core',
 )
 
 NO_DOUBLE_PATCH = (
@@ -37,6 +38,7 @@ NO_DOUBLE_PATCH = (
     'pymysql',
     'psycopg2',
     'pg8000',
+    'sqlalchemy_core',
 )
 
 _PATCHED_MODULES = set()
