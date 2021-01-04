@@ -25,7 +25,7 @@ def construct_ctx():
     so that later subsegment can be attached. After each test run
     it cleans up context storage again.
     """
-    from aws_xray_sdk.ext.httplib import unpatch
+    from aws_xray_sdk.ext.httplib import unpatch, reset_ignored
 
     patch(('httplib',))
     xray_recorder.configure(service='test', sampling=False, context=Context())
@@ -35,6 +35,7 @@ def construct_ctx():
     yield
     xray_recorder.clear_trace_entities()
     unpatch()
+    reset_ignored()
 
 
 def _do_req(url, method='GET', use_https=True):
@@ -141,3 +142,67 @@ def test_correct_identify_https():
 
     https_meta = subsegment.http
     assert https_meta['request']['url'].split(":")[0] == 'https'
+
+
+def test_ignore_url():
+    from aws_xray_sdk.ext.httplib import add_ignored
+    path = '/status/200'
+    url = 'https://{}{}'.format(BASE_URL, path)
+    add_ignored(urls=[path])
+    _do_req(url, use_https=True)
+    assert len(xray_recorder.current_segment().subsegments) == 0
+
+
+def test_ignore_hostname():
+    from aws_xray_sdk.ext.httplib import add_ignored
+    path = '/status/200'
+    url = 'https://{}{}'.format(BASE_URL, path)
+    add_ignored(hostname=BASE_URL)
+    _do_req(url, use_https=True)
+    assert len(xray_recorder.current_segment().subsegments) == 0
+
+
+def test_ignore_hostname_glob():
+    from aws_xray_sdk.ext.httplib import add_ignored
+    path = '/status/200'
+    url = 'https://{}{}'.format(BASE_URL, path)
+    add_ignored(hostname='http*.org')
+    _do_req(url, use_https=True)
+    assert len(xray_recorder.current_segment().subsegments) == 0
+
+
+class CustomHttpsConnection(httplib.HTTPSConnection):
+    pass
+
+
+def test_ignore_subclass():
+    from aws_xray_sdk.ext.httplib import add_ignored
+    path = '/status/200'
+    subclass = 'tests.ext.httplib.test_httplib.CustomHttpsConnection'
+    add_ignored(subclass=subclass)
+    conn = CustomHttpsConnection(BASE_URL)
+    conn.request('GET', path)
+    conn.getresponse()
+    assert len(xray_recorder.current_segment().subsegments) == 0
+
+
+def test_ignore_multiple_match():
+    from aws_xray_sdk.ext.httplib import add_ignored
+    path = '/status/200'
+    subclass = 'tests.ext.httplib.test_httplib.CustomHttpsConnection'
+    add_ignored(subclass=subclass, hostname=BASE_URL)
+    conn = CustomHttpsConnection(BASE_URL)
+    conn.request('GET', path)
+    conn.getresponse()
+    assert len(xray_recorder.current_segment().subsegments) == 0
+
+
+def test_ignore_multiple_no_match():
+    from aws_xray_sdk.ext.httplib import add_ignored
+    path = '/status/200'
+    subclass = 'tests.ext.httplib.test_httplib.CustomHttpsConnection'
+    add_ignored(subclass=subclass, hostname='fake.host')
+    conn = CustomHttpsConnection(BASE_URL)
+    conn.request('GET', path)
+    conn.getresponse()
+    assert len(xray_recorder.current_segment().subsegments) > 0

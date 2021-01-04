@@ -1,7 +1,7 @@
 from collections import namedtuple
 import sys
 import wrapt
-
+import fnmatch
 import urllib3.connection
 
 from aws_xray_sdk.core import xray_recorder
@@ -22,8 +22,33 @@ else:
 
 _XRAY_PROP = '_xray_prop'
 _XRay_Data = namedtuple('xray_data', ['method', 'host', 'url'])
+_XRay_Ignore = namedtuple('xray_ignore', ['subclass', 'hostname', 'urls'])
 # A flag indicates whether this module is X-Ray patched or not
 PATCH_FLAG = '__xray_patched'
+# Calls that should be ignored
+_XRAY_IGNORE = set()
+
+
+def add_ignored(subclass=None, hostname=None, urls=None):
+    global _XRAY_IGNORE
+    if subclass is not None or hostname is not None or urls is not None:
+        urls = urls if urls is None else tuple(urls)
+        _XRAY_IGNORE.add(_XRay_Ignore(subclass=subclass, hostname=hostname, urls=urls))
+
+
+def reset_ignored():
+    global _XRAY_IGNORE
+    _XRAY_IGNORE.clear()
+    _ignored_add_default()
+
+
+def _ignored_add_default():
+    # skip httplib tracing for SDK built-in centralized sampling pollers
+    add_ignored(subclass='botocore.awsrequest.AWSHTTPConnection', urls=['/GetSamplingRules', '/SamplingTargets'])
+
+
+# make sure we have the default rules
+_ignored_add_default()
 
 
 def http_response_processor(wrapped, instance, args, kwargs, return_value,
@@ -77,11 +102,26 @@ def http_send_request_processor(wrapped, instance, args, kwargs, return_value,
         subsegment.add_exception(exception, stack)
 
 
+def _ignore_request(instance, hostname, url):
+    global _XRAY_IGNORE
+    module = instance.__class__.__module__
+    if module is None or module == str.__class__.__module__:
+        subclass = instance.__class__.__name__
+    else:
+        subclass = module + '.' + instance.__class__.__name__
+    for rule in _XRAY_IGNORE:
+        subclass_match = subclass == rule.subclass if rule.subclass is not None else True
+        host_match = fnmatch.fnmatch(hostname, rule.hostname) if rule.hostname is not None else True
+        url_match = url in rule.urls if rule.urls is not None else True
+        if url_match and host_match and subclass_match:
+            return True
+    return False
+
+
 def _send_request(wrapped, instance, args, kwargs):
     def decompose_args(method, url, body, headers, encode_chunked=False):
-        # skip httplib tracing for SDK built-in centralized sampling pollers
-        if (('/GetSamplingRules' in args or '/SamplingTargets' in args) and
-                type(instance).__name__ == 'botocore.awsrequest.AWSHTTPConnection'):
+        # skip any ignored requests
+        if _ignore_request(instance, instance.host, url):
             return wrapped(*args, **kwargs)
 
         # Only injects headers when the subsegment for the outgoing
