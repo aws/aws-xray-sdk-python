@@ -476,7 +476,7 @@ db = XRayFlaskSqlAlchemy(app)
 
 ### Ignoring httplib requests
 
-If you want to ignore certain httplib requests you can do so based on the hostname or URL that is being requsted. 
+If you want to ignore certain httplib requests you can do so based on the hostname or URL that is being requsted. The hostname is matched using the Python [fnmatch library](https://docs.python.org/3/library/fnmatch.html) which does Unix glob style matching.
 
 ```python
 from aws_xray_sdk.ext.httplib import add_ignored as xray_add_ignored
@@ -492,6 +492,15 @@ xray_add_ignored(urls=['/test-path', '/other-test-path'])
 
 # ignore requests to myapp.com for /test-url
 xray_add_ignored(hostname='myapp.com', urls=['/test-url'])
+```
+
+If you use a subclass of httplib to make your requests, you can also filter on the class name that initiates the request. This must use the complete package name to do the match.
+
+```python
+from aws_xray_sdk.ext.httplib import add_ignored as xray_add_ignored
+
+# ignore all requests made by botocore
+xray_add_ignored(subclass='botocore.awsrequest.AWSHTTPConnection')
 ```
 
 ## License
