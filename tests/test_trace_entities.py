@@ -4,7 +4,6 @@ import pytest
 from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.core.models import throwable
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNameMissingException
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.core.exceptions.exceptions import AlreadyEndedException
@@ -215,4 +214,46 @@ def test_add_exception():
     assert expected_stack == exception.stack
 
 
+def test_add_exception_referencing():
+    segment = Segment('seg')
+    subseg = Subsegment('subseg')
+    exception = Exception("testException")
+    stack = [['path', 'line', 'label']]
+    subseg.add_exception(exception=exception, stack=stack)
+    segment.add_exception(exception=exception, stack=stack)
+    subseg.close()
+    segment.close()
 
+    seg_cause = segment.cause
+    subseg_cause = subseg.cause
+
+    assert isinstance(subseg_cause, dict)
+    assert isinstance(seg_cause, str)
+    assert seg_cause == subseg_cause['exceptions'][0].id
+
+
+def test_add_exception_cause_resetting():
+    segment = Segment('seg')
+    subseg = Subsegment('subseg')
+    exception = Exception("testException")
+    stack = [['path', 'line', 'label']]
+    subseg.add_exception(exception=exception, stack=stack)
+    segment.add_exception(exception=exception, stack=stack)
+
+    segment.add_exception(exception=Exception("newException"))
+    subseg.close()
+    segment.close()
+
+    seg_cause = segment.cause
+    assert isinstance(seg_cause, dict)
+    assert 'newException' == seg_cause['exceptons'][0].message
+
+
+def test_add_exception_appending_exceptions():
+    segment = Segment('seg')
+    segment.add_exception(exception=Exception("testException"))
+    segment.add_exception(exception=Exception("newException"))
+    segment.close()
+
+    assert isinstance(segment.cause, dict)
+    assert len(segment.cause['exceptions']) == 2
