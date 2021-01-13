@@ -1,4 +1,6 @@
 # -*- coding: iso-8859-15 -*-
+from __future__ import unicode_literals
+
 import pytest
 
 from aws_xray_sdk.core.models.segment import Segment
