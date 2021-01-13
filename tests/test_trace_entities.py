@@ -216,7 +216,7 @@ def test_add_exception():
 
 def test_add_exception_referencing():
     segment = Segment('seg')
-    subseg = Subsegment('subseg')
+    subseg = Subsegment('subseg', 'remote', segment)
     exception = Exception("testException")
     stack = [['path', 'line', 'label']]
     subseg.add_exception(exception=exception, stack=stack)
@@ -234,25 +234,26 @@ def test_add_exception_referencing():
 
 def test_add_exception_cause_resetting():
     segment = Segment('seg')
-    subseg = Subsegment('subseg')
+    subseg = Subsegment('subseg', 'remote', segment)
     exception = Exception("testException")
     stack = [['path', 'line', 'label']]
     subseg.add_exception(exception=exception, stack=stack)
     segment.add_exception(exception=exception, stack=stack)
 
-    segment.add_exception(exception=Exception("newException"))
+    segment.add_exception(exception=Exception("newException"), stack=stack)
     subseg.close()
     segment.close()
 
     seg_cause = segment.cause
     assert isinstance(seg_cause, dict)
-    assert 'newException' == seg_cause['exceptons'][0].message
+    assert 'newException' == seg_cause['exceptions'][0].message
 
 
 def test_add_exception_appending_exceptions():
     segment = Segment('seg')
-    segment.add_exception(exception=Exception("testException"))
-    segment.add_exception(exception=Exception("newException"))
+    stack = [['path', 'line', 'label']]
+    segment.add_exception(exception=Exception("testException"), stack=stack)
+    segment.add_exception(exception=Exception("newException"), stack=stack)
     segment.close()
 
     assert isinstance(segment.cause, dict)
