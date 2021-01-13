@@ -4,6 +4,7 @@ import pytest
 from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core.models import throwable
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNameMissingException
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.core.exceptions.exceptions import AlreadyEndedException
@@ -194,3 +195,24 @@ def test_missing_parent_segment():
 
     with pytest.raises(SegmentNotFoundException):
         Subsegment('name', 'local', None)
+
+
+def test_add_exception():
+    segment = Segment('seg')
+    exception = Exception("testException")
+    stack = [['path', 'line', 'label']]
+    segment.add_exception(exception=exception, stack=stack)
+    segment.close()
+
+    cause = segment.cause
+    assert 'exceptions' in cause
+    exceptions = cause['exceptions']
+    assert len(exceptions) == 1
+    assert 'working_directory' in cause
+    exception = exceptions[0]
+    assert 'testException' == exception.message
+    expected_stack = [{'path': 'path', 'line': 'line', 'label': 'label'}]
+    assert expected_stack == exception.stack
+
+
+
