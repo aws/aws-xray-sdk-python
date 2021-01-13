@@ -22,11 +22,16 @@ Currently supported web frameworks and libraries:
 * aioboto3/aiobotocore
 * aiohttp >=2.3
 * boto3/botocore
+* Bottle
 * Django >=1.10
 * Flask
-* httplib
+* httplib/http.client
 * mysql-connector
-* Pynamodb
+* pg8000
+* psycopg2
+* pymongo
+* pymysql
+* pynamodb
 * requests
 * SQLAlchemy
 * sqlite3
