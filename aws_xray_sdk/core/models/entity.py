@@ -211,7 +211,7 @@ class Entity(object):
         """
         Add an exception to trace entities.
 
-        :param Exception exception: the catched exception.
+        :param Exception exception: the caught exception.
         :param list stack: the output from python built-in
             `traceback.extract_stack()`.
         :param bool remote: If False it means it's a client error
@@ -224,7 +224,16 @@ class Entity(object):
             setattr(self, 'cause', getattr(exception, '_cause_id'))
             return
 
-        exceptions = []
+        if not isinstance(self.cause, dict):
+            log.warning("The current cause object is not a dict but an id: {}. Resetting the cause and recording the "
+                        "current exception".format(self.cause))
+            self.cause = {}
+
+        if 'exceptions' in self.cause:
+            exceptions = self.cause['exceptions']
+        else:
+            exceptions = []
+
         exceptions.append(Throwable(exception, stack, remote))
 
         self.cause['exceptions'] = exceptions
