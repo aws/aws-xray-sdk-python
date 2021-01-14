@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-15 -*-
-from __future__ import unicode_literals
 
 import pytest
+import sys
 
 from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
@@ -230,7 +230,10 @@ def test_add_exception_referencing():
     subseg_cause = subseg.cause
 
     assert isinstance(subseg_cause, dict)
-    assert isinstance(seg_cause, str)
+    if sys.version_info.major == 2:
+        assert isinstance(seg_cause, basestring)
+    else:
+        assert isinstance(seg_cause, str)
     assert seg_cause == subseg_cause['exceptions'][0].id
 
 
