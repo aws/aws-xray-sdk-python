@@ -39,8 +39,11 @@ recorder = get_new_stubbed_recorder()
 recorder.configure(service='test', sampling=False, context=Context())
 XRayMiddleware(app, recorder)
 
-# enable testing mode
-app.config['TESTING'] = True
+# We don't need to enable testing mode by doing app.config['TESTING'] = True
+# because what it does is disable error catching during request handling,
+# so that you get better error reports when performing test requests against the application.
+# But this also results in `after_request` method not getting invoked during unhandled exception which we want
+# since it is the actual application behavior in our use case.
 app = app.test_client()
 
 BASE_URL = 'http://localhost{}'
