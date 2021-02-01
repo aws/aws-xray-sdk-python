@@ -81,6 +81,9 @@ class XRayMiddleware(object):
         if cont_len:
             segment.put_http_meta(http.CONTENT_LENGTH, int(cont_len))
 
+        if response.status_code >= 500:
+            return response
+
         if self.in_lambda_ctx:
             self._recorder.end_subsegment()
         else:
