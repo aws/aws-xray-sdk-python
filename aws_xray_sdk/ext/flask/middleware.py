@@ -91,8 +91,6 @@ class XRayMiddleware(object):
         return response
 
     def _handle_exception(self, exception):
-        if not exception:
-            return
         segment = None
         try:
             if self.in_lambda_ctx:
@@ -104,9 +102,11 @@ class XRayMiddleware(object):
         if not segment:
             return
 
-        segment.put_http_meta(http.STATUS, 500)
-        stack = stacktrace.get_stacktrace(limit=self._recorder._max_trace_back)
-        segment.add_exception(exception, stack)
+        if exception:
+            segment.put_http_meta(http.STATUS, 500)
+            stack = stacktrace.get_stacktrace(limit=self._recorder._max_trace_back)
+            segment.add_exception(exception, stack)
+
         if self.in_lambda_ctx:
             self._recorder.end_subsegment()
         else:
