@@ -17,7 +17,7 @@ class XRayMiddleware(object):
         self._recorder = recorder
         self.app.before_request(self._before_request)
         self.app.after_request(self._after_request)
-        self.app.teardown_request(self._handle_exception)
+        self.app.teardown_request(self._teardown_request)
         self.in_lambda_ctx = False
 
         if check_in_lambda() and type(self._recorder.context) == LambdaContext:
@@ -81,16 +81,9 @@ class XRayMiddleware(object):
         if cont_len:
             segment.put_http_meta(http.CONTENT_LENGTH, int(cont_len))
 
-        if response.status_code >= 500:
-            return response
-
-        if self.in_lambda_ctx:
-            self._recorder.end_subsegment()
-        else:
-            self._recorder.end_segment()
         return response
 
-    def _handle_exception(self, exception):
+    def _teardown_request(self, exception):
         segment = None
         try:
             if self.in_lambda_ctx:
