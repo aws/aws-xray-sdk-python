@@ -9,7 +9,6 @@ from aws_xray_sdk.core.models import http, facade_segment, segment
 from tests.util import get_new_stubbed_recorder
 import os
 
-
 # define a flask app for testing purpose
 app = Flask(__name__)
 
@@ -27,6 +26,11 @@ def error():
 @app.route('/fault')
 def fault():
     return {}['key']
+
+
+@app.route('/fault_no_exception')
+def fault_no_exception():
+    return "SomeException", 500
 
 
 @app.route('/template')
@@ -106,6 +110,18 @@ def test_fault():
 
     exception = segment.cause['exceptions'][0]
     assert exception.type == 'KeyError'
+
+
+def test_fault_no_exception():
+    path = '/fault_no_exception'
+    app.get(path)
+    segment = recorder.emitter.pop()
+    assert not segment.in_progress
+    assert segment.fault
+
+    response = segment.http['response']
+    assert response['status'] == 500
+    assert segment.cause == {}
 
 
 def test_render_template():
