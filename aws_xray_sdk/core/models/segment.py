@@ -155,14 +155,14 @@ class Segment(Entity):
             self.aws['xray'] = {}
         self.aws['xray']['sampling_rule_name'] = rule_name
 
-    def __getstate__(self):
+    def to_dict(self):   
         """
-        Used by jsonpikle to remove unwanted fields.
-        """
-        properties = copy.copy(self.__dict__)
-        super(Segment, self)._delete_empty_properties(properties)
-        if not self.user:
-            del properties['user']
-        del properties['ref_counter']
-        del properties['_subsegments_counter']
-        return properties
+        Convert Segment object to dict with required properties
+        that have non-empty values. 
+        """ 
+        segment_dict = super(Segment, self).to_dict()
+          
+        del segment_dict['ref_counter']
+        del segment_dict['_subsegments_counter']
+        
+        return segment_dict
