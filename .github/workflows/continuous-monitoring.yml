@@ -1,0 +1,19 @@
+name: Continuous monitoring of distribution channels
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 */6 * * *'
+
+jobs:
+  smoke-tests:
+    name: Run smoke tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - run: pip install tox
+      - name: Run smoke tests
+        run: tox -c tox-distributioncheck.ini
