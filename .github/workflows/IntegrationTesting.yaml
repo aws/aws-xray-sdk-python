@@ -1,5 +1,8 @@
 name: Integration Testing
-on: push
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   build_SDK:
