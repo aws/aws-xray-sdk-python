@@ -44,7 +44,6 @@ setup(
     ],
 
     install_requires=[
-        'jsonpickle',
         'enum34;python_version<"3.4"',
         'wrapt',
         'future',
