@@ -149,12 +149,13 @@ class Subsegment(Entity):
         """
         self.sql = sql
 
-    def __getstate__(self):
+    def to_dict(self): 
+        """
+        Convert Subsegment object to dict with required properties
+        that have non-empty values. 
+        """    
+        subsegment_dict = super(Subsegment, self).to_dict()
+        
+        del subsegment_dict['parent_segment']
 
-        properties = copy.copy(self.__dict__)
-        super(Subsegment, self)._delete_empty_properties(properties)
-
-        del properties['parent_segment']
-        if not self.sql:
-            del properties['sql']
-        return properties
+        return subsegment_dict

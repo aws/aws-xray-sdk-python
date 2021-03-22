@@ -46,6 +46,19 @@ class Throwable(object):
         if exception:
             setattr(exception, '_recorded', True)
             setattr(exception, '_cause_id', self.id)
+			
+    def to_dict(self):  
+        """
+        Convert Throwable object to dict with required properties that
+        have non-empty values. 
+        """  
+        throwable_dict = {}
+        
+        for key, value in vars(self).items():  
+            if isinstance(value, bool) or value:
+                throwable_dict[key] = value       
+        
+        return throwable_dict
 
     def _normalize_stack_trace(self, stack):
         if stack is None:
@@ -66,11 +79,3 @@ class Throwable(object):
             normalized['label'] = label.strip()
 
             self.stack.append(normalized)
-
-    def __getstate__(self):
-        properties = copy.copy(self.__dict__)
-
-        if not self.stack:
-            del properties['stack']
-
-        return properties
