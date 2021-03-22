@@ -31,5 +31,5 @@ def metadata_to_dict(obj):
         else:
             return obj
     except Exception:
-        log.warning("Failed to convert " + str(obj) + " to dict")
+        log.debug("Failed to convert {} to dict".format(str(obj)))
         return {}
