@@ -1,0 +1,27 @@
+name: Release X-Ray Python SDK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: The version to tag the release with, e.g., 1.2.0, 1.3.0
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v2
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: '${{ github.event.inputs.version }}'
+          release_name: '${{ github.event.inputs.version }} Release'
+          body: 'See details in [CHANGELOG](https://github.com/aws/aws-xray-sdk-python/blob/master/CHANGELOG.rst)'
+          draft: true
+          prerelease: false

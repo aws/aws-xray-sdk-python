@@ -4,9 +4,10 @@ import binascii
 import time
 import string
 
-import jsonpickle
+import json
 
 from ..utils.compat import annotation_value_types, string_types
+from ..utils.conversion import metadata_to_dict
 from .throwable import Throwable
 from . import http
 from ..exceptions.exceptions import AlreadyEndedException
@@ -256,36 +257,42 @@ class Entity(object):
     def serialize(self):
         """
         Serialize to JSON document that can be accepted by the
-        X-Ray backend service. It uses jsonpickle to perform
-        serialization.
+        X-Ray backend service. It uses json to perform serialization.
         """
         try:
-            return jsonpickle.encode(self, unpicklable=False)
+            return json.dumps(self.to_dict(), default=str)
         except Exception:
-            log.exception("got an exception during serialization")
+            log.exception("Failed to serialize %s", self.name)
 
-    def _delete_empty_properties(self, properties):
+    def to_dict(self):
         """
-        Delete empty properties before serialization to avoid
-        extra keys with empty values in the output json.
+        Convert Entity(Segment/Subsegment) object to dict
+        with required properties that have non-empty values. 
         """
-        if not self.parent_id:
-            del properties['parent_id']
-        if not self.subsegments:
-            del properties['subsegments']
-        if not self.aws:
-            del properties['aws']
-        if not self.http:
-            del properties['http']
-        if not self.cause:
-            del properties['cause']
-        if not self.annotations:
-            del properties['annotations']
-        if not self.metadata:
-            del properties['metadata']
-        properties.pop(ORIGIN_TRACE_HEADER_ATTR_KEY, None)
-
-        del properties['sampled']
+        entity_dict = {}
+            
+        for key, value in vars(self).items():
+            if isinstance(value, bool) or value:
+                if key == 'subsegments':
+                    # child subsegments are stored as List
+                    subsegments = []
+                    for subsegment in value:
+                        subsegments.append(subsegment.to_dict())
+                    entity_dict[key] = subsegments
+                elif key == 'cause':
+                    entity_dict[key] = {}
+                    entity_dict[key]['working_directory'] = self.cause['working_directory']
+                    # exceptions are stored as List
+                    throwables = []
+                    for throwable in value['exceptions']:
+                        throwables.append(throwable.to_dict())
+                    entity_dict[key]['exceptions'] = throwables
+                elif key == 'metadata':
+                    entity_dict[key] = metadata_to_dict(value)
+                elif key != 'sampled' and key != ORIGIN_TRACE_HEADER_ATTR_KEY:
+            	    entity_dict[key] = value
+                
+        return entity_dict
 
     def _check_ended(self):
         if not self.in_progress:
