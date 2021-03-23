@@ -2,6 +2,26 @@
 CHANGELOG
 =========
 
+2.7.0
+==========
+* improvement: Only run integration tests on master. `PR277 <https://github.com/aws/aws-xray-sdk-python/pull/277>`_.
+* improvement: Add distribution channel smoke test. `PR276 <https://github.com/aws/aws-xray-sdk-python/pull/276>`_.
+* improvement: Replace jsonpickle with json to serialize entity. `PR275 <https://github.com/aws/aws-xray-sdk-python/pull/275>`_.
+* bugfix: Always close segment in teardown_request handler. `PR272 <https://github.com/aws/aws-xray-sdk-python/pull/272>`_.
+* improvement: Close segment in only _handle_exception in case of Internal Server Error. `PR271 <https://github.com/aws/aws-xray-sdk-python/pull/271>`_.
+* bugfix: Handling condition where Entity.cause is not a dict. `PR267 <https://github.com/aws/aws-xray-sdk-python/pull/267>`_.
+* improvement: Add ability to ignore some requests from httplib. `PR263 <https://github.com/aws/aws-xray-sdk-python/pull/263>`_.
+* feature: Add support for SQLAlchemy Core. `PR264 <https://github.com/aws/aws-xray-sdk-python/pull/264>`_.
+* improvement: Added always() to run clean up workflow. `PR259 <https://github.com/aws/aws-xray-sdk-python/pull/259>`_.
+* improvement: Allow configuring different Sampler in Django App. `PR252 <https://github.com/aws/aws-xray-sdk-python/pull/252>`_.
+* bugfix: Restore python2 compatibility of EC2 plugin. `PR249 <https://github.com/aws/aws-xray-sdk-python/pull/249>`_.
+* bugfix: eb solution stack name. `PR251 <https://github.com/aws/aws-xray-sdk-python/pull/251>`_.
+* improvement: Integration Test Workflow. `PR246 <https://github.com/aws/aws-xray-sdk-python/pull/246>`_.
+* improvement: Include unicode type for annotation value. `PR235 <https://github.com/aws/aws-xray-sdk-python/pull/235>`_.
+* improvement: Run tests against Django 3.1 instead of 1.11. `PR240 <https://github.com/aws/aws-xray-sdk-python/pull/240>`_.
+* bugfix: Generalize error check for pymysql error type. `PR239 <https://github.com/aws/aws-xray-sdk-python/pull/239>`_.
+* bugfix: SqlAlchemy: Close segment even if error was raised. `PR234 <https://github.com/aws/aws-xray-sdk-python/pull/234>`_.
+
 2.6.0
 ==========
 * bugfix: asyncio.Task.current_task PendingDeprecation fix. `PR217 <https://github.com/aws/aws-xray-sdk-python/pull/217>`_.
