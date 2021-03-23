@@ -29,7 +29,7 @@ jobs:
         id: distribution-availability
         run: tox -c tox-distributioncheck.ini
         
-      - name: Publish metric on X-Ray Go SDK distribution availability
+      - name: Publish metric on X-Ray Python SDK distribution availability
         if: ${{ always() }}
         run: |
           if [[ "${{ steps.distribution-availability.outcome }}" == "failure" ]]; then
