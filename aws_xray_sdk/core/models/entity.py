@@ -280,13 +280,16 @@ class Entity(object):
                         subsegments.append(subsegment.to_dict())
                     entity_dict[key] = subsegments
                 elif key == 'cause':
-                    entity_dict[key] = {}
-                    entity_dict[key]['working_directory'] = self.cause['working_directory']
-                    # exceptions are stored as List
-                    throwables = []
-                    for throwable in value['exceptions']:
-                        throwables.append(throwable.to_dict())
-                    entity_dict[key]['exceptions'] = throwables
+                    if isinstance(self.cause, dict):
+                        entity_dict[key] = {}
+                        entity_dict[key]['working_directory'] = self.cause['working_directory']
+                        # exceptions are stored as List
+                        throwables = []
+                        for throwable in value['exceptions']:
+                            throwables.append(throwable.to_dict())
+                        entity_dict[key]['exceptions'] = throwables
+                    else:
+                        entity_dict[key] = self.cause
                 elif key == 'metadata':
                     entity_dict[key] = metadata_to_dict(value)
                 elif key != 'sampled' and key != ORIGIN_TRACE_HEADER_ATTR_KEY:
