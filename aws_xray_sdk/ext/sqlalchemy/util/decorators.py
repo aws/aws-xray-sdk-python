@@ -1,5 +1,4 @@
 import re
-import types
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.ext.util import strip_url
 from future.standard_library import install_aliases
@@ -12,9 +11,9 @@ def decorate_all_functions(function_decorator):
     def decorator(cls):
         for c in cls.__bases__:
             for name, obj in vars(c).items():
-                if name.startswith("_"):
+                if name.startswith("_") or name == "load_options":
                     continue
-                if isinstance(obj, types.FunctionType):
+                if callable(obj):
                     try:
                         obj = obj.__func__  # unwrap Python 2 unbound method
                     except AttributeError:
