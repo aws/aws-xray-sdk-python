@@ -7,7 +7,7 @@
 
 ## Installing
 
-The AWS X-Ray SDK for Python is compatible with Python 2.7, 3.4, 3.5, 3.6, 3.7, and 3.8.
+The AWS X-Ray SDK for Python is compatible with Python 2.7, 3.4, 3.5, 3.6, 3.7, 3.8, and 3.9.
 
 Install the SDK using the following command (the SDK's non-testing dependencies will be installed).
 
