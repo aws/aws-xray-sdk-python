@@ -56,7 +56,6 @@ def test_all(session):
     """ Test calling all() on get all records.
     Verify we run the query and return the SQL as metdata"""
     session.query(User).all()
-    segment = xray_recorder.current_segment()
     assert len(xray_recorder.current_segment().subsegments) == 1
     sql_meta = xray_recorder.current_segment().subsegments[0].sql
     assert sql_meta['url'] == 'sqlite:///:memory:'
