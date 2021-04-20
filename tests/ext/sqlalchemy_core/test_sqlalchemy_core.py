@@ -56,24 +56,12 @@ def test_all(session):
     """ Test calling all() on get all records.
     Verify we run the query and return the SQL as metdata"""
     session.query(User).all()
+    segment = xray_recorder.current_segment()
     assert len(xray_recorder.current_segment().subsegments) == 1
     sql_meta = xray_recorder.current_segment().subsegments[0].sql
     assert sql_meta['url'] == 'sqlite:///:memory:'
     assert sql_meta['sanitized_query'].startswith('SELECT')
     assert sql_meta['sanitized_query'].endswith('FROM users')
-
-
-def test_add(session):
-    """ Test calling add() on insert a row.
-    Verify we that we capture trace for the add"""
-    password = "123456"
-    john = User(name='John', fullname="John Doe", password=password)
-    session.add(john)
-    session.commit()
-    assert len(xray_recorder.current_segment().subsegments) == 1
-    sql_meta = xray_recorder.current_segment().subsegments[0].sql
-    assert sql_meta['sanitized_query'].startswith('INSERT INTO users')
-    assert password not in sql_meta['sanitized_query']
 
 
 def test_filter_first(session):
