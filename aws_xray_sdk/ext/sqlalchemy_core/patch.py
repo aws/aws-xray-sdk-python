@@ -51,7 +51,15 @@ def _sql_meta(engine_instance, args):
     return name, metadata
 
 
-def _xray_traced_sqlalchemy_execute(wrapped, engine_instance, args, kwargs):
+def _xray_traced_sqlalchemy_execute(wrapped, instance, args, kwargs):
+    return _fetch_sql_metadata_and_process_request(wrapped, instance, args, kwargs)
+
+
+def _xray_traced_sqlalchemy_session(wrapped, instance, args, kwargs):
+    return _fetch_sql_metadata_and_process_request(wrapped, instance.bind, args, kwargs)
+
+
+def _fetch_sql_metadata_and_process_request(wrapped, engine_instance, args, kwargs):
     name, sql = _sql_meta(engine_instance, args)
     if sql is not None:
         subsegment = xray_recorder.begin_subsegment(name, namespace='remote')
@@ -70,10 +78,6 @@ def _xray_traced_sqlalchemy_execute(wrapped, engine_instance, args, kwargs):
             subsegment.set_sql(sql)
             xray_recorder.end_subsegment()
     return res
-
-
-def _xray_traced_sqlalchemy_session(wrapped, instance, args, kwargs):
-    return _xray_traced_sqlalchemy_execute(wrapped, instance.bind, args, kwargs)
 
 
 def patch():
@@ -98,3 +102,4 @@ def unpatch():
     _PATCHED_MODULES.discard('sqlalchemy_core')
     import sqlalchemy
     unwrap(sqlalchemy.engine.base.Connection, 'execute')
+    unwrap(sqlalchemy.orm.session.Session, 'execute')
