@@ -262,7 +262,7 @@ class Entity(object):
         try:
             return json.dumps(self.to_dict(), default=str)
         except Exception:
-            log.exception("Failed to serialize %s", self.name)
+            raise
 
     def to_dict(self):
         """
