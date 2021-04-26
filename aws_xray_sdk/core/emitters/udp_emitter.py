@@ -40,7 +40,7 @@ class UDPEmitter(object):
             log.debug("sending: %s to %s:%s." % (message, self._ip, self._port))
             self._send_data(message)
         except Exception:
-            log.exception("Failed to send entity to Daemon")
+            log.exception("Failed to send entity to Daemon.")
 
     def set_daemon_address(self, address):
         """
