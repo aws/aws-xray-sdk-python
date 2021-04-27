@@ -259,10 +259,7 @@ class Entity(object):
         Serialize to JSON document that can be accepted by the
         X-Ray backend service. It uses json to perform serialization.
         """
-        try:
-            return json.dumps(self.to_dict(), default=str)
-        except Exception:
-            raise
+        return json.dumps(self.to_dict(), default=str)
 
     def to_dict(self):
         """

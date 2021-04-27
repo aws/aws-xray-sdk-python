@@ -60,12 +60,7 @@ class UDPEmitter(object):
         return self._port
 
     def _send_data(self, data):
-
-        try:
-            self._socket.sendto(data.encode('utf-8'), (self._ip,
-                                self._port))
-        except Exception:
-            raise
+        self._socket.sendto(data.encode('utf-8'), (self._ip, self._port))
 
     def _parse_address(self, daemon_address):
         try:
