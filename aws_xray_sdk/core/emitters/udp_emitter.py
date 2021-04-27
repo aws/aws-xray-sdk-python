@@ -32,12 +32,15 @@ class UDPEmitter(object):
 
         :param entity: a trace entity to send to the X-Ray daemon
         """
-        message = "%s%s%s" % (PROTOCOL_HEADER,
-                              PROTOCOL_DELIMITER,
-                              entity.serialize())
+        try:
+            message = "%s%s%s" % (PROTOCOL_HEADER,
+                                  PROTOCOL_DELIMITER,
+                                  entity.serialize())
 
-        log.debug("sending: %s to %s:%s." % (message, self._ip, self._port))
-        self._send_data(message)
+            log.debug("sending: %s to %s:%s." % (message, self._ip, self._port))
+            self._send_data(message)
+        except Exception:
+            log.exception("Failed to send entity to Daemon.")
 
     def set_daemon_address(self, address):
         """
@@ -57,12 +60,7 @@ class UDPEmitter(object):
         return self._port
 
     def _send_data(self, data):
-
-        try:
-            self._socket.sendto(data.encode('utf-8'), (self._ip,
-                                self._port))
-        except Exception:
-            log.exception('failed to send data to X-Ray daemon.')
+        self._socket.sendto(data.encode('utf-8'), (self._ip, self._port))
 
     def _parse_address(self, daemon_address):
         try:
