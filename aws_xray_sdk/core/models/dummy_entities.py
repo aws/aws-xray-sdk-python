@@ -17,10 +17,10 @@ class DummySegment(Segment):
 
     def __init__(self, name='dummy'):
         no_op_id = os.getenv('AWS_XRAY_NOOP_ID')
-        if not no_op_id or no_op_id.lower() == 'true':
-            super(DummySegment, self).__init__(name=name, traceid=NoOpTraceId().to_id(), entityid='0000000000000000')
-        else:
+        if no_op_id and no_op_id.lower() == 'false':
             super(DummySegment, self).__init__(name=name, traceid=TraceId().to_id())
+        else:
+            super(DummySegment, self).__init__(name=name, traceid=NoOpTraceId().to_id(), entityid='0000000000000000')
         self.sampled = False
 
     def set_aws(self, aws_meta):
@@ -89,7 +89,9 @@ class DummySubsegment(Subsegment):
     def __init__(self, segment, name='dummy'):
         super(DummySubsegment, self).__init__(name, 'dummy', segment)
         no_op_id = os.getenv('AWS_XRAY_NOOP_ID')
-        if not no_op_id or no_op_id.lower() == 'true':
+        if no_op_id and no_op_id.lower() == 'false':
+            super(Subsegment, self).__init__(name)
+        else:
             super(Subsegment, self).__init__(name, entity_id='0000000000000000')
         self.sampled = False
 
