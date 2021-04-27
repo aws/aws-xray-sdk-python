@@ -12,7 +12,6 @@ from .throwable import Throwable
 from . import http
 from ..exceptions.exceptions import AlreadyEndedException
 
-
 log = logging.getLogger(__name__)
 
 # Valid characters can be found at http://docs.aws.amazon.com/xray/latest/devguide/xray-api-segmentdocuments.html
@@ -27,10 +26,14 @@ class Entity(object):
     The parent class for segment/subsegment. It holds common properties
     and methods on segment and subsegment.
     """
-    def __init__(self, name):
+
+    def __init__(self, name, entity_id=None):
+        if not entity_id:
+            self.id = self._generate_random_id()
+        else:
+            self.id = entity_id
 
         # required attributes
-        self.id = self._generate_random_id()
         self.name = name
         self.name = ''.join([c for c in name if c not in _common_invalid_name_characters])
         self.start_time = time.time()
@@ -270,7 +273,7 @@ class Entity(object):
         with required properties that have non-empty values. 
         """
         entity_dict = {}
-            
+
         for key, value in vars(self).items():
             if isinstance(value, bool) or value:
                 if key == 'subsegments':
@@ -293,8 +296,8 @@ class Entity(object):
                 elif key == 'metadata':
                     entity_dict[key] = metadata_to_dict(value)
                 elif key != 'sampled' and key != ORIGIN_TRACE_HEADER_ATTR_KEY:
-            	    entity_dict[key] = value
-                
+                    entity_dict[key] = value
+
         return entity_dict
 
     def _check_ended(self):
