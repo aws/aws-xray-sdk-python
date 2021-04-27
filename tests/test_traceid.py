@@ -1,7 +1,19 @@
 import os
+import pytest
 from aws_xray_sdk.core import xray_recorder
-
 from aws_xray_sdk.core.models.traceid import TraceId
+
+
+@pytest.fixture(autouse=True)
+def cleanup():
+    """
+    Clean up Environmental Variable for enable before and after tests
+    """
+    if 'AWS_XRAY_NOOP_ID' in os.environ:
+        del os.environ['AWS_XRAY_NOOP_ID']
+    yield
+    if 'AWS_XRAY_NOOP_ID' in os.environ:
+        del os.environ['AWS_XRAY_NOOP_ID']
 
 
 def test_id_format():
@@ -58,7 +70,6 @@ def test_id_generation_noop_true():
 
     # Close the segment
     xray_recorder.end_segment()
-    os.unsetenv('AWS_XRAY_NOOP_ID')
 
     assert segment.id == '0000000000000000'
     assert segment.trace_id == '1-00000000-000000000000000000000000'
@@ -77,7 +88,6 @@ def test_id_generation_noop_false():
 
     # Close the segment
     xray_recorder.end_segment()
-    os.unsetenv('AWS_XRAY_NOOP_ID')
 
     assert segment.id != '0000000000000000'
     assert segment.trace_id != '1-00000000-000000000000000000000000'
