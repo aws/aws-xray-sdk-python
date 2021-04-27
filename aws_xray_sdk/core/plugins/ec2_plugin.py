@@ -28,6 +28,10 @@ def initialize():
 
 
 def get_token():
+    """
+    Get the session token for IMDSv2 endpoint valid for 60 seconds
+    by specifying the X-aws-ec2-metadata-token-ttl-seconds header.
+    """
     token = None
     try:
         headers = {"X-aws-ec2-metadata-token-ttl-seconds": "60"}
