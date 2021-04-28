@@ -59,7 +59,7 @@ def test_all(session, sanitized_db_url):
     assert sql_meta['sanitized_query'].endswith('FROM users')
 
 
-def test_insert_on_conflict_renders(self, connection):
+def test_insert_on_conflict_renders(connection):
     statement = pg_insert(User).values(name='John', fullname="John Doe", password='123456')
     statement = statement.on_conflict_do_nothing()
 
