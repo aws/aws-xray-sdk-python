@@ -9,6 +9,9 @@ python:
   - "3.8"
   - "3.9"
 
+addons:
+  postgresql: "9.6"
+
 install:
   - pip install tox tox-travis
 

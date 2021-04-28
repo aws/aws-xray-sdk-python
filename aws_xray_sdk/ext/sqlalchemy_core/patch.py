@@ -13,6 +13,8 @@ from aws_xray_sdk.core.patcher import _PATCHED_MODULES
 from aws_xray_sdk.core.utils import stacktrace
 from aws_xray_sdk.ext.util import unwrap
 
+from sqlalchemy.sql.expression import ClauseElement
+
 
 def _sql_meta(engine_instance, args):
     try:
@@ -41,7 +43,10 @@ def _sql_meta(engine_instance, args):
             metadata['database_version'] = '.'.join(map(str, engine_instance.dialect.server_version_info))
         if xray_recorder.stream_sql:
             try:
-                metadata['sanitized_query'] = str(args[0])
+                if isinstance(args[0], ClauseElement):
+                    metadata['sanitized_query'] = str(args[0].compile(engine_instance.engine))
+                else:
+                    metadata['sanitized_query'] = str(args[0])
             except Exception:
                 logging.getLogger(__name__).exception('Error getting the sanitized query')
     except Exception:

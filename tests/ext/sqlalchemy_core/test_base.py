@@ -21,7 +21,12 @@ class User(Base):
 
 
 @pytest.fixture()
-def engine():
+def db_url():
+    return 'sqlite:///:memory:'
+
+
+@pytest.fixture()
+def engine(db_url):
     """
     Clean up context storage on each test run and begin a segment
     so that later subsegment can be attached. After each test run
@@ -29,7 +34,7 @@ def engine():
     """
     from aws_xray_sdk.ext.sqlalchemy_core import unpatch
     patch(('sqlalchemy_core',))
-    engine = create_engine('sqlite:///:memory:')
+    engine = create_engine(db_url)
     xray_recorder.configure(service='test', sampling=False, context=Context())
     xray_recorder.begin_segment('name')
     Base.metadata.create_all(engine)

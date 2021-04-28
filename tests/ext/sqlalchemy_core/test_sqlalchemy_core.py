@@ -1,4 +1,4 @@
-from .test_base import User, session, engine, connection
+from .test_base import User, session, db_url, engine, connection
 from sqlalchemy.sql.expression import Insert, Delete
 from aws_xray_sdk.core import xray_recorder
 
