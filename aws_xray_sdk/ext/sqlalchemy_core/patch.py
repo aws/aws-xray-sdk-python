@@ -1,5 +1,6 @@
 import logging
 import sys
+
 if sys.version_info >= (3, 0, 0):
     from urllib.parse import urlparse, uses_netloc
 else:
@@ -12,11 +13,13 @@ from aws_xray_sdk.core.patcher import _PATCHED_MODULES
 from aws_xray_sdk.core.utils import stacktrace
 from aws_xray_sdk.ext.util import unwrap
 
+from sqlalchemy.sql.expression import ClauseElement
 
-def _sql_meta(instance, args):
+
+def _sql_meta(engine_instance, args):
     try:
         metadata = {}
-        url = urlparse(str(instance.engine.url))
+        url = urlparse(str(engine_instance.engine.url))
         # Add Scheme to uses_netloc or // will be missing from url.
         uses_netloc.append(url.scheme)
         if url.password is None:
@@ -29,17 +32,23 @@ def _sql_meta(instance, args):
             metadata['url'] = parts.geturl()
             name = host_info
         metadata['user'] = url.username
-        metadata['database_type'] = instance.engine.name
+        metadata['database_type'] = engine_instance.engine.name
         try:
-            version = getattr(instance.dialect, '{}_version'.format(instance.engine.driver))
+            version = getattr(engine_instance.dialect, '{}_version'.format(engine_instance.engine.driver))
             version_str = '.'.join(map(str, version))
-            metadata['driver_version'] = "{}-{}".format(instance.engine.driver, version_str)
+            metadata['driver_version'] = "{}-{}".format(engine_instance.engine.driver, version_str)
         except AttributeError:
-            metadata['driver_version'] = instance.engine.driver
-        if instance.dialect.server_version_info is not None:
-            metadata['database_version'] = '.'.join(map(str, instance.dialect.server_version_info))
+            metadata['driver_version'] = engine_instance.engine.driver
+        if engine_instance.dialect.server_version_info is not None:
+            metadata['database_version'] = '.'.join(map(str, engine_instance.dialect.server_version_info))
         if xray_recorder.stream_sql:
-            metadata['sanitized_query'] = str(args[0])
+            try:
+                if isinstance(args[0], ClauseElement):
+                    metadata['sanitized_query'] = str(args[0].compile(engine_instance.engine))
+                else:
+                    metadata['sanitized_query'] = str(args[0])
+            except Exception:
+                logging.getLogger(__name__).exception('Error getting the sanitized query')
     except Exception:
         metadata = None
         name = None
@@ -48,7 +57,15 @@ def _sql_meta(instance, args):
 
 
 def _xray_traced_sqlalchemy_execute(wrapped, instance, args, kwargs):
-    name, sql = _sql_meta(instance, args)
+    return _process_request(wrapped, instance, args, kwargs)
+
+
+def _xray_traced_sqlalchemy_session(wrapped, instance, args, kwargs):
+    return _process_request(wrapped, instance.bind, args, kwargs)
+
+
+def _process_request(wrapped, engine_instance, args, kwargs):
+    name, sql = _sql_meta(engine_instance, args)
     if sql is not None:
         subsegment = xray_recorder.begin_subsegment(name, namespace='remote')
     else:
@@ -75,6 +92,12 @@ def patch():
         _xray_traced_sqlalchemy_execute
     )
 
+    wrapt.wrap_function_wrapper(
+        'sqlalchemy.orm.session',
+        'Session.execute',
+        _xray_traced_sqlalchemy_session
+    )
+
 
 def unpatch():
     """
@@ -84,3 +107,4 @@ def unpatch():
     _PATCHED_MODULES.discard('sqlalchemy_core')
     import sqlalchemy
     unwrap(sqlalchemy.engine.base.Connection, 'execute')
+    unwrap(sqlalchemy.orm.session.Session, 'execute')
