@@ -52,14 +52,14 @@ def _sql_meta(engine_instance, args):
 
 
 def _xray_traced_sqlalchemy_execute(wrapped, instance, args, kwargs):
-    return _fetch_sql_metadata_and_process_request(wrapped, instance, args, kwargs)
+    return _process_request(wrapped, instance, args, kwargs)
 
 
 def _xray_traced_sqlalchemy_session(wrapped, instance, args, kwargs):
-    return _fetch_sql_metadata_and_process_request(wrapped, instance.bind, args, kwargs)
+    return _process_request(wrapped, instance.bind, args, kwargs)
 
 
-def _fetch_sql_metadata_and_process_request(wrapped, engine_instance, args, kwargs):
+def _process_request(wrapped, engine_instance, args, kwargs):
     name, sql = _sql_meta(engine_instance, args)
     if sql is not None:
         subsegment = xray_recorder.begin_subsegment(name, namespace='remote')
