@@ -3,6 +3,7 @@ import pytest
 from .test_base import connection, User, session, Base
 
 from sqlalchemy import create_engine
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from aws_xray_sdk.core import xray_recorder, patch
 from aws_xray_sdk.core.context import Context
@@ -56,3 +57,16 @@ def test_all(session, sanitized_db_url):
     assert sql_meta['url'] == sanitized_db_url
     assert sql_meta['sanitized_query'].startswith('SELECT')
     assert sql_meta['sanitized_query'].endswith('FROM users')
+
+
+def test_insert_on_conflict_renders(self, connection):
+    statement = pg_insert(User).values(name='John', fullname="John Doe", password='123456')
+    statement = statement.on_conflict_do_nothing()
+
+    connection.execute(statement)
+
+    assert len(xray_recorder.current_segment().subsegments) == 1
+    sql_meta = xray_recorder.current_segment().subsegments[0].sql
+
+    assert sql_meta['sanitized_query'].startswith('INSERT INTO users')
+    assert 'ON CONFLICT DO NOTHING' in sql_meta['sanitized_query']
