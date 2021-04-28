@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+2.8.0
+==========
+* improvement: feat(sqla-core): Add support for rendering Database Specific queries. `PR291 <https://github.com/aws/aws-xray-sdk-python/pull/291>`_.
+* bugfix: Fixing broken instrumentation for sqlalchemy >= 1.4.0. `PR289 <https://github.com/aws/aws-xray-sdk-python/pull/289>`_.
+* feature: no op trace id generation. `PR293 <https://github.com/aws/aws-xray-sdk-python/pull/293>`_.
+* bugfix: Handle exception when sending entity to Daemon. `PR292 <https://github.com/aws/aws-xray-sdk-python/pull/292>`_.
+* bugfix: Fixed serialization issue when cause is a string. `PR284 <https://github.com/aws/aws-xray-sdk-python/pull/284>`_.
+* improvement: Publish metric on distribution availability. `PR279 <https://github.com/aws/aws-xray-sdk-python/pull/279>`_.
+
 2.7.0
 ==========
 * improvement: Only run integration tests on master. `PR277 <https://github.com/aws/aws-xray-sdk-python/pull/277>`_.
