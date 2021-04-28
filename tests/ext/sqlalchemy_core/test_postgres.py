@@ -1,6 +1,6 @@
 import pytest
 
-from .test_base import connection, User, session, Base
+from .test_base import connection, engine, session, User
 
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -18,6 +18,11 @@ def postgres_db():
 
 
 @pytest.fixture()
+def db_url(postgres_db):
+    return postgres_db.url()
+
+
+@pytest.fixture()
 def sanitized_db_url(postgres_db):
     dsn = postgres_db.dsn()
     return 'postgresql://{user}@{host}:{port}/{db}'.format(
@@ -26,26 +31,6 @@ def sanitized_db_url(postgres_db):
         port=dsn['port'],
         db=dsn['database'],
     )
-
-
-@pytest.fixture()
-def engine(postgres_db):
-    """
-    Clean up context storage on each test run and begin a segment
-    so that later subsegment can be attached. After each test run
-    it cleans up context storage again.
-    """
-    from aws_xray_sdk.ext.sqlalchemy_core import unpatch
-    patch(('sqlalchemy_core',))
-    engine = create_engine(postgres_db.url())
-    xray_recorder.configure(service='test', sampling=False, context=Context())
-    xray_recorder.begin_segment('name')
-    Base.metadata.create_all(engine)
-    xray_recorder.clear_trace_entities()
-    xray_recorder.begin_segment('name')
-    yield engine
-    xray_recorder.clear_trace_entities()
-    unpatch()
 
 
 def test_all(session, sanitized_db_url):
