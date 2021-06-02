@@ -8,7 +8,7 @@ itsdangerous==1.1.0
 Jinja2==2.11.3
 MarkupSafe==1.1.1
 requests==2.23.0
-urllib3==1.25.9
+urllib3==1.26.5
 Werkzeug==1.0.1
 flask-sqlalchemy==2.4.3
 aws_xray_sdk==2.6.0
