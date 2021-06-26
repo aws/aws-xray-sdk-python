@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 # Need absolute import as botocore is also in the current folder for py27
 import json
+import pkgutil
 
-from pkg_resources import resource_filename
 from botocore.exceptions import ClientError
 
 from aws_xray_sdk.core import xray_recorder
@@ -12,8 +12,7 @@ from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.ext.util import inject_trace_header, to_snake_case
 
 
-with open(resource_filename(__name__, 'resources/aws_para_whitelist.json'), 'r') as data_file:
-    whitelist = json.load(data_file)
+whitelist = json.loads(pkgutil.get_data(__name__, 'resources/aws_para_whitelist.json'))
 
 
 def inject_header(wrapped, instance, args, kwargs):

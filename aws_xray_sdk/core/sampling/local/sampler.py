@@ -1,13 +1,11 @@
 import json
+import pkgutil
 from random import Random
 
-from pkg_resources import resource_filename
 from .sampling_rule import SamplingRule
 from ...exceptions.exceptions import InvalidSamplingManifestError
 
-
-with open(resource_filename(__name__, 'sampling_rule.json')) as f:
-    local_sampling_rule = json.load(f)
+local_sampling_rule = json.loads(pkgutil.get_data(__name__, 'sampling_rule.json'))
 
 SUPPORTED_RULE_VERSION = (1, 2)
 
