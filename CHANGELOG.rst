@@ -10,6 +10,7 @@ CHANGELOG
 * bugfix: Handle exception when sending entity to Daemon. `PR292 <https://github.com/aws/aws-xray-sdk-python/pull/292>`_.
 * bugfix: Fixed serialization issue when cause is a string. `PR284 <https://github.com/aws/aws-xray-sdk-python/pull/284>`_.
 * improvement: Publish metric on distribution availability. `PR279 <https://github.com/aws/aws-xray-sdk-python/pull/279>`_.
+* TESTING TO SEE IF GITHUB TRAVIS CI TRIGGERS
 
 2.7.0
 ==========
