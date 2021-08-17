@@ -12,8 +12,6 @@ from .models.subsegment import Subsegment, SubsegmentContextManager
 from .models.default_dynamic_naming import DefaultDynamicNaming
 from .models.dummy_entities import DummySegment, DummySubsegment
 from .emitters.udp_emitter import UDPEmitter
-from .sampling.sampler import DefaultSampler
-from .sampling.local.sampler import LocalSampler
 from .streaming.default_streaming import DefaultStreaming
 from .context import Context
 from .daemon_config import DaemonConfig
@@ -58,10 +56,12 @@ class AWSXRayRecorder(object):
         context = check_in_lambda()
         if context:
             # Special handling when running on AWS Lambda.
+            from .sampling.local.sampler import LocalSampler
             self._context = context
             self.streaming_threshold = 0
             self._sampler = LocalSampler()
         else:
+            from .sampling.sampler import DefaultSampler
             self._context = Context()
             self._sampler = DefaultSampler()
 
