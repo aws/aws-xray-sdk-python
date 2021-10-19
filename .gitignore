@@ -1,24 +1,140 @@
+### OSX ###
 .DS_Store
-*.pyc
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
 .Python
-.cache
-.pytest_cache
-man
-
-build
-bin
-include
-lib
-dist
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
 *.egg
-*.egg-info
-.tox
-.python-version
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+### Django ###
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+migrations
+
+
+# file list
+db.sqlite3
+nohup.out
+migrated
+requirements.lock
+index.yaml
+jinja-*.yaml
+node_modules
+package-lock.json
+*.html
+.env
 .pytest_cache
-
-pip-selfcheck.json
-
-.coverage*
-htmlcov
-
-venv
+.idea
+.eggs
+.tox
+.ipynb_checkpoints
+.vscode/*
+.srl
+*.pyc
+*.swp
+*.swo
+*.o
+*.pickle
+*.zlib
+*.gz
+*.tar
+*.doctree
+*.bin
+*.retry
+*.egg-info
+*.tgz
+*.log
+*.log.1*
+*.log.2*
+*.log.3*
+*.log.4*
+*.log.5*
+*.log.6*
+*.log.7*
+*.log.8*
+*.log.9*
+*.jpg
+*.jpeg
+*.tiff
+*.gif
+*.p12
+*.crt
+*.key
+*.ca
+*.csv
+*.tgz
+*.zip
+*.gzip
+*.gz
+*.bz2
+*.env
+*.secret
