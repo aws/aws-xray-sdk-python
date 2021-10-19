@@ -1,3 +1,6 @@
+man
+venv
+
 ### OSX ###
 .DS_Store
 .AppleDouble
@@ -40,7 +43,6 @@ lib64/
 parts/
 sdist/
 var/
-*.egg-info/
 .installed.cfg
 *.egg
 
@@ -75,27 +77,26 @@ target/
 ### Django ###
 *.log
 *.pot
-*.pyc
 __pycache__/
 local_settings.py
 migrations
 
-
 # file list
 db.sqlite3
-nohup.out
-migrated
-requirements.lock
 index.yaml
 jinja-*.yaml
+migrated
 node_modules
+nohup.out
 package-lock.json
+pip-selfcheck.json
+requirements.lock
 *.html
 .env
 .pytest_cache
+.python-version
 .idea
 .eggs
-.tox
 .ipynb_checkpoints
 .vscode/*
 .srl
@@ -110,6 +111,7 @@ package-lock.json
 *.doctree
 *.bin
 *.retry
+*.egg
 *.egg-info
 *.tgz
 *.log
