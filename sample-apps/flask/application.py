@@ -62,6 +62,22 @@ def callAWSSDK():
 @app.route('/flask-sql-alchemy-call')
 def callSQL():
     """callSQL."""
+    # add a custom subsegment with annotations
+    # https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-python-subsegments.html
+    # https://github.com/aws/aws-xray-sdk-python/blob/0e1f935bd2040ee7dbf0625db7f7ad780c66fb37/aws_xray_sdk/core/recorder.py#L341
+    annotation_subsegment = aws_core.xray_recorder.begin_subsegment(
+        'annotations')
+    annotation_subsegment.put_annotation(
+        'id', 12345)
+    aws_core.xray_recorder.end_subsegment()
+    # add a custom subsegment with metadata
+    # https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-python-subsegments.html
+    # https://github.com/aws/aws-xray-sdk-python/blob/0e1f935bd2040ee7dbf0625db7f7ad780c66fb37/aws_xray_sdk/core/recorder.py#L356
+    metadata_subsegment = aws_core.xray_recorder.begin_subsegment(
+        'metadata')
+    metadata_subsegment.put_metadata(
+        'custom-field-here', 'hello-world')
+    aws_core.xray_recorder.end_subsegment()
     name = 'sql-alchemy-model'
     user = User(name=name)
     db.create_all()
@@ -79,7 +95,7 @@ if __name__ == "__main__":
     address = os.environ.get('LISTEN_ADDRESS')
 
     if address is None:
-        host = '127.0.0.1'
+        host = '0.0.0.0'
         port = '5000'
     else:
         host, port = address.split(":")

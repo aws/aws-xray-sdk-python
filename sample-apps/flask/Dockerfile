@@ -24,8 +24,7 @@ RUN echo "installing linux tools" \
     && useradd -m --no-log-init -r -g driver -u ${UID} driver \
     && mkdir /opt/stack \
     && mkdir /opt/venv \
-    && mkdir /opt/data \
-    && chown driver:driver /opt/stack /opt/venv /opt/data
+    && chown driver:driver /opt/stack /opt/venv
 
 USER driver
 ENV HOME=/home/driver

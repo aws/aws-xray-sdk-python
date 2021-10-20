@@ -64,8 +64,10 @@ function header_log() {
 
 function show_diagnostics() {
     yellow "----------------------"
-    pwd
+    banner_log "current user:"
+    whoami
     banner_log "listing contents of the current directory:"
+    pwd
     ls -lrt
     banner_log "python version:"
     which python
@@ -111,7 +113,7 @@ function load_python_runtime() {
 function load_env() {
     load_aws_env_vars
     load_python_runtime
-} # load_env - ned
+} # load_env - end
 
 function start_aws_xray_daemon() {
     info "start - xray daemon - https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon-configuration.html"
@@ -141,31 +143,27 @@ function start_aws_xray_daemon() {
 } # start_aws_xray_daemon - end
 
 function start_app() {
-    info "start - app"
+    info "start - start_app"
     cd /opt/stack || return
     python application.py
-    info "done - app"
+    info "done - start_app"
 } # start_app - end
 
 function run_main() {
-    info "main - begin"
+    info "run_main - begin"
+    load_env
+    if [[ "${VERBOSE}" -ne 0 ]]; then
+        show_diagnostics
+    fi
     if [[ "${XRAY_DAEMON_ENABLED}" == "1" ]]; then
         start_aws_xray_daemon
     else
         info "main - xray daemon skipped"
     fi
     start_app
-    info "main - end"
+    info "run_main - end"
 } # run_main - end
 
-load_env
-
-if [[ "${VERBOSE}" -ne 0 ]]; then
-    show_diagnostics
-fi
-
 run_main
-
-green "done"
 
 exit 0

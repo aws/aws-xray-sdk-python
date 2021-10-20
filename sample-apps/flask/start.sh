@@ -5,36 +5,20 @@ function warn() { printf "\x1b[38;5;208m%s\e[0m " "${@}"; printf "\n"; };
 function green() { printf "\x1b[38;5;048m%s\e[0m " "${@}"; printf "\n"; };
 function red() { printf "\x1b[38;5;196m%s\e[0m " "${@}"; printf "\n"; };
 
-var_container_name="demo-xpy"
-var_compose="./compose.yml"
+if [[ "${CONTAINER_NAME}" == "" ]]; then
+    export CONTAINER_NAME="aws-demo-xray-with-python"
+fi
+
+if [[ "${COMPOSE_FILE_PATH}" == "" ]]; then
+    export COMPOSE_FILE_PATH="./compose.yml"
+fi
 
 if [[ "${DATE_FMT}" == "" ]]; then
     export DATE_FMT="%Y-%m-%dT%H:%M:%SZ"
 fi
 
 if [[ "${LOG_JOB_NAME}" == "" ]]; then
-    export LOG_JOB_NAME="${var_container_name}"
-fi
-
-# set custom aws credentials at deploy-time
-if [[ "${AWS_DEFAULT_REGION}" == "" ]]; then
-    export AWS_DEFAULT_REGION=""
-fi
-
-if [[ "${AWS_ACCESS_KEY_ID}" == "" ]]; then
-    export AWS_ACCESS_KEY_ID=""
-fi
-
-if [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]]; then
-    export AWS_SECRET_ACCESS_KEY=""
-fi
-
-if [[ "${AWS_SHARED_CREDENTIALS_FILE}" == "" ]]; then
-    export AWS_SHARED_CREDENTIALS_FILE=""
-fi
-
-if [[ "${AWS_CONFIG_FILE}" == "" ]]; then
-    export AWS_CONFIG_FILE=""
+    export LOG_JOB_NAME="${CONTAINER_NAME}"
 fi
 
 function info() {
@@ -81,65 +65,83 @@ function header_log() {
     yellow "${log_str}"
 } # header_log - end
 
-if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] && [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]] && [[ "${AWS_SHARED_CREDENTIALS_FILE}" == "" ]] && [[ "${AWS_CONFIG_FILE}" == "" ]]; then
-    err "missing AWS credentials for: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY or using AWS_SHARED_CREDENTIALS_FILE + AWS_CONFIG_FILE - stopping"
-    exit 1
-else
-    if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] && [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]]; then
-        if [[ -e "${AWS_SHARED_CREDENTIALS_FILE}" ]]; then
-            var_cred_data=$(cat "${AWS_SHARED_CREDENTIALS_FILE}")
-            var_aws_access_key=$(echo "${var_cred_data}" | grep aws_access_key_id | awk '{print $NF}')
-            var_aws_secret_key=$(echo "${var_cred_data}" | grep aws_secret_access_key | awk '{print $NF}')
-            export AWS_ACCESS_KEY_ID="${var_aws_access_key}"
-            export AWS_SECRET_ACCESS_KEY="${var_aws_secret_key}"
+function assign_aws_credentials() {
+    if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] && [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]] && [[ "${AWS_SHARED_CREDENTIALS_FILE}" == "" ]] && [[ "${AWS_CONFIG_FILE}" == "" ]]; then
+        err "missing AWS credentials for: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY or using AWS_SHARED_CREDENTIALS_FILE + AWS_CONFIG_FILE - stopping"
+        exit 1
+    else
+        if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] && [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]]; then
+            if [[ -e "${AWS_SHARED_CREDENTIALS_FILE}" ]]; then
+                var_cred_data=$(cat "${AWS_SHARED_CREDENTIALS_FILE}")
+                var_aws_access_key=$(echo "${var_cred_data}" | grep aws_access_key_id | sed -e 's/aws_access_key_id=//g' | sed -e 's/aws_access_key_id//g' | awk '{print $NF}')
+                var_aws_secret_key=$(echo "${var_cred_data}" | grep aws_secret_access_key | sed -e 's/aws_secret_access_key=//g' | sed -e 's/aws_secret_access_key//g' | awk '{print $NF}')
+                export AWS_ACCESS_KEY_ID="${var_aws_access_key}"
+                export AWS_SECRET_ACCESS_KEY="${var_aws_secret_key}"
+            fi
         fi
     fi
-fi
 
-if [[ "${AWS_DEFAULT_REGION}" == "" ]]; then
-    if [[ -e "${AWS_CONFIG_FILE}" ]]; then
-        var_aws_config_data=$(cat "${AWS_CONFIG_FILE}")
-        var_aws_region=$(echo "${var_aws_config_data}" | grep region | awk '{print $NF}')
-        export AWS_DEFAULT_REGION="${var_aws_region}"
+    if [[ "${AWS_DEFAULT_REGION}" == "" ]]; then
+        if [[ -e "${AWS_CONFIG_FILE}" ]]; then
+            var_aws_config_data=$(cat "${AWS_CONFIG_FILE}")
+            var_aws_region=$(echo "${var_aws_config_data}" | grep region | sed -e 's/region=//g' | sed -e 's/region//g' | awk '{print $NF}')
+            export AWS_DEFAULT_REGION="${var_aws_region}"
+        fi
     fi
-fi
 
-if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] && [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]]; then
-    err "unable to detect valid AWS credentials for: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY - please set up your AWS credentials and try again - stopping"
-    exit 1
-fi
-if [[ "${AWS_DEFAULT_REGION}" == "" ]]; then
-    err "unable to detect valid AWS region - please set up your AWS credentials and try again - stopping"
-    exit 1
-fi
+    if [[ "${AWS_ACCESS_KEY_ID}" == "" ]] && [[ "${AWS_SECRET_ACCESS_KEY}" == "" ]]; then
+        err "unable to detect valid AWS credentials for: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY - please set up your AWS credentials and try again - stopping"
+        exit 1
+    fi
+    if [[ "${AWS_DEFAULT_REGION}" == "" ]]; then
+        err "unable to detect valid AWS region - please set up your AWS credentials and try again - stopping"
+        exit 1
+    fi
+} # assign_aws_credentials - end
 
-var_test_if_running=$(docker ps -a | grep -c "${var_container_name}")
-if [[ "${var_test_if_running}" -ne 0 ]]; then
-    header_log "stopping previous deployment"
-    docker-compose -f ${var_compose} down > /dev/null 2>&1
-    docker rm "${var_container_name}" > /dev/null 2>&1
-fi
+function stop_and_clean_previous_container() {
+    var_test_if_running=$(docker ps -a | grep -c "${CONTAINER_NAME}")
+    if [[ "${var_test_if_running}" -ne 0 ]]; then
+        header_log "stopping previous deployment"
+        docker-compose -f ${COMPOSE_FILE_PATH} down > /dev/null 2>&1
+        docker rm "${CONTAINER_NAME}" > /dev/null 2>&1
+    fi
+} # stop_and_clean_previous_container - end
 
-header_log "starting docker compose: ${var_compose}"
-var_command="docker-compose -f ${var_compose} up -d"
-eval "${var_command} 2> /dev/null"
-var_last_status="$?"
-if [[ "${var_last_status}" -ne 0 ]]; then
-    err "failed to start docker compose with command: "
-    echo "${var_command}"
-    exit 1
-fi
+function start_compose_stack() {
+    header_log "starting docker compose: ${COMPOSE_FILE_PATH}"
+    var_command="docker-compose -f ${COMPOSE_FILE_PATH} up -d"
+    eval "${var_command} 2> /dev/null"
+    var_last_status="$?"
+    if [[ "${var_last_status}" -ne 0 ]]; then
+        err "failed to start docker compose with command: "
+        echo "${var_command}"
+        exit 1
+    fi
+} # start_compose_stack - end
 
-info "sleeping before getting logs"
-sleep 5
+function get_container_logs() {
+    info "sleeping before getting logs"
+    sleep 5
+    crit "----------------------------------"
+    docker logs "${CONTAINER_NAME}"
+    var_last_status="$?"
+    if [[ "${var_last_status}" -ne 0 ]]; then
+        err "failed to get docker logs with command: "
+        echo "docker logs ${CONTAINER_NAME}"
+        exit 1
+    fi
+} # get_container_logs - end
 
-crit "----------------------------------"
-docker logs "${var_container_name}"
-var_last_status="$?"
-if [[ "${var_last_status}" -ne 0 ]]; then
-    err "failed to get docker logs with command: "
-    echo "docker logs ${var_container_name}"
-    exit 1
-fi
+function run_main() {
+    info "run_main - begin"
+    assign_aws_credentials
+    stop_and_clean_previous_container
+    start_compose_stack
+    get_container_logs
+    info "run_main - end"
+} # run_main - end
+
+run_main
 
 exit 0

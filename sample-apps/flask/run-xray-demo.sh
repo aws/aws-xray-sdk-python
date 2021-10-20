@@ -63,9 +63,13 @@ function header_log() {
 } # header_log - end
 
 function run_main() {
-    info "main - begin"
+    info "run_main - begin"
+
     var_test_idx=1
-    var_use_endpoint="127.0.0.1:5000"
+    var_use_endpoint="0.0.0.0:5000"
+    if [[ "${LISTEN_ADDRESS}" != "" ]]; then
+        var_use_endpoint="${LISTEN_ADDRESS}"
+    fi
     var_use_transport="http"
     var_use_url="${var_use_transport}://${var_use_endpoint}"
 
@@ -115,17 +119,9 @@ function run_main() {
             var_not_done=1
         fi
     done
-    info "main - end"
+    info "run_main - end"
 } # run_main - end
 
-load_env
-
-if [[ "${VERBOSE}" -ne 0 ]]; then
-    show_diagnostics
-fi
-
 run_main
-
-green "done"
 
 exit 0

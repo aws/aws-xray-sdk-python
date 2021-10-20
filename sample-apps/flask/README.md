@@ -23,10 +23,10 @@
 1.  Confirm the Application is Running
 
     ```bash
-    docker ps | grep demo-xpy
+    docker ps | grep aws-demo-xray-with-python
     ```
 
-### Run X-Ray Trace Demo
+### Run the X-Ray Trace Demo
 
 With the application running locally, you can run this command to fire off demo API calls. These API calls will show up in AWS X-Ray.
 
@@ -48,7 +48,7 @@ Note: the links are set with **us-east-2** as the default AWS Region
 1.  Confirm AWS Identity
 
     ```bash
-    docker exec -it demo-xpy aws sts get-caller-identity
+    docker exec -it aws-demo-xray-with-python aws sts get-caller-identity
     ```
 
 1.  Review X-Ray Daemon logs
@@ -56,11 +56,11 @@ Note: the links are set with **us-east-2** as the default AWS Region
     **Tail**
 
     ```bash
-    docker exec -it demo-xpy tail -f /tmp/xray.log
+    docker exec -it aws-demo-xray-with-python tail -f /tmp/xray.log
     ```
 
     **View**
 
     ```bash
-    docker exec -it demo-xpy cat /tmp/xray.log
+    docker exec -it aws-demo-xray-with-python cat /tmp/xray.log
     ```

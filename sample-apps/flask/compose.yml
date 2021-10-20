@@ -2,24 +2,31 @@ version: '2'
 
 services:
 
-  demo-xpy:
-    container_name: demo-xpy
-    hostname: demo-xpy
-    image: demo/xpy:latest
-    network_mode: host
-    tty: true
+  aws-demo-xray-with-python:
+    image: aws/demo-xray-with-python:latest
+    container_name: aws-demo-xray-with-python
+    hostname: aws-demo-xray-with-python
+    ports:
+    - 5000:5000
     environment:
-    # if running on-premise, start up the X-Ray daemon with XRAY_DAEMON_ENABLED=1 and disable it with XRAY_DAEMON_ENABLED=0
-    - XRAY_DAEMON_ENABLED=1
+    - LISTEN_ADDRESS=0.0.0.0:5000
+    # if running on-premise (outside of AWS), then please start
+    # the X-Ray daemon with
+    # XRAY_DAEMON_ENABLED=1
+    # and if you are running on AWS, then you can disable it with
+    # XRAY_DAEMON_ENABLED=0
     # this is the tracking identifier for all data sent to AWS X-Ray
-    - XRAY_SERVICE_NAME=demo-xpy
+    - XRAY_DAEMON_ENABLED=1
+    - XRAY_SERVICE_NAME=aws-demo-xray-with-python
     - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
     - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
     - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     # silent with: VERBOSE=0 and debug with: VERBOSE=1
     - VERBOSE=0
-    volumes:
-    - .:/opt/stack
+    # Mac OS X users have to manually add support for the sample-apps directory to use this volume mount line
+    # note: this is helpful for local development on linux distros but commented out by default due to the Mac OS X ease-of-use limitation
+    # volumes:
+    # - .:/opt/stack
     entrypoint: >
       /bin/bash -c '
       /opt/stack/bin/init.sh
