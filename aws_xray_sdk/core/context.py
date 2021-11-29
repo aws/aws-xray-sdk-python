@@ -120,7 +120,6 @@ class Context(object):
         Called whenever there is no trace entity to access or mutate.
         """
         if self.context_missing == 'RUNTIME_ERROR':
-            log.error(MISSING_SEGMENT_MSG)
             raise SegmentNotFoundException(MISSING_SEGMENT_MSG)
         else:
             log.error(MISSING_SEGMENT_MSG)
