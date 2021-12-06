@@ -2,6 +2,12 @@
 CHANGELOG
 =========
 
+2.9.0
+==========
+* bugfix: Change logging behavior to avoid overflow. `PR302 <https://github.com/aws/aws-xray-sdk-python/pull/302>`_.
+* improvement: Lazy load samplers to speed up cold start in lambda. `PR312 <https://github.com/aws/aws-xray-sdk-python/pull/312>`_.
+* improvement: Replace slow json file name resolver. `PR 306 <https://github.com/aws/aws-xray-sdk-python/pull/306>`_.  
+
 2.8.0
 ==========
 * improvement: feat(sqla-core): Add support for rendering Database Specific queries. `PR291 <https://github.com/aws/aws-xray-sdk-python/pull/291>`_.
