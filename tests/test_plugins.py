@@ -1,5 +1,8 @@
 from aws_xray_sdk.core.plugins.utils import get_plugin_modules
-from mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch  # Python 2
 
 supported_plugins = (
     'ec2_plugin',

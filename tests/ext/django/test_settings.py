@@ -1,4 +1,7 @@
-from unittest import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock  # Python 2
 
 import django
 from aws_xray_sdk import global_sdk_config

@@ -5,7 +5,10 @@ Expects pytest-aiohttp
 """
 import asyncio
 from aws_xray_sdk import global_sdk_config
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch  # Python 2
 
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPUnauthorized
