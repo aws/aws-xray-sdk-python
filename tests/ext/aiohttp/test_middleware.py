@@ -8,7 +8,8 @@ from aws_xray_sdk import global_sdk_config
 try:
     from unittest.mock import patch
 except ImportError:
-    from mock import patch  # Python 2
+    # NOTE: Python 2 dependency
+    from mock import patch
 
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPUnauthorized

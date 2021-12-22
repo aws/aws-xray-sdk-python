@@ -1,7 +1,8 @@
 try:
     from unittest import mock
 except ImportError:
-    import mock  # Python 2
+    # NOTE: Python 2 dependency
+    import mock
 
 import django
 from aws_xray_sdk import global_sdk_config
