@@ -5,7 +5,7 @@ from pkg_resources import resource_filename
 # Faster
 def test_pkgutil_static_read(benchmark):
     def get_sampling_rule():
-        return json.loads(pkgutil.get_data(__name__, 'mock_sampling_rule.json'))
+        return json.loads(pkgutil.get_data(__name__, 'mock_sampling_rule.json').decode('utf-8'))
     benchmark(get_sampling_rule)
 
 # Slower

@@ -5,7 +5,7 @@ from random import Random
 from .sampling_rule import SamplingRule
 from ...exceptions.exceptions import InvalidSamplingManifestError
 
-local_sampling_rule = json.loads(pkgutil.get_data(__name__, 'sampling_rule.json'))
+local_sampling_rule = json.loads(pkgutil.get_data(__name__, 'sampling_rule.json').decode('utf-8'))
 
 SUPPORTED_RULE_VERSION = (1, 2)
 
