@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - fix_ci
   pull_request:
     branches:
       - master
