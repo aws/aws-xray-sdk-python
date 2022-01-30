@@ -11,7 +11,7 @@ from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 
 from aws_xray_sdk.ext.util import inject_trace_header, to_snake_case
 
-
+# `.decode('utf-8')` needed for Python 3.4, 3.5
 whitelist = json.loads(pkgutil.get_data(__name__, 'resources/aws_para_whitelist.json').decode('utf-8'))
 
 

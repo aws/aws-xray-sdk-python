@@ -1,6 +1,5 @@
 import pytest
 
-import aiobotocore
 from aiobotocore.session import get_session
 from botocore.stub import Stubber, ANY
 from botocore.exceptions import ClientError
