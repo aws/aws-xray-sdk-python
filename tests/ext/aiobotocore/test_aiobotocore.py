@@ -1,6 +1,6 @@
 import pytest
 
-import aiobotocore
+from aiobotocore.session import get_session
 from botocore.stub import Stubber, ANY
 from botocore.exceptions import ClientError
 
@@ -28,7 +28,7 @@ async def test_describe_table(loop, recorder):
     req_id = '1234'
     response = {'ResponseMetadata': {'RequestId': req_id, 'HTTPStatusCode': 403}}
 
-    session = aiobotocore.get_session()
+    session = get_session()
     async with session.create_client('dynamodb', region_name='eu-west-2') as client:
         with Stubber(client) as stubber:
             stubber.add_response('describe_table', response, {'TableName': 'mytable'})
@@ -53,7 +53,7 @@ async def test_s3_parameter_capture(loop, recorder):
     version_id = 'myversionid'
     response = {'ResponseMetadata': {'RequestId': '1234', 'HTTPStatusCode': 200}}
 
-    session = aiobotocore.get_session()
+    session = get_session()
     async with session.create_client('s3', region_name='eu-west-2') as client:
         with Stubber(client) as stubber:
             stubber.add_response('get_object', response,
@@ -87,7 +87,7 @@ async def test_list_parameter_counting(loop, recorder):
         }
     }
 
-    session = aiobotocore.get_session()
+    session = get_session()
     async with session.create_client('sqs', region_name='eu-west-2') as client:
         with Stubber(client) as stubber:
             stubber.add_response('list_queues', response, {'QueueNamePrefix': queue_name_prefix})
@@ -117,7 +117,7 @@ async def test_map_parameter_grouping(loop, recorder):
         }
     }
 
-    session = aiobotocore.get_session()
+    session = get_session()
     async with session.create_client('dynamodb', region_name='eu-west-2') as client:
         with Stubber(client) as stubber:
             stubber.add_response('batch_write_item', response, {'RequestItems': ANY})
@@ -137,7 +137,7 @@ async def test_context_missing_not_swallow_return(loop, recorder):
 
     response = {'ResponseMetadata': {'RequestId': '1234', 'HTTPStatusCode': 403}}
 
-    session = aiobotocore.get_session()
+    session = get_session()
     async with session.create_client('dynamodb', region_name='eu-west-2') as client:
         with Stubber(client) as stubber:
             stubber.add_response('describe_table', response, {'TableName': 'mytable'})
@@ -150,7 +150,7 @@ async def test_context_missing_not_suppress_exception(loop, recorder):
     xray_recorder.configure(service='test', sampling=False,
                             context=AsyncContext(loop=loop), context_missing='LOG_ERROR')
 
-    session = aiobotocore.get_session()
+    session = get_session()
     async with session.create_client('dynamodb', region_name='eu-west-2') as client:
         with Stubber(client) as stubber:
             stubber.add_client_error('describe_table', expected_params={'TableName': ANY})
