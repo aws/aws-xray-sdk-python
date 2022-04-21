@@ -1,6 +1,5 @@
 import os
 import logging
-from distutils.util import strtobool
 
 log = logging.getLogger(__name__)
 
@@ -40,10 +39,12 @@ class SDKConfig(object):
 
         :return: bool - True if it is enabled, False otherwise.
         """
-        env_var_str = os.getenv(cls.XRAY_ENABLED_KEY, 'true')
-        try:
-            return bool(strtobool(env_var_str))
-        except ValueError:
+        env_var_str = os.getenv(cls.XRAY_ENABLED_KEY, 'true').lower()
+        if env_var_str in ('y', 'yes', 't', 'true', 'on', '1'):
+            return True
+        elif env_var_str in ('n', 'no', 'f', 'false', 'off', '0'):
+            return False
+        else:
             log.warning("Invalid literal passed into environment variable `AWS_XRAY_SDK_ENABLED`. Defaulting to True...")
             return True  # If an invalid parameter is passed in, we return True.
 
