@@ -192,6 +192,19 @@ if xray_recorder.is_sampled():
     xray_recorder.put_metadata('mykey', metadata)
 ```
 
+### Using the TCP emitter
+
+In the event your application creates segments in excess of 64kb (using the
+default emitter, you will see log messages like `OSError: [Errno 90] Message too long`)
+you may want to use the TCP emitter instead:
+
+```python
+from aws_xray_sdk.core.emitter.tcp_emitter import TCPEmitter
+from aws_xray_sdk.core import xray_recorder
+
+xray_recorder.configure(emitter=TCPEmitter())
+```
+
 ### Generate NoOp Trace and Entity Id
 X-Ray Python SDK will by default generate no-op trace and entity id for unsampled requests and secure random trace and entity id for sampled requests. If customer wants to enable generating secure random trace and entity id for all the (sampled/unsampled) requests (this is applicable for trace id injection into logs use case) then they should set the `AWS_XRAY_NOOP_ID` environment variable as False.
 
