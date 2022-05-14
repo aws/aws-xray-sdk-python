@@ -199,7 +199,7 @@ default emitter, you will see log messages like `OSError: [Errno 90] Message too
 you may want to use the TCP emitter instead:
 
 ```python
-from aws_xray_sdk.core.emitter.tcp_emitter import TCPEmitter
+from aws_xray_sdk.core.emitters.tcp_emitter import TCPEmitter
 from aws_xray_sdk.core import xray_recorder
 
 xray_recorder.configure(emitter=TCPEmitter())
