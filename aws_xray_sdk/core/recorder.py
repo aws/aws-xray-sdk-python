@@ -112,6 +112,7 @@ class AWSXRayRecorder(object):
             RUNTIME_ERROR means the recorder will raise an exception.
             LOG_ERROR means the recorder will only log the error and
             do nothing.
+            IGNORE means the recorder will do nothing
         :param str daemon_address: The X-Ray daemon address where the recorder
             sends data to.
         :param str service: default segment name if creating a segment without
