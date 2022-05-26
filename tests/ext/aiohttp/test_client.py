@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from aiohttp import ClientSession
 
@@ -145,7 +147,8 @@ async def test_no_segment_raise(loop, recorder):
                 pass
 
 
-async def test_no_segment_log_error(loop, recorder, capsys):
+async def test_no_segment_log_error(loop, recorder, caplog):
+    caplog.set_level(logging.ERROR)
     xray_recorder.configure(context_missing='LOG_ERROR')
     trace_config = aws_xray_trace_config()
     status_code = 200
@@ -156,11 +159,11 @@ async def test_no_segment_log_error(loop, recorder, capsys):
 
     # Just check that the request was done correctly
     assert status_received == status_code
-    captured = capsys.readouterr()
-    assert MISSING_SEGMENT_MSG in captured.out
+    assert MISSING_SEGMENT_MSG in [rec.message for rec in caplog.records]
 
 
-async def test_no_segment_ignore(loop, recorder, capsys):
+async def test_no_segment_ignore(loop, recorder, caplog):
+    caplog.set_level(logging.ERROR)
     xray_recorder.configure(context_missing='IGNORE')
     trace_config = aws_xray_trace_config()
     status_code = 200
@@ -171,5 +174,4 @@ async def test_no_segment_ignore(loop, recorder, capsys):
 
     # Just check that the request was done correctly
     assert status_received == status_code
-    captured = capsys.readouterr()
-    assert MISSING_SEGMENT_MSG not in captured.out
+    assert MISSING_SEGMENT_MSG not in [rec.message for rec in caplog.records]
