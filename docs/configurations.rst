@@ -92,7 +92,7 @@ Supported strategies are:
 
 * RUNTIME_ERROR: throw an SegmentNotFoundException
 * LOG_ERROR: log an error and continue
-* IGNORE: will do nothing
+* IGNORE: do nothing
 
 Segment Dynamic Naming
 ----------------------
