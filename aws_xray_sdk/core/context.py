@@ -10,7 +10,7 @@ from aws_xray_sdk import global_sdk_config
 log = logging.getLogger(__name__)
 
 MISSING_SEGMENT_MSG = 'cannot find the current segment/subsegment, please make sure you have a segment open'
-SUPPORTED_CONTEXT_MISSING = ('RUNTIME_ERROR', 'LOG_ERROR', 'IGNORE')
+SUPPORTED_CONTEXT_MISSING = ('RUNTIME_ERROR', 'LOG_ERROR', 'IGNORE_ERROR')
 CXT_MISSING_STRATEGY_KEY = 'AWS_XRAY_CONTEXT_MISSING'
 
 

@@ -162,9 +162,9 @@ async def test_no_segment_log_error(loop, recorder, caplog):
     assert MISSING_SEGMENT_MSG in [rec.message for rec in caplog.records]
 
 
-async def test_no_segment_ignore(loop, recorder, caplog):
+async def test_no_segment_ignore_error(loop, recorder, caplog):
     caplog.set_level(logging.ERROR)
-    xray_recorder.configure(context_missing='IGNORE')
+    xray_recorder.configure(context_missing='IGNORE_ERROR')
     trace_config = aws_xray_trace_config()
     status_code = 200
     url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
