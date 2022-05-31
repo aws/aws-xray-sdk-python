@@ -1,8 +1,11 @@
+import logging
+
 import pytest
 from aiohttp import ClientSession
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.async_context import AsyncContext
+from aws_xray_sdk.core.context import MISSING_SEGMENT_MSG
 from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.ext.util import strip_url, get_hostname
 from aws_xray_sdk.ext.aiohttp.client import aws_xray_trace_config
@@ -144,7 +147,8 @@ async def test_no_segment_raise(loop, recorder):
                 pass
 
 
-async def test_no_segment_not_raise(loop, recorder):
+async def test_no_segment_log_error(loop, recorder, caplog):
+    caplog.set_level(logging.ERROR)
     xray_recorder.configure(context_missing='LOG_ERROR')
     trace_config = aws_xray_trace_config()
     status_code = 200
@@ -155,3 +159,19 @@ async def test_no_segment_not_raise(loop, recorder):
 
     # Just check that the request was done correctly
     assert status_received == status_code
+    assert MISSING_SEGMENT_MSG in [rec.message for rec in caplog.records]
+
+
+async def test_no_segment_ignore_error(loop, recorder, caplog):
+    caplog.set_level(logging.ERROR)
+    xray_recorder.configure(context_missing='IGNORE_ERROR')
+    trace_config = aws_xray_trace_config()
+    status_code = 200
+    url = 'http://{}/status/{}?foo=bar'.format(BASE_URL, status_code)
+    async with ClientSession(loop=loop, trace_configs=[trace_config]) as session:
+        async with session.get(url) as resp:
+            status_received = resp.status
+
+    # Just check that the request was done correctly
+    assert status_received == status_code
+    assert MISSING_SEGMENT_MSG not in [rec.message for rec in caplog.records]

@@ -2,6 +2,10 @@
 CHANGELOG
 =========
 
+Unreleased
+==========
+* improvement: Added support for IGNORE_ERROR option when context is missing. `PR338 <https://github.com/aws/aws-xray-sdk-python/pull/338>`_.
+
 2.9.0
 ==========
 * bugfix: Change logging behavior to avoid overflow. `PR302 <https://github.com/aws/aws-xray-sdk-python/pull/302>`_.
