@@ -3,6 +3,7 @@ import platform
 from .util import get_new_stubbed_recorder
 from aws_xray_sdk.version import VERSION
 from aws_xray_sdk.core.async_context import AsyncContext
+import asyncio
 
 
 xray_recorder = get_new_stubbed_recorder()
@@ -42,6 +43,28 @@ async def test_capture(loop):
     service = segment.service
     assert platform.python_implementation() == service.get('runtime')
     assert platform.python_version() == service.get('runtime_version')
+
+async def test_concurrent_calls(loop):
+    xray_recorder.configure(service='test', sampling=False, context=AsyncContext(loop=loop))
+    async with xray_recorder.in_segment_async('segment') as segment:
+        global counter
+        counter = 0
+        total_tasks = 10
+        event = asyncio.Event()
+        async def assert_task():
+            async with xray_recorder.in_subsegment_async('segment') as subsegment:
+                global counter
+                counter += 1
+                # Ensure that the task subsegments overlap
+                if counter < total_tasks:
+                    await event.wait()
+                else:
+                    event.set()
+                return subsegment.parent_id
+        tasks = [assert_task() for task in range(total_tasks)]
+        results = await asyncio.gather(*tasks)
+        for result in results:
+            assert result == segment.id
 
 
 async def test_async_context_managers(loop):

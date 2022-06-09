@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import copy
 
 from .context import Context as _Context
 
@@ -108,6 +109,13 @@ def task_factory(loop, coro):
     else:
         current_task = asyncio.Task.current_task(loop=loop)
     if current_task is not None and hasattr(current_task, 'context'):
-        setattr(task, 'context', current_task.context)
+        if current_task.context.get('entities'):
+            # Defensively copying because recorder modifies the list in place.
+            new_context = copy.copy(current_task.context)
+            new_context['entities'] = [item for item in current_task.context['entities']]
+        else:
+            # no reason to copy if there's no entities list.
+            new_context = current_task.context
+        setattr(task, 'context', new_context)
 
     return task
