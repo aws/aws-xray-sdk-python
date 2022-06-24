@@ -1,3 +1,5 @@
+import sys
+
 from setuptools import setup, find_packages
 from os import path
 from aws_xray_sdk.version import VERSION
@@ -11,6 +13,15 @@ except ImportError:
     read_md = lambda f: open(f, 'r').read()
 
 long_description = read_md(path.join(CURRENT_DIR, 'README.md'))
+
+INSTALL_REQUIRED_DEPS = [
+    'enum34;python_version<"3.4"',
+    'wrapt',
+    'botocore>=1.11.3',
+]
+
+if sys.version_info[0] == 2:
+    INSTALL_REQUIRED_DEPS.append("future")
 
 setup(
     name='aws-xray-sdk',
@@ -44,12 +55,7 @@ setup(
         'Programming Language :: Python :: 3.9',
     ],
 
-    install_requires=[
-        'enum34;python_version<"3.4"',
-        'wrapt',
-        'future',
-        'botocore>=1.11.3',
-    ],
+    install_requires=INSTALL_REQUIRED_DEPS,
 
     keywords='aws xray sdk',
 
