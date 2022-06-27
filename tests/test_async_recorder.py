@@ -50,16 +50,16 @@ async def test_concurrent_calls(loop):
         global counter
         counter = 0
         total_tasks = 10
-        event = asyncio.Event()
+        flag = asyncio.Event()
         async def assert_task():
             async with xray_recorder.in_subsegment_async('segment') as subsegment:
                 global counter
                 counter += 1
-                # Ensure that the task subsegments overlap
+                # Begin all subsegments before closing any to ensure they overlap
                 if counter < total_tasks:
-                    await event.wait()
+                    await flag.wait()
                 else:
-                    event.set()
+                    flag.set()
                 return subsegment.parent_id
         tasks = [assert_task() for task in range(total_tasks)]
         subsegs_parent_ids = await asyncio.gather(*tasks)
