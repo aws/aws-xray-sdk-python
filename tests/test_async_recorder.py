@@ -62,9 +62,9 @@ async def test_concurrent_calls(loop):
                     event.set()
                 return subsegment.parent_id
         tasks = [assert_task() for task in range(total_tasks)]
-        results = await asyncio.gather(*tasks)
-        for result in results:
-            assert result == segment.id
+        subsegs_parent_ids = await asyncio.gather(*tasks)
+        for subseg_parent_id in subsegs_parent_ids:
+            assert subseg_parent_id == segment.id
 
 
 async def test_async_context_managers(loop):
