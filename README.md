@@ -1,5 +1,11 @@
-[![Build Status](https://travis-ci.org/aws/aws-xray-sdk-python.svg?branch=master)](https://travis-ci.org/aws/aws-xray-sdk-python)
+![Build Status](https://github.com/aws/aws-xray-sdk-python/actions/workflows/IntegrationTesting.yaml/badge.svg)
 [![codecov](https://codecov.io/gh/aws/aws-xray-sdk-python/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-xray-sdk-python)
+
+### :mega: OpenTelemetry Python with AWS X-Ray
+
+AWS X-Ray recommends using AWS Distro for OpenTelemetry (ADOT) to instrument your application **instead of this X-Ray SDK** due to its wider range of features and instrumentations. See the [AWS X-Ray docs on Working with Python](https://docs.aws.amazon.com/xray/latest/devguide/xray-python.html) for more help with choosing between ADOT and X-Ray SDK.
+
+If you want additional features when tracing your Python applications, please [open an issue on the OpenTelemetry Python Instrumentation repository](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/new?labels=feature-request&template=feature_request.md&title=X-Ray%20Compatible%20Feature%20Request).
 
 # AWS X-Ray SDK for Python
 
