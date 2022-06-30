@@ -4,6 +4,11 @@ CHANGELOG
 
 Unreleased
 ==========
+
+2.10.0
+==========
+* bugfix: Only import future for py2. `PR343 <https://github.com/aws/aws-xray-sdk-python/pull/343>`_.
+* bugfix: Defensively copy context entities to async thread. `PR340 <https://github.com/aws/aws-xray-sdk-python/pull/340>`_.
 * improvement: Added support for IGNORE_ERROR option when context is missing. `PR338 <https://github.com/aws/aws-xray-sdk-python/pull/338>`_.
 
 2.9.0
