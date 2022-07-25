@@ -383,6 +383,13 @@ If `AUTO_PATCH_PARENT_SEGMENT_NAME` is also specified, then a segment parent wil
 with the supplied name, wrapping the automatic patching so that it captures any dangling
 subsegments created on the import patching.
 
+### Django in Lambda
+X-Ray can't search on http annotations in subsegments.   To enable searching the middleware adds the http values as annotations
+This allows searching in the X-Ray console like so
+```
+annotation.url BEGINSWITH "https://your.url.com/here"
+```
+
 ### Add Flask middleware
 
 ```python
