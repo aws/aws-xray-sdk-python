@@ -173,3 +173,17 @@ def test_query_as_string():
         test_sql = psycopg2.sql.Identifier('test')
         assert test_sql.as_string(conn)
         assert test_sql.as_string(conn.cursor())
+
+
+def test_register_default_jsonb():
+    with testing.postgresql.Postgresql() as postgresql:
+        url = postgresql.url()
+        dsn = postgresql.dsn()
+        conn = psycopg2.connect('dbname=' + dsn['database'] +
+                                ' password=mypassword' +
+                                ' host=' + dsn['host'] +
+                                ' port=' + str(dsn['port']) +
+                                ' user=' + dsn['user'])
+
+        assert psycopg2.extras.register_default_jsonb(conn_or_curs=conn, loads=lambda x: x)
+        assert psycopg2.extras.register_default_jsonb(conn_or_curs=conn.cursor(), loads=lambda x: x)
