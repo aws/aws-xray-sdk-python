@@ -386,6 +386,12 @@ subsegments created on the import patching.
 ### Django in Lambda
 X-Ray can't search on http annotations in subsegments.   To enable searching the middleware adds the http values as annotations
 This allows searching in the X-Ray console like so
+
+This is configurable in settings with `URLS_AS_ANNOTATION` that has 3 valid values
+`LAMBDA` - the default, which uses URLs as annotations by default if running in a lambda context
+`ALL` - do this for every request (useful if running in a mixed lambda/other deployment)
+`NONE` - don't do this for any (avoiding hitting the 50 annotation limit)
+
 ```
 annotation.url BEGINSWITH "https://your.url.com/here"
 ```
