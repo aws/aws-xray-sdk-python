@@ -60,7 +60,7 @@ class XRayMiddleware(object):
             sampling_req=sampling_req,
         )
         if self.in_lambda_ctx:
-            segment = xray_recorder.begin_subsegment(name, namespace="remote")
+            segment = xray_recorder.begin_subsegment(name)
             # X-Ray can't search/filter subsegments on URL but it can search annotations
             # So for lambda to be able to filter by annotation we add these as annotations
         else:
