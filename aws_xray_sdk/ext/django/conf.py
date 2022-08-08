@@ -19,6 +19,7 @@ DEFAULTS = {
     'PATCH_MODULES': [],
     'AUTO_PATCH_PARENT_SEGMENT_NAME': None,
     'IGNORE_MODULE_PATTERNS': [],
+    'URLS_AS_ANNOTATION': 'LAMBDA',  # 3 valid values, NONE -> don't ever, LAMBDA -> only for AWS Lambdas, ALL -> every time  
 }
 
 XRAY_NAMESPACE = 'XRAY_RECORDER'
