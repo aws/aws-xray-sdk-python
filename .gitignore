@@ -22,3 +22,4 @@ pip-selfcheck.json
 htmlcov
 
 venv
+.idea

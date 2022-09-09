@@ -232,7 +232,7 @@ class AWSXRayRecorder(object):
         elif sampling:
             decision = sampling
         elif self.sampling:
-            decision = self._sampler.should_trace()
+            decision = self._sampler.should_trace({'service': seg_name})
 
         if not decision:
             segment = DummySegment(seg_name)
