@@ -4,6 +4,7 @@ import logging
 import os
 import platform
 import time
+import six
 
 from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.version import VERSION
@@ -435,10 +436,10 @@ class AWSXRayRecorder(object):
         try:
             return_value = wrapped(*args, **kwargs)
             return return_value
-        except Exception as e:
-            exception = e
+        except Exception as exc:
+            exception = exc
             stack = stacktrace.get_stacktrace(limit=self.max_trace_back)
-            raise
+            six.raise_from(exc, exc)
         finally:
             # No-op if subsegment is `None` due to `LOG_ERROR`.
             if subsegment is not None:
