@@ -75,9 +75,10 @@ class ServerTest(object):
 
     async def handle_exception(self, request: web.Request) -> web.Response:
         """
-        Handle /exception which raises a KeyError
+        Handle /exception which raises a CancelledError; this is important, as starting from python 3.8 CancelledError
+        extends BaseException instead of Exception
         """
-        return {}['key']
+        raise asyncio.CancelledError()
 
     async def handle_delay(self, request: web.Request) -> web.Response:
         """
@@ -213,8 +214,8 @@ async def test_exception(test_client, loop, recorder):
     """
     client = await test_client(ServerTest.app(loop=loop))
 
-    resp = await client.get('/exception')
-    await resp.text()  # Need this to trigger Exception
+    with pytest.raises(Exception):
+        await client.get('/exception')
 
     segment = recorder.emitter.pop()
     assert not segment.in_progress
@@ -227,7 +228,7 @@ async def test_exception(test_client, loop, recorder):
     assert request['url'] == 'http://127.0.0.1:{port}/exception'.format(port=client.port)
     assert request['client_ip'] == '127.0.0.1'
     assert response['status'] == 500
-    assert exception.type == 'KeyError'
+    assert exception.type == 'CancelledError'
 
 
 async def test_unhauthorized(test_client, loop, recorder):
