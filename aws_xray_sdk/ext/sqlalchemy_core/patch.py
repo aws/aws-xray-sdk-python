@@ -1,12 +1,13 @@
 import logging
 import sys
+import wrapt
+import six
 
 if sys.version_info >= (3, 0, 0):
     from urllib.parse import urlparse, uses_netloc
 else:
     from urlparse import urlparse, uses_netloc
 
-import wrapt
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.patcher import _PATCHED_MODULES
@@ -72,12 +73,12 @@ def _process_request(wrapped, engine_instance, args, kwargs):
         subsegment = None
     try:
         res = wrapped(*args, **kwargs)
-    except Exception:
+    except Exception as exc:
         if subsegment is not None:
             exception = sys.exc_info()[1]
             stack = stacktrace.get_stacktrace(limit=xray_recorder._max_trace_back)
             subsegment.add_exception(exception, stack)
-        raise
+        six.raise_from(exc, exc)
     finally:
         if subsegment is not None:
             subsegment.set_sql(sql)
