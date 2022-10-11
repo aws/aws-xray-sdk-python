@@ -33,11 +33,14 @@ def test_ok(use_client):
     url = "http://{}/status/{}?foo=bar".format(BASE_URL, status_code)
     if use_client:
         with httpx.Client() as client:
-            client.get(url)
+            response = client.get(url)
     else:
-        httpx.get(url)
+        response = httpx.get(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert get_hostname(url) == BASE_URL
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
 
     http_meta = subsegment.http
@@ -52,10 +55,13 @@ def test_error(use_client):
     url = "http://{}/status/{}".format(BASE_URL, status_code)
     if use_client:
         with httpx.Client() as client:
-            client.post(url)
+            response = client.post(url)
     else:
-        httpx.post(url)
+        response = httpx.post(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.error
 
@@ -71,10 +77,13 @@ def test_throttle(use_client):
     url = "http://{}/status/{}".format(BASE_URL, status_code)
     if use_client:
         with httpx.Client() as client:
-            client.head(url)
+            response = client.head(url)
     else:
-        httpx.head(url)
+        response = httpx.head(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.error
     assert subsegment.throttle
@@ -91,10 +100,13 @@ def test_fault(use_client):
     url = "http://{}/status/{}".format(BASE_URL, status_code)
     if use_client:
         with httpx.Client() as client:
-            client.put(url)
+            response = client.put(url)
     else:
-        httpx.put(url)
+        response = httpx.put(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.fault
 
@@ -114,6 +126,7 @@ def test_nonexistent_domain(use_client):
             httpx.get("http://doesnt.exist")
 
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.fault
 
     exception = subsegment.cause["exceptions"][0]
@@ -131,6 +144,7 @@ def test_invalid_url(use_client):
             httpx.get(url)
 
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.fault
 
@@ -152,6 +166,7 @@ def test_name_uses_hostname(use_client):
         url1 = "http://{}/fakepath/stuff/koo/lai/ahh".format(BASE_URL)
         client.get(url1)
         subsegment = xray_recorder.current_segment().subsegments[-1]
+        assert subsegment.namespace == "remote"
         assert subsegment.name == BASE_URL
         http_meta1 = subsegment.http
         assert http_meta1["request"]["url"] == strip_url(url1)
@@ -160,6 +175,7 @@ def test_name_uses_hostname(use_client):
         url2 = "http://{}/".format(BASE_URL)
         client.get(url2, params={"some": "payload", "not": "toBeIncluded"})
         subsegment = xray_recorder.current_segment().subsegments[-1]
+        assert subsegment.namespace == "remote"
         assert subsegment.name == BASE_URL
         http_meta2 = subsegment.http
         assert http_meta2["request"]["url"] == strip_url(url2)
@@ -171,6 +187,7 @@ def test_name_uses_hostname(use_client):
         except httpx.ConnectError:
             pass
         subsegment = xray_recorder.current_segment().subsegments[-1]
+        assert subsegment.namespace == "remote"
         assert subsegment.name == "subdomain." + BASE_URL
         http_meta3 = subsegment.http
         assert http_meta3["request"]["url"] == strip_url(url3)
@@ -186,10 +203,13 @@ def test_strip_http_url(use_client):
     url = "http://{}/get?foo=bar".format(BASE_URL)
     if use_client:
         with httpx.Client() as client:
-            client.get(url)
+            response = client.get(url)
     else:
-        httpx.get(url)
+        response = httpx.get(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
 
     http_meta = subsegment.http

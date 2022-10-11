@@ -2,7 +2,7 @@ import httpx
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.models import http
-from aws_xray_sdk.ext.util import UNKNOWN_HOSTNAME, inject_trace_header
+from aws_xray_sdk.ext.util import inject_trace_header, get_hostname
 
 
 def patch():
@@ -32,28 +32,21 @@ class SyncInstrumentedTransport(httpx.BaseTransport):
         self._wrapped_transport = transport
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
-        def httpx_processor(return_value, exception, subsegment, stack, **kwargs):
-            subsegment.put_http_meta(http.METHOD, request.method)
-            subsegment.put_http_meta(
-                http.URL,
-                str(request.url.copy_with(password=None, query=None, fragment=None)),
-            )
+        with xray_recorder.in_subsegment(
+            get_hostname(str(request.url)), namespace="remote"
+        ) as subsegment:
+            if subsegment is not None:
+                subsegment.put_http_meta(http.METHOD, request.method)
+                subsegment.put_http_meta(
+                    http.URL,
+                    str(request.url.copy_with(password=None, query=None, fragment=None)),
+                )
+                inject_trace_header(request.headers, subsegment)
 
-            if return_value is not None:
-                subsegment.put_http_meta(http.STATUS, return_value.status_code)
-            elif exception:
-                subsegment.add_exception(exception, stack)
-
-        inject_trace_header(request.headers, xray_recorder.current_subsegment())
-        return xray_recorder.record_subsegment(
-            wrapped=self._wrapped_transport.handle_request,
-            instance=self._wrapped_transport,
-            args=(request,),
-            kwargs={},
-            name=request.url.host or UNKNOWN_HOSTNAME,
-            namespace="remote",
-            meta_processor=httpx_processor,
-        )
+            response = self._wrapped_transport.handle_request(request)
+            if subsegment is not None:
+                subsegment.put_http_meta(http.STATUS, response.status_code)
+            return response
 
 
 class AsyncInstrumentedTransport(httpx.AsyncBaseTransport):
@@ -61,25 +54,18 @@ class AsyncInstrumentedTransport(httpx.AsyncBaseTransport):
         self._wrapped_transport = transport
 
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        def httpx_processor(return_value, exception, subsegment, stack, **kwargs):
-            subsegment.put_http_meta(http.METHOD, request.method)
-            subsegment.put_http_meta(
-                http.URL,
-                str(request.url.copy_with(password=None, query=None, fragment=None)),
-            )
+        async with xray_recorder.in_subsegment_async(
+            get_hostname(str(request.url)), namespace="remote"
+        ) as subsegment:
+            if subsegment is not None:
+                subsegment.put_http_meta(http.METHOD, request.method)
+                subsegment.put_http_meta(
+                    http.URL,
+                    str(request.url.copy_with(password=None, query=None, fragment=None)),
+                )
+                inject_trace_header(request.headers, subsegment)
 
-            if return_value is not None:
-                subsegment.put_http_meta(http.STATUS, return_value.status_code)
-            elif exception:
-                subsegment.add_exception(exception, stack)
-
-        inject_trace_header(request.headers, xray_recorder.current_subsegment())
-        return await xray_recorder.record_subsegment_async(
-            wrapped=self._wrapped_transport.handle_async_request,
-            instance=self._wrapped_transport,
-            args=(request,),
-            kwargs={},
-            name=request.url.host or UNKNOWN_HOSTNAME,
-            namespace="remote",
-            meta_processor=httpx_processor,
-        )
+            response = await self._wrapped_transport.handle_async_request(request)
+            if subsegment is not None:
+                subsegment.put_http_meta(http.STATUS, response.status_code)
+            return response

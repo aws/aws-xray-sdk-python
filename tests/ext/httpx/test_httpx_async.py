@@ -32,9 +32,12 @@ async def test_ok_async():
     status_code = 200
     url = "http://{}/status/{}?foo=bar".format(BASE_URL, status_code)
     async with httpx.AsyncClient() as client:
-        await client.get(url)
+        response = await client.get(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
     assert get_hostname(url) == BASE_URL
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
 
     http_meta = subsegment.http
@@ -48,8 +51,11 @@ async def test_error_async():
     status_code = 400
     url = "http://{}/status/{}".format(BASE_URL, status_code)
     async with httpx.AsyncClient() as client:
-        await client.post(url)
+        response = await client.post(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.error
 
@@ -64,8 +70,11 @@ async def test_throttle_async():
     status_code = 429
     url = "http://{}/status/{}".format(BASE_URL, status_code)
     async with httpx.AsyncClient() as client:
-        await client.head(url)
+        response = await client.head(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.error
     assert subsegment.throttle
@@ -81,8 +90,11 @@ async def test_fault_async():
     status_code = 500
     url = "http://{}/status/{}".format(BASE_URL, status_code)
     async with httpx.AsyncClient() as client:
-        await client.put(url)
+        response = await client.put(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.fault
 
@@ -94,13 +106,12 @@ async def test_fault_async():
 
 @pytest.mark.asyncio
 async def test_nonexistent_domain_async():
-    try:
+    with pytest.raises(httpx.ConnectError):
         async with httpx.AsyncClient() as client:
             await client.get("http://doesnt.exist")
-    except Exception:
-        # prevent uncatch exception from breaking test run
-        pass
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.fault
 
     exception = subsegment.cause["exceptions"][0]
@@ -110,13 +121,12 @@ async def test_nonexistent_domain_async():
 @pytest.mark.asyncio
 async def test_invalid_url_async():
     url = "KLSDFJKLSDFJKLSDJF"
-    try:
+    with pytest.raises(httpx.UnsupportedProtocol):
         async with httpx.AsyncClient() as client:
             await client.get(url)
-    except Exception:
-        # prevent uncatch exception from breaking test run
-        pass
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
     assert subsegment.fault
 
@@ -133,6 +143,7 @@ async def test_name_uses_hostname_async():
         url1 = "http://{}/fakepath/stuff/koo/lai/ahh".format(BASE_URL)
         await client.get(url1)
         subsegment = xray_recorder.current_segment().subsegments[-1]
+        assert subsegment.namespace == "remote"
         assert subsegment.name == BASE_URL
         http_meta1 = subsegment.http
         assert http_meta1["request"]["url"] == strip_url(url1)
@@ -141,6 +152,7 @@ async def test_name_uses_hostname_async():
         url2 = "http://{}/".format(BASE_URL)
         await client.get(url2, params={"some": "payload", "not": "toBeIncluded"})
         subsegment = xray_recorder.current_segment().subsegments[-1]
+        assert subsegment.namespace == "remote"
         assert subsegment.name == BASE_URL
         http_meta2 = subsegment.http
         assert http_meta2["request"]["url"] == strip_url(url2)
@@ -153,6 +165,7 @@ async def test_name_uses_hostname_async():
             # This is an invalid url so we dont want to break the test
             pass
         subsegment = xray_recorder.current_segment().subsegments[-1]
+        assert subsegment.namespace == "remote"
         assert subsegment.name == "subdomain." + BASE_URL
         http_meta3 = subsegment.http
         assert http_meta3["request"]["url"] == strip_url(url3)
@@ -164,8 +177,11 @@ async def test_strip_http_url_async():
     status_code = 200
     url = "http://{}/get?foo=bar".format(BASE_URL)
     async with httpx.AsyncClient() as client:
-        await client.get(url)
+        response = await client.get(url)
+    assert "x-amzn-trace-id" in response._request.headers
+
     subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.namespace == "remote"
     assert subsegment.name == get_hostname(url)
 
     http_meta = subsegment.http
