@@ -26,6 +26,7 @@ SUPPORTED_MODULES = (
     'psycopg2',
     'pg8000',
     'sqlalchemy_core',
+    'httpx',
 )
 
 NO_DOUBLE_PATCH = (
@@ -40,6 +41,7 @@ NO_DOUBLE_PATCH = (
     'psycopg2',
     'pg8000',
     'sqlalchemy_core',
+    'httpx',
 )
 
 _PATCHED_MODULES = set()
