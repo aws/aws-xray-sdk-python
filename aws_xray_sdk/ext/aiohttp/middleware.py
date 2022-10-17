@@ -67,7 +67,7 @@ async def middleware(request, handler):
         # Non 2XX responses are raised as HTTPExceptions
         response = exc
         six.raise_from(exc, exc)
-    except Exception as exc:
+    except BaseException as exc:
         # Store exception information including the stacktrace to the segment
         response = None
         segment.put_http_meta(http.STATUS, 500)
