@@ -1,7 +1,7 @@
 import sqlite3
 
 from django.http import HttpResponse
-from django.conf.urls import url
+from django.urls import path
 from django.views.generic import TemplateView
 
 
@@ -32,9 +32,9 @@ def call_db(request):
 
 
 urlpatterns = [
-    url(r'^200ok/$', ok, name='200ok'),
-    url(r'^500fault/$', fault, name='500fault'),
-    url(r'^call_db/$', call_db, name='call_db'),
-    url(r'^template/$', IndexView.as_view(), name='template'),
-    url(r'^template_block/$', TemplateBlockView.as_view(), name='template_block'),
+    path('200ok/', ok, name='200ok'),
+    path('500fault/', fault, name='500fault'),
+    path('call_db/', call_db, name='call_db'),
+    path('template/', IndexView.as_view(), name='template'),
+    path('template_block/', TemplateBlockView.as_view(), name='template_block'),
 ]
