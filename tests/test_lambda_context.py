@@ -8,7 +8,8 @@ from aws_xray_sdk.core.models.subsegment import Subsegment
 
 TRACE_ID = '1-5759e988-bd862e3fe1be46a994272793'
 PARENT_ID = '53995c3f42cd8ad8'
-HEADER_VAR = "Root=%s;Parent=%s;Sampled=1" % (TRACE_ID, PARENT_ID)
+DATA = 'Foo=Bar'
+HEADER_VAR = "Root=%s;Parent=%s;Sampled=1;%s" % (TRACE_ID, PARENT_ID, DATA)
 
 os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = HEADER_VAR
 context = lambda_launcher.LambdaContext()
@@ -26,6 +27,7 @@ def test_facade_segment_generation():
     assert segment.id == PARENT_ID
     assert segment.trace_id == TRACE_ID
     assert segment.sampled
+    assert DATA in segment.get_origin_trace_header().to_header_str()
 
 
 def test_put_subsegment():
@@ -43,6 +45,7 @@ def test_put_subsegment():
     assert subsegment2.parent_id == subsegment.id
     assert subsegment.parent_id == segment.id
     assert subsegment2.parent_segment is segment
+    assert DATA in subsegment2.parent_segment.get_origin_trace_header().to_header_str()
 
     context.end_subsegment()
     assert context.get_trace_entity().id == subsegment.id
@@ -60,6 +63,7 @@ def test_disable():
     global_sdk_config.set_sdk_enabled(False)
     segment = context.get_trace_entity()
     assert not segment.sampled
+    assert DATA in segment.get_origin_trace_header().to_header_str()
 
 
 def test_non_initialized():
