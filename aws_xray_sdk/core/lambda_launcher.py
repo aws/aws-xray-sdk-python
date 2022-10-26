@@ -142,5 +142,6 @@ class LambdaContext(Context):
             entityid=trace_header.parent,
             sampled=sampled,
         )
+        segment.save_origin_trace_header(trace_header)
         setattr(self._local, 'segment', segment)
         setattr(self._local, 'entities', [])
