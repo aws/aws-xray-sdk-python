@@ -35,11 +35,14 @@ def test_localstorage_isolation(event_loop):
     # Run loads of concurrent tasks
     if sys.version_info >= (3, 8):
         results = event_loop.run_until_complete(
-            asyncio.wait([_test() for _ in range(0, 100)])
+            asyncio.wait([event_loop.create_task(_test()) for _ in range(0, 100)])
         )
     else:
         results = event_loop.run_until_complete(
-            asyncio.wait([_test() for _ in range(0, 100)], loop=event_loop)
+            asyncio.wait(
+                [event_loop.create_task(_test()) for _ in range(0, 100)],
+                loop=event_loop,
+            )
         )
     results = [item.result() for item in results[0]]
 

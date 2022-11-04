@@ -287,14 +287,9 @@ async def test_concurrent(test_client, loop, recorder):
         assert resp.status == 200
 
     if sys.version_info >= (3, 8):
-        await asyncio.wait([get_delay(), get_delay(), get_delay(),
-                            get_delay(), get_delay(), get_delay(),
-                            get_delay(), get_delay(), get_delay()])
+        await asyncio.wait([loop.create_task(get_delay()) for i in range(9)])
     else:
-        await asyncio.wait([get_delay(), get_delay(), get_delay(),
-                            get_delay(), get_delay(), get_delay(),
-                            get_delay(), get_delay(), get_delay()],
-                        loop=loop)
+        await asyncio.wait([loop.create_task(get_delay()) for i in range(9)], loop=loop)
 
     # Ensure all ID's are different
     ids = [item.id for item in recorder.emitter.local]
