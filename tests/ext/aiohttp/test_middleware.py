@@ -4,6 +4,7 @@ Tests the middleware for aiohttp server
 Expects pytest-aiohttp
 """
 import asyncio
+import sys
 from aws_xray_sdk import global_sdk_config
 try:
     from unittest.mock import patch
@@ -84,7 +85,10 @@ class ServerTest(object):
         """
         Handle /delay request
         """
-        await asyncio.sleep(0.3, loop=self._loop)
+        if sys.version_info >= (3, 8):
+            await asyncio.sleep(0.3)
+        else:
+            await asyncio.sleep(0.3, loop=self._loop)
         return web.Response(text="ok")
 
     def get_app(self) -> web.Application:
@@ -282,10 +286,15 @@ async def test_concurrent(test_client, loop, recorder):
         resp = await client.get('/delay')
         assert resp.status == 200
 
-    await asyncio.wait([get_delay(), get_delay(), get_delay(),
-                        get_delay(), get_delay(), get_delay(),
-                        get_delay(), get_delay(), get_delay()],
-                       loop=loop)
+    if sys.version_info >= (3, 8):
+        await asyncio.wait([get_delay(), get_delay(), get_delay(),
+                            get_delay(), get_delay(), get_delay(),
+                            get_delay(), get_delay(), get_delay()])
+    else:
+        await asyncio.wait([get_delay(), get_delay(), get_delay(),
+                            get_delay(), get_delay(), get_delay(),
+                            get_delay(), get_delay(), get_delay()],
+                        loop=loop)
 
     # Ensure all ID's are different
     ids = [item.id for item in recorder.emitter.local]
