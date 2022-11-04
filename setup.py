@@ -4,13 +4,8 @@ from aws_xray_sdk.version import VERSION
 
 CURRENT_DIR = path.abspath(path.dirname(__file__))
 
-try:
-    from pypandoc import convert
-    read_md = lambda f: convert(f, 'rst')
-except ImportError:
-    read_md = lambda f: open(f, 'r').read()
-
-long_description = read_md(path.join(CURRENT_DIR, 'README.md'))
+with open(path.join(CURRENT_DIR, 'README.md'), 'r') as f:
+    long_description = f.read()
 
 setup(
     name='aws-xray-sdk',
