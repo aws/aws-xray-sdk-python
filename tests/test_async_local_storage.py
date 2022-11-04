@@ -4,8 +4,8 @@ import random
 from aws_xray_sdk.core.async_context import TaskLocalStorage
 
 
-def test_localstorage_isolation(loop):
-    local_storage = TaskLocalStorage(loop=loop)
+def test_localstorage_isolation(event_loop):
+    local_storage = TaskLocalStorage(loop=event_loop)
 
     async def _test():
         """
@@ -19,7 +19,7 @@ def test_localstorage_isolation(loop):
             random_int = random.random()
             local_storage.randint = random_int
 
-            await asyncio.sleep(0.0, loop=loop)
+            await asyncio.sleep(0.0, loop=event_loop)
 
             current_random_int = local_storage.randint
             assert random_int == current_random_int
@@ -29,8 +29,8 @@ def test_localstorage_isolation(loop):
             return False
 
     # Run loads of concurrent tasks
-    results = loop.run_until_complete(
-        asyncio.wait([_test() for _ in range(0, 100)], loop=loop)
+    results = event_loop.run_until_complete(
+        asyncio.wait([_test() for _ in range(0, 100)], loop=event_loop)
     )
     results = [item.result() for item in results[0]]
 
