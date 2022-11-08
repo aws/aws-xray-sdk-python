@@ -263,3 +263,47 @@ def test_add_exception_appending_exceptions():
 
     assert isinstance(segment.cause, dict)
     assert len(segment.cause['exceptions']) == 2
+
+def test_adding_unsampled_subsegment():
+    segment = Segment('seg')
+    subsegment = Subsegment('sub', 'local', segment)
+    subsegment.sampled = False
+    segment.add_subsegment(subsegment)
+
+    assert subsegment.sampled == False
+    assert segment.sampled == True
+
+def test_adding_unsampled_subsegment_to_subsegment():
+    segment = Segment('seg')
+    subsegment = Subsegment('sub', 'local', segment)
+    segment.add_subsegment(subsegment)
+    subsubsegment = Subsegment('subsub', 'local', segment)
+    subsubsegment.sampled = False
+    subsegment.add_subsegment(subsubsegment)
+
+    assert segment.sampled == True
+    assert subsegment.sampled == True
+    assert subsubsegment.sampled == False
+
+def test_adding_subsegment_respects_parent_sampling():
+    segment = Segment('seg')
+    subsegment = Subsegment('sub', 'local', segment)
+    subsegment.sampled = False
+    segment.add_subsegment(subsegment)
+    subsubsegment = Subsegment('subsub', 'local', segment)
+    subsegment.add_subsegment(subsubsegment)
+
+    assert segment.sampled == True
+    assert subsegment.sampled == False
+    assert subsubsegment.sampled == False
+
+def test_adding_subsegment_respects_parent_sampling2():
+    segment = Segment('seg')
+    subsegment = Subsegment('sub', 'local', segment)
+    segment.add_subsegment(subsegment)
+    subsubsegment = Subsegment('subsub', 'local', segment)
+    subsegment.add_subsegment(subsubsegment)
+
+    assert segment.sampled == True
+    assert subsegment.sampled == True
+    assert subsubsegment.sampled == True

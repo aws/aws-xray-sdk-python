@@ -141,6 +141,24 @@ def test_first_begin_segment_sampled():
 
     assert segment.sampled
 
+def test_unsampled_subsegment_of_sampled_parent():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=True)
+    segment = xray_recorder.begin_segment('name', sampling=True)
+    subsegment = xray_recorder.begin_subsegment('unsampled', sampling=False)
+
+    assert segment.sampled == True
+    assert subsegment.sampled == False
+
+def test_begin_subsegment_unsampled():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=False)
+    segment = xray_recorder.begin_segment('name', sampling=False)
+    subsegment = xray_recorder.begin_subsegment('unsampled', sampling=False)
+
+    assert segment.sampled == False
+    assert subsegment.sampled == False
+
 
 def test_in_segment_closing():
     xray_recorder = get_new_stubbed_recorder()
@@ -200,6 +218,23 @@ def test_disable_is_dummy():
     subsegment = xray_recorder.begin_subsegment('name')
     assert type(xray_recorder.current_segment()) is DummySegment
     assert type(xray_recorder.current_subsegment()) is DummySubsegment
+
+def test_unsampled_subsegment_is_dummy():
+    assert global_sdk_config.sdk_enabled()
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name', sampling=False)
+    
+    assert type(xray_recorder.current_subsegment()) is DummySubsegment
+
+def test_subsegment_respects_parent_sampling_decision():
+    assert global_sdk_config.sdk_enabled()
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('name2', sampling=False)
+    subsegment2 = xray_recorder.begin_subsegment('unsampled-subsegment')
+
+    assert type(xray_recorder.current_subsegment()) is DummySubsegment
+    assert subsegment.sampled == False
+    assert subsegment2.sampled == False
 
 
 def test_disabled_empty_context_current_calls():

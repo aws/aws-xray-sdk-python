@@ -275,7 +275,7 @@ class AWSXRayRecorder(object):
         else:
             return entity
 
-    def begin_subsegment(self, name, namespace='local'):
+    def begin_subsegment(self, name, namespace='local', sampling=True):
         """
         Begin a new subsegment.
         If there is open subsegment, the newly created subsegment will be the
@@ -296,8 +296,11 @@ class AWSXRayRecorder(object):
             log.warning("No segment found, cannot begin subsegment %s." % name)
             return None
 
-        if not segment.sampled:
+        current_entity = self.get_trace_entity()
+
+        if not current_entity.sampled or not sampling:
             subsegment = DummySubsegment(segment, name)
+            subsegment.sampled = False
         else:
             subsegment = Subsegment(name, namespace, segment)
 
@@ -335,7 +338,7 @@ class AWSXRayRecorder(object):
 
         # if segment is already close, we check if we can send entire segment
         # otherwise we check if we need to stream some subsegments
-        if self.current_segment().ready_to_send():
+        if self.current_segment().ready_to_send(): 
             self._send_segment()
         else:
             self.stream_subsegments()
@@ -487,7 +490,8 @@ class AWSXRayRecorder(object):
 
     def _stream_subsegment_out(self, subsegment):
         log.debug("streaming subsegments...")
-        self.emitter.send_entity(subsegment)
+        if subsegment.sampled:
+            self.emitter.send_entity(subsegment)
 
     def _load_sampling_rules(self, sampling_rules):
 

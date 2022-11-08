@@ -1,4 +1,10 @@
-from aws_xray_sdk.ext.util import to_snake_case, get_hostname, strip_url
+from aws_xray_sdk.ext.util import to_snake_case, get_hostname, strip_url, inject_trace_header
+from aws_xray_sdk.core.models.segment import Segment
+from aws_xray_sdk.core.models.subsegment import Subsegment
+from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
+from .util import get_new_stubbed_recorder
+
+xray_recorder = get_new_stubbed_recorder()
 
 UNKNOWN_HOST = "UNKNOWN HOST"
 
@@ -52,3 +58,38 @@ def test_strip_url():
 
     assert strip_url("") == ""
     assert not strip_url(None)
+
+
+def test_inject_trace_header_unsampled():
+    headers = {'host': 'test', 'accept': '*/*', 'connection': 'keep-alive', 'X-Amzn-Trace-Id': 'Root=1-6369739a-7d8bb07e519b795eb24d382d;Parent=089e3de743fb9e79;Sampled=1'}
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=True)
+    segment = xray_recorder.begin_segment('name', sampling=True)
+    subsegment = xray_recorder.begin_subsegment('unsampled', sampling=False)
+
+    inject_trace_header(headers, subsegment)
+
+    assert 'Sampled=0' in headers['X-Amzn-Trace-Id']
+
+def test_inject_trace_header_respects_parent_subsegment():
+    headers = {'host': 'test', 'accept': '*/*', 'connection': 'keep-alive', 'X-Amzn-Trace-Id': 'Root=1-6369739a-7d8bb07e519b795eb24d382d;Parent=089e3de743fb9e79;Sampled=1'}
+
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=True)
+    segment = xray_recorder.begin_segment('name', sampling=True)
+    subsegment = xray_recorder.begin_subsegment('unsampled', sampling=False)
+    subsegment2 = xray_recorder.begin_subsegment('unsampled2')
+    inject_trace_header(headers, subsegment2)
+
+    assert 'Sampled=0' in headers['X-Amzn-Trace-Id']
+
+def test_inject_trace_header_sampled():
+    headers = {'host': 'test', 'accept': '*/*', 'connection': 'keep-alive', 'X-Amzn-Trace-Id': 'Root=1-6369739a-7d8bb07e519b795eb24d382d;Parent=089e3de743fb9e79;Sampled=1'}
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=True)
+    segment = xray_recorder.begin_segment('name')
+    subsegment = xray_recorder.begin_subsegment('unsampled')
+
+    inject_trace_header(headers, subsegment)
+
+    assert 'Sampled=1' in headers['X-Amzn-Trace-Id']

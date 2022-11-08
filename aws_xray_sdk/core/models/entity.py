@@ -81,6 +81,7 @@ class Entity(object):
         """
         self._check_ended()
         subsegment.parent_id = self.id
+        subsegment.sampled = self.sampled if subsegment.sampled == True else False
         self.subsegments.append(subsegment)
 
     def remove_subsegment(self, subsegment):

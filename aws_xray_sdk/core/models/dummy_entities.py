@@ -11,7 +11,7 @@ class DummySegment(Segment):
     the segment based on sampling rules.
     Adding data to a dummy segment becomes a no-op except for
     subsegments. This is to reduce the memory footprint of the SDK.
-    A dummy segment will not be sent to the X-Ray daemon. Manually create
+    A dummy segment will not be sent to the X-Ray daemon. Manually creating
     dummy segments is not recommended.
     """
 
