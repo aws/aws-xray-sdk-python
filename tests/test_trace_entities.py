@@ -11,6 +11,9 @@ from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 from aws_xray_sdk.core.exceptions.exceptions import AlreadyEndedException
 
 from .util import entity_to_dict
+from .util import get_new_stubbed_recorder
+
+xray_recorder = get_new_stubbed_recorder()
 
 
 def test_unicode_entity_name():
@@ -307,3 +310,19 @@ def test_adding_subsegment_respects_parent_sampling2():
     assert segment.sampled == True
     assert subsegment.sampled == True
     assert subsubsegment.sampled == True
+
+def test_adding_subsegments_with_recorder():
+    xray_recorder.configure(sampling=False)
+    xray_recorder.clear_trace_entities()
+    
+    segment = xray_recorder.begin_segment('parent');
+    subsegment = xray_recorder.begin_subsegment('sampled-child')
+    unsampled_subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled-child1')
+    unsampled_child_subsegment = xray_recorder.begin_subsegment('unsampled-child2')
+
+    assert segment.sampled == True
+    assert subsegment.sampled == True
+    assert unsampled_subsegment.sampled == False
+    assert unsampled_child_subsegment.sampled == False
+
+    xray_recorder.clear_trace_entities()

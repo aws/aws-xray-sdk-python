@@ -35,7 +35,6 @@ def inject_trace_header(headers, entity):
     else:
         header = entity.get_origin_trace_header()
     data = header.data if header else None
-    
     to_insert = TraceHeader(
         root=entity.trace_id,
         parent=entity.id,

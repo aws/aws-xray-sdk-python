@@ -275,7 +275,7 @@ class AWSXRayRecorder(object):
         else:
             return entity
 
-    def begin_subsegment(self, name, namespace='local', sampling=True):
+    def begin_subsegment(self, name, namespace='local'):
         """
         Begin a new subsegment.
         If there is open subsegment, the newly created subsegment will be the
@@ -284,8 +284,6 @@ class AWSXRayRecorder(object):
 
         :param str name: the name of the subsegment.
         :param str namespace: currently can only be 'local', 'remote', 'aws'.
-        :param bool sampling: sampling decision for the subsegment being created,
-            defaults to True
         """
         # Generating the parent dummy segment is necessary.
         # We don't need to store anything in context. Assumption here
@@ -300,12 +298,40 @@ class AWSXRayRecorder(object):
 
         current_entity = self.get_trace_entity()
 
-        if not current_entity.sampled or not sampling:
+        if not current_entity.sampled:
             subsegment = DummySubsegment(segment, name)
             subsegment.sampled = False
         else:
             subsegment = Subsegment(name, namespace, segment)
 
+        self.context.put_subsegment(subsegment)
+
+        return subsegment
+
+    def begin_subsegment_without_sampling(self, name):
+        """
+        Begin a new subsegment.
+        If there is open subsegment, the newly created subsegment will be the
+        child of latest opened subsegment.
+        If not, it will be the child of the current open segment.
+
+        :param str name: the name of the subsegment.
+        :param str namespace: currently can only be 'local', 'remote', 'aws'.
+        """
+        # Generating the parent dummy segment is necessary.
+        # We don't need to store anything in context. Assumption here
+        # is that we only work with recorder-level APIs.
+        if not global_sdk_config.sdk_enabled():
+            return DummySubsegment(DummySegment(global_sdk_config.DISABLED_ENTITY_NAME))
+
+        segment = self.current_segment()
+        if not segment:
+            log.warning("No segment found, cannot begin subsegment %s." % name)
+            return None
+
+        subsegment = DummySubsegment(segment, name)
+        subsegment.sampled = False
+ 
         self.context.put_subsegment(subsegment)
 
         return subsegment
@@ -340,7 +366,7 @@ class AWSXRayRecorder(object):
 
         # if segment is already close, we check if we can send entire segment
         # otherwise we check if we need to stream some subsegments
-        if self.current_segment().ready_to_send(): 
+        if self.current_segment().ready_to_send():
             self._send_segment()
         else:
             self.stream_subsegments()

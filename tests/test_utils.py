@@ -65,7 +65,7 @@ def test_inject_trace_header_unsampled():
     xray_recorder = get_new_stubbed_recorder()
     xray_recorder.configure(sampling=True)
     segment = xray_recorder.begin_segment('name', sampling=True)
-    subsegment = xray_recorder.begin_subsegment('unsampled', sampling=False)
+    subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled')
 
     inject_trace_header(headers, subsegment)
 
@@ -77,7 +77,7 @@ def test_inject_trace_header_respects_parent_subsegment():
     xray_recorder = get_new_stubbed_recorder()
     xray_recorder.configure(sampling=True)
     segment = xray_recorder.begin_segment('name', sampling=True)
-    subsegment = xray_recorder.begin_subsegment('unsampled', sampling=False)
+    subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled')
     subsegment2 = xray_recorder.begin_subsegment('unsampled2')
     inject_trace_header(headers, subsegment2)
 
