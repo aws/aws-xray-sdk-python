@@ -284,6 +284,8 @@ class AWSXRayRecorder(object):
 
         :param str name: the name of the subsegment.
         :param str namespace: currently can only be 'local', 'remote', 'aws'.
+        :param bool sampling: sampling decision for the subsegment being created,
+            defaults to True
         """
         # Generating the parent dummy segment is necessary.
         # We don't need to store anything in context. Assumption here
