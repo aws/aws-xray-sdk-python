@@ -81,7 +81,10 @@ class Entity(object):
         """
         self._check_ended()
         subsegment.parent_id = self.id
-        subsegment.sampled = self.sampled if subsegment.sampled == True else False
+
+        if not self.sampled and subsegment.sampled:
+            log.warning("This sampled subsegment is being added to an unsampled parent segment/subsegment and will be orphaned.")
+
         self.subsegments.append(subsegment)
 
     def remove_subsegment(self, subsegment):
