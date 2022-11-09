@@ -70,21 +70,3 @@ def test_adding_unsampled_subsegment():
     assert segment.subsegments[0] is subsegment
     assert subsegment.subsegments[0] is subsegment2
     assert subsegment2.sampled == False
-
-def test_adding_subsegment_respects_parent_sampling_decision():
-
-    segment = FacadeSegment('name', 'id', 'id', True)
-    subsegment = Subsegment('sampled', 'local', segment)
-    subsegment2 = Subsegment('unsampled', 'local', segment)
-    subsegment2.sampled = False
-    
-    subsegment3 = Subsegment('unsampled-child', 'local', segment)
-    segment.add_subsegment(subsegment)
-    subsegment.add_subsegment(subsegment2)
-
-    subsegment2.add_subsegment(subsegment3)
-
-    assert segment.subsegments[0] is subsegment
-    assert subsegment.subsegments[0] is subsegment2
-    assert subsegment2.sampled == False
-    assert subsegment3.sampled == False

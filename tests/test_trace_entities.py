@@ -288,29 +288,6 @@ def test_adding_unsampled_subsegment_to_subsegment():
     assert subsegment.sampled == True
     assert subsubsegment.sampled == False
 
-def test_adding_subsegment_respects_parent_sampling():
-    segment = Segment('seg')
-    subsegment = Subsegment('sub', 'local', segment)
-    subsegment.sampled = False
-    segment.add_subsegment(subsegment)
-    subsubsegment = Subsegment('subsub', 'local', segment)
-    subsegment.add_subsegment(subsubsegment)
-
-    assert segment.sampled == True
-    assert subsegment.sampled == False
-    assert subsubsegment.sampled == False
-
-def test_adding_subsegment_respects_parent_sampling2():
-    segment = Segment('seg')
-    subsegment = Subsegment('sub', 'local', segment)
-    segment.add_subsegment(subsegment)
-    subsubsegment = Subsegment('subsub', 'local', segment)
-    subsegment.add_subsegment(subsubsegment)
-
-    assert segment.sampled == True
-    assert subsegment.sampled == True
-    assert subsubsegment.sampled == True
-
 def test_adding_subsegments_with_recorder():
     xray_recorder.configure(sampling=False)
     xray_recorder.clear_trace_entities()
