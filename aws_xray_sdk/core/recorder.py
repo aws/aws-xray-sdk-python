@@ -275,16 +275,10 @@ class AWSXRayRecorder(object):
         else:
             return entity
 
-    def begin_subsegment(self, name, namespace='local'):
-        """
-        Begin a new subsegment.
-        If there is open subsegment, the newly created subsegment will be the
-        child of latest opened subsegment.
-        If not, it will be the child of the current open segment.
-
-        :param str name: the name of the subsegment.
-        :param str namespace: currently can only be 'local', 'remote', 'aws'.
-        """
+    def _begin_subsegment_helper(self, name, namespace='local', beginWithoutSampling=False):
+        '''
+        Helper method to begin_subsegment and begin_subsegment_without_sampling
+        '''
         # Generating the parent dummy segment is necessary.
         # We don't need to store anything in context. Assumption here
         # is that we only work with recorder-level APIs.
@@ -295,15 +289,41 @@ class AWSXRayRecorder(object):
         if not segment:
             log.warning("No segment found, cannot begin subsegment %s." % name)
             return None
-
-        if not segment.sampled:
+        
+        current_entity = self.get_trace_entity()
+        if not current_entity.sampled or beginWithoutSampling:
             subsegment = DummySubsegment(segment, name)
         else:
             subsegment = Subsegment(name, namespace, segment)
 
         self.context.put_subsegment(subsegment)
-
         return subsegment
+
+
+
+    def begin_subsegment(self, name, namespace='local'):
+        """
+        Begin a new subsegment.
+        If there is open subsegment, the newly created subsegment will be the
+        child of latest opened subsegment.
+        If not, it will be the child of the current open segment.
+
+        :param str name: the name of the subsegment.
+        :param str namespace: currently can only be 'local', 'remote', 'aws'.
+        """
+        return self._begin_subsegment_helper(name, namespace)
+
+
+    def begin_subsegment_without_sampling(self, name):
+        """
+        Begin a new unsampled subsegment.
+        If there is open subsegment, the newly created subsegment will be the
+        child of latest opened subsegment.
+        If not, it will be the child of the current open segment.
+
+        :param str name: the name of the subsegment.
+        """
+        return self._begin_subsegment_helper(name, beginWithoutSampling=True)
 
     def current_subsegment(self):
         """
@@ -487,7 +507,8 @@ class AWSXRayRecorder(object):
 
     def _stream_subsegment_out(self, subsegment):
         log.debug("streaming subsegments...")
-        self.emitter.send_entity(subsegment)
+        if subsegment.sampled:
+            self.emitter.send_entity(subsegment)
 
     def _load_sampling_rules(self, sampling_rules):
 
