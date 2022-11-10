@@ -274,6 +274,20 @@ class AWSXRayRecorder(object):
             return entity.parent_segment
         else:
             return entity
+    
+    def _begin_subsegment_helper(self, name):
+        '''
+        Helper method to begin_subsegment and begin_subsegment_without_sampling
+        '''
+        result = True
+        if not global_sdk_config.sdk_enabled():
+            result =  DummySubsegment(DummySegment(global_sdk_config.DISABLED_ENTITY_NAME))
+
+        segment = self.current_segment()
+        if not segment:
+            log.warning("No segment found, cannot begin subsegment %s." % name)
+            result =  None
+        return result, segment
 
     def begin_subsegment(self, name, namespace='local'):
         """
@@ -288,52 +302,35 @@ class AWSXRayRecorder(object):
         # Generating the parent dummy segment is necessary.
         # We don't need to store anything in context. Assumption here
         # is that we only work with recorder-level APIs.
-        if not global_sdk_config.sdk_enabled():
-            return DummySubsegment(DummySegment(global_sdk_config.DISABLED_ENTITY_NAME))
-
-        segment = self.current_segment()
-        if not segment:
-            log.warning("No segment found, cannot begin subsegment %s." % name)
-            return None
+        result, segment = self._begin_subsegment_helper(name)
+        if type(result) == DummySubsegment or result == None:
+            return result
 
         current_entity = self.get_trace_entity()
 
         if not current_entity.sampled:
             subsegment = DummySubsegment(segment, name)
-            subsegment.sampled = False
         else:
             subsegment = Subsegment(name, namespace, segment)
 
         self.context.put_subsegment(subsegment)
-
         return subsegment
 
     def begin_subsegment_without_sampling(self, name):
         """
-        Begin a new subsegment.
+        Begin a new unsampled subsegment.
         If there is open subsegment, the newly created subsegment will be the
         child of latest opened subsegment.
         If not, it will be the child of the current open segment.
 
         :param str name: the name of the subsegment.
-        :param str namespace: currently can only be 'local', 'remote', 'aws'.
         """
-        # Generating the parent dummy segment is necessary.
-        # We don't need to store anything in context. Assumption here
-        # is that we only work with recorder-level APIs.
-        if not global_sdk_config.sdk_enabled():
-            return DummySubsegment(DummySegment(global_sdk_config.DISABLED_ENTITY_NAME))
-
-        segment = self.current_segment()
-        if not segment:
-            log.warning("No segment found, cannot begin subsegment %s." % name)
-            return None
+        result, segment = self._begin_subsegment_helper(name)
+        if type(result) == DummySubsegment or result == None:
+            return result
 
         subsegment = DummySubsegment(segment, name)
-        subsegment.sampled = False
- 
         self.context.put_subsegment(subsegment)
-
         return subsegment
 
     def current_subsegment(self):
