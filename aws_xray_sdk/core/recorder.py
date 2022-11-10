@@ -275,7 +275,7 @@ class AWSXRayRecorder(object):
         else:
             return entity
 
-    def _begin_subsegment_helper(self, name, namespace='local', beginWithoutSampling=False):
+    def _begin_subsegment_helper(self, name, namespace, beginWithoutSampling=False):
         '''
         Helper method to begin_subsegment and begin_subsegment_without_sampling
         '''
@@ -311,7 +311,7 @@ class AWSXRayRecorder(object):
         :param str name: the name of the subsegment.
         :param str namespace: currently can only be 'local', 'remote', 'aws'.
         """
-        return self._begin_subsegment_helper(name)
+        return self._begin_subsegment_helper(name, namespace)
 
 
     def begin_subsegment_without_sampling(self, name):
