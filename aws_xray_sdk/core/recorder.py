@@ -275,7 +275,7 @@ class AWSXRayRecorder(object):
         else:
             return entity
 
-    def _begin_subsegment_helper(self, name, namespace, beginWithoutSampling=False):
+    def _begin_subsegment_helper(self, name, namespace='local', beginWithoutSampling=False):
         '''
         Helper method to begin_subsegment and begin_subsegment_without_sampling
         '''
