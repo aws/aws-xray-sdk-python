@@ -139,11 +139,11 @@ def lambda_handler(event, context):
 
     for message in event['Records']:
         if SqsMessageHelper.isSampled(message):
-            print('sampled - doing batch work')
+            print('sampled - processing SQS message')
             subsegment = xray_recorder.begin_subsegment('sampled_subsegment')
 
         else:
-            print('unsampled - doing batch work')
+            print('unsampled - processing SQS message')
             subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled_subsegment')
     
     xray_recorder.end_subsegment()   
