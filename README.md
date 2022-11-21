@@ -149,6 +149,21 @@ def lambda_handler(event, context):
     xray_recorder.end_subsegment()   
 ```
 
+The code snippet below demonstrates wrapping a downstream AWS SDK request with an unsampled subsegment.
+```python
+from aws_xray_sdk.core import xray_recorder, patch_all
+import boto3
+
+patch_all()
+
+def lambda_handler(event, context):
+    subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled_subsegment')
+    client = boto3.client('sqs')
+    print(client.list_queues())
+    
+    xray_recorder.end_subsegment()
+```
+
 ### Capture
 
 As a decorator:
