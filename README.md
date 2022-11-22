@@ -125,7 +125,7 @@ xray_recorder.end_segment()
 ```
 
 ### Oversampling Mitigation
-To modify the sampling decision at the subsegment level, sampled subsegments can be created using `xray_recorder.begin_subsegment()` and unsampled subsegments can be created using
+To modify the sampling decision at the subsegment level, subsegments that inherit the decision of their direct parent (segment or subsegment) can be created using `xray_recorder.begin_subsegment()` and unsampled subsegments can be created using
 `xray_recorder.begin_subsegment_without_sampling()`.
 
 The code snippet below demonstrates creating a sampled or unsampled subsegment based on the sampling decision of each SQS message processed by Lambda.
@@ -139,12 +139,12 @@ def lambda_handler(event, context):
 
     for message in event['Records']:
         if SqsMessageHelper.isSampled(message):
-            print('sampled - processing SQS message')
             subsegment = xray_recorder.begin_subsegment('sampled_subsegment')
+            print('sampled - processing SQS message')
 
         else:
-            print('unsampled - processing SQS message')
             subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled_subsegment')
+            print('unsampled - processing SQS message')
     
     xray_recorder.end_subsegment()   
 ```
