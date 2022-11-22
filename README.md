@@ -124,6 +124,46 @@ xray_recorder.end_subsegment()
 xray_recorder.end_segment()
 ```
 
+### Oversampling Mitigation
+To modify the sampling decision at the subsegment level, subsegments that inherit the decision of their direct parent (segment or subsegment) can be created using `xray_recorder.begin_subsegment()` and unsampled subsegments can be created using
+`xray_recorder.begin_subsegment_without_sampling()`.
+
+The code snippet below demonstrates creating a sampled or unsampled subsegment based on the sampling decision of each SQS message processed by Lambda.
+
+```python
+from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core.models.subsegment import Subsegment
+from aws_xray_sdk.core.utils.sqs_message_helper import SqsMessageHelper
+
+def lambda_handler(event, context):
+
+    for message in event['Records']:
+        if SqsMessageHelper.isSampled(message):
+            subsegment = xray_recorder.begin_subsegment('sampled_subsegment')
+            print('sampled - processing SQS message')
+
+        else:
+            subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled_subsegment')
+            print('unsampled - processing SQS message')
+    
+    xray_recorder.end_subsegment()   
+```
+
+The code snippet below demonstrates wrapping a downstream AWS SDK request with an unsampled subsegment.
+```python
+from aws_xray_sdk.core import xray_recorder, patch_all
+import boto3
+
+patch_all()
+
+def lambda_handler(event, context):
+    subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled_subsegment')
+    client = boto3.client('sqs')
+    print(client.list_queues())
+    
+    xray_recorder.end_subsegment()
+```
+
 ### Capture
 
 As a decorator:
