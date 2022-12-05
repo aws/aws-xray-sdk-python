@@ -13,6 +13,7 @@ from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
 from aws_xray_sdk.core.models.dummy_entities import DummySegment, DummySubsegment
+from aws_xray_sdk.core.exceptions.exceptions import SegmentNotFoundException
 
 xray_recorder = get_new_stubbed_recorder()
 
@@ -99,19 +100,26 @@ def test_put_annotation_metadata():
     assert not subsegment.metadata['default'].get('key1')
 
 
-def test_pass_through_with_missing_context():
+def test_default_pass_through_with_missing_context():
     xray_recorder = get_new_stubbed_recorder()
-    xray_recorder.configure(sampling=False, context_missing='LOG_ERROR')
+    xray_recorder.configure(sampling=False) # default context_missing = 'LOG_ERROR'
     assert not xray_recorder.is_sampled()
 
     xray_recorder.put_annotation('key', 'value')
     xray_recorder.put_metadata('key', 'value')
     xray_recorder.end_segment()
 
+def test_raise_runtime_error_with_missing_context():
+    xray_recorder = get_new_stubbed_recorder()
+    xray_recorder.configure(sampling=False, context_missing='RUNTIME_ERROR')
+
+    with pytest.raises(SegmentNotFoundException):
+        assert not xray_recorder.is_sampled()
+        xray_recorder.end_segment()
 
 def test_capture_not_suppress_exception():
     xray_recorder = get_new_stubbed_recorder()
-    xray_recorder.configure(sampling=False, context_missing='LOG_ERROR')
+    xray_recorder.configure(sampling=False)
 
     @xray_recorder.capture()
     def buggy_func():
@@ -123,7 +131,7 @@ def test_capture_not_suppress_exception():
 
 def test_capture_not_swallow_return():
     xray_recorder = get_new_stubbed_recorder()
-    xray_recorder.configure(sampling=False, context_missing='LOG_ERROR')
+    xray_recorder.configure(sampling=False)
     value = 1
 
     @xray_recorder.capture()
