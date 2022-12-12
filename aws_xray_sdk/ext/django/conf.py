@@ -6,7 +6,7 @@ from django.test.signals import setting_changed
 DEFAULTS = {
     'AWS_XRAY_DAEMON_ADDRESS': '127.0.0.1:2000',
     'AUTO_INSTRUMENT': True,
-    'AWS_XRAY_CONTEXT_MISSING': 'RUNTIME_ERROR',
+    'AWS_XRAY_CONTEXT_MISSING': 'LOG_ERROR',
     'PLUGINS': (),
     'SAMPLING': True,
     'SAMPLING_RULES': None,
