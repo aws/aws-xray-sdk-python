@@ -6,7 +6,6 @@ import pkgutil
 import re
 import sys
 import wrapt
-import six
 
 from aws_xray_sdk import global_sdk_config
 from .utils.compat import PY2, is_classmethod, is_instance_method
@@ -110,9 +109,9 @@ def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):
 def _patch_module(module_to_patch, raise_errors=True):
     try:
         _patch(module_to_patch)
-    except Exception as exc:
+    except Exception:
         if raise_errors:
-            six.raise_from(exc, exc)
+            raise
         log.debug('failed to patch module %s', module_to_patch)
 
 

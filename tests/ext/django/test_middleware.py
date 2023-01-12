@@ -15,8 +15,7 @@ class XRayTestCase(TestCase):
 
     def setUp(self):
         django.setup()
-        xray_recorder.configure(context=Context(),
-                                context_missing='LOG_ERROR')
+        xray_recorder.configure(context=Context())
         xray_recorder.clear_trace_entities()
         global_sdk_config.set_sdk_enabled(True)
 

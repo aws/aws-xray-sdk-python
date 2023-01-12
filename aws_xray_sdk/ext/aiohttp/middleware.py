@@ -1,5 +1,3 @@
-import six
-
 """
 AioHttp Middleware
 """
@@ -66,14 +64,14 @@ async def middleware(request, handler):
     except HTTPException as exc:
         # Non 2XX responses are raised as HTTPExceptions
         response = exc
-        six.raise_from(exc, exc)
-    except BaseException as exc:
+        raise
+    except BaseException as err:
         # Store exception information including the stacktrace to the segment
         response = None
         segment.put_http_meta(http.STATUS, 500)
         stack = stacktrace.get_stacktrace(limit=xray_recorder.max_trace_back)
-        segment.add_exception(exc, stack)
-        six.raise_from(exc, exc)
+        segment.add_exception(err, stack)
+        raise
     finally:
         if response is not None:
             segment.put_http_meta(http.STATUS, response.status)

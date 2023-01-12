@@ -55,3 +55,18 @@ def test_structure_intact():
 
     assert segment.subsegments[0] is subsegment
     assert subsegment.subsegments[0] is subsegment2
+
+def test_adding_unsampled_subsegment():
+
+    segment = FacadeSegment('name', 'id', 'id', True)
+    subsegment = Subsegment('sampled', 'local', segment)
+    subsegment2 = Subsegment('unsampled', 'local', segment)
+    subsegment2.sampled = False
+
+    segment.add_subsegment(subsegment)
+    subsegment.add_subsegment(subsegment2)
+
+
+    assert segment.subsegments[0] is subsegment
+    assert subsegment.subsegments[0] is subsegment2
+    assert subsegment2.sampled == False
