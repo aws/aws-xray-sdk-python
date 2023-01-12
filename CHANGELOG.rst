@@ -5,6 +5,20 @@ CHANGELOG
 Unreleased
 ==========
 
+2.11.0
+==========
+* bugfix: Fix TypeError by patching register_default_jsonb from psycopg2 `PR350 https://github.com/aws/aws-xray-sdk-python/pull/350`
+* improvement: Add annotations `PR348 https://github.com/aws/aws-xray-sdk-python/pull/348`
+* bugfix: Use service parameter to match centralized sampling rules `PR 353 https://github.com/aws/aws-xray-sdk-python/pull/353`
+* bugfix: Implement PEP3134 to discover underlying problems with python3 `PR355 https://github.com/aws/aws-xray-sdk-python/pull/355`
+* improvement: Allow list TopicArn for SNS PublishBatch request `PR358 https://github.com/aws/aws-xray-sdk-python/pull/358`
+* bugfix: Version pinning flask-sqlalchemy version to 2.5.1 or less `PR360 https://github.com/aws/aws-xray-sdk-python/pull/360`
+* bugfix: Fix UnboundLocalError when aiohttp server raises a CancelledError `PR356 https://github.com/aws/aws-xray-sdk-python/pull/356`
+* improvement: Instrument httpx >= 0.20 `PR357 https://github.com/aws/aws-xray-sdk-python/pull/357`
+* improvement: [LambdaContext] persist original trace header `PR362 https://github.com/aws/aws-xray-sdk-python/pull/362`
+* bugfix: Run tests against Django 4.x `PR361 https://github.com/aws/aws-xray-sdk-python/pull/361`
+* improvement: Oversampling Mitigation `PR366 https://github.com/aws/aws-xray-sdk-python/pull/366`
+
 2.10.0
 ==========
 * bugfix: Only import future for py2. `PR343 <https://github.com/aws/aws-xray-sdk-python/pull/343>`_.
