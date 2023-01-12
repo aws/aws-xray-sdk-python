@@ -27,7 +27,7 @@ class Context(object):
 
     This data structure is thread-safe.
     """
-    def __init__(self, context_missing='RUNTIME_ERROR'):
+    def __init__(self, context_missing='LOG_ERROR'):
 
         self._local = threading.local()
         strategy = os.getenv(CXT_MISSING_STRATEGY_KEY, context_missing)

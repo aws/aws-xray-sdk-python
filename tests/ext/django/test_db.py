@@ -10,8 +10,7 @@ from aws_xray_sdk.ext.django.db import patch_db
 @pytest.fixture(scope='module', autouse=True)
 def setup():
     django.setup()
-    xray_recorder.configure(context=Context(),
-                            context_missing='LOG_ERROR')
+    xray_recorder.configure(context=Context())
     patch_db()
 
 
