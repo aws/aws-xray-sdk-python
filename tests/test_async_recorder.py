@@ -19,8 +19,10 @@ async def async_method():
     await async_method2()
 
 
-async def test_capture(loop):
-    xray_recorder.configure(service='test', sampling=False, context=AsyncContext(loop=loop))
+async def test_capture(event_loop):
+    xray_recorder.configure(
+        service='test', sampling=False, context=AsyncContext(loop=event_loop)
+    )
 
     segment = xray_recorder.begin_segment('name')
 
@@ -44,8 +46,10 @@ async def test_capture(loop):
     assert platform.python_implementation() == service.get('runtime')
     assert platform.python_version() == service.get('runtime_version')
 
-async def test_concurrent_calls(loop):
-    xray_recorder.configure(service='test', sampling=False, context=AsyncContext(loop=loop))
+async def test_concurrent_calls(event_loop):
+    xray_recorder.configure(
+        service='test', sampling=False, context=AsyncContext(loop=event_loop)
+    )
     async with xray_recorder.in_segment_async('segment') as segment:
         global counter
         counter = 0
@@ -67,8 +71,10 @@ async def test_concurrent_calls(loop):
             assert subseg_parent_id == segment.id
 
 
-async def test_async_context_managers(loop):
-    xray_recorder.configure(service='test', sampling=False, context=AsyncContext(loop=loop))
+async def test_async_context_managers(event_loop):
+    xray_recorder.configure(
+        service='test', sampling=False, context=AsyncContext(loop=event_loop)
+    )
 
     async with xray_recorder.in_segment_async('segment') as segment:
         async with xray_recorder.capture_async('aio_capture') as subsegment:

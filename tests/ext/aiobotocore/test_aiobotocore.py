@@ -12,17 +12,19 @@ patch(('aiobotocore',))
 
 
 @pytest.fixture(scope='function')
-def recorder(loop):
+def recorder(event_loop):
     """
     Clean up before and after each test run
     """
-    xray_recorder.configure(service='test', sampling=False, context=AsyncContext(loop=loop))
+    xray_recorder.configure(
+        service='test', sampling=False, context=AsyncContext(loop=event_loop)
+    )
     xray_recorder.clear_trace_entities()
     yield xray_recorder
     xray_recorder.clear_trace_entities()
 
 
-async def test_describe_table(loop, recorder):
+async def test_describe_table(event_loop, recorder):
     segment = recorder.begin_segment('name')
 
     req_id = '1234'
@@ -45,7 +47,7 @@ async def test_describe_table(loop, recorder):
     assert aws_meta['operation'] == 'DescribeTable'
 
 
-async def test_s3_parameter_capture(loop, recorder):
+async def test_s3_parameter_capture(event_loop, recorder):
     segment = recorder.begin_segment('name')
 
     bucket_name = 'mybucket'
@@ -70,7 +72,7 @@ async def test_s3_parameter_capture(loop, recorder):
     assert aws_meta['operation'] == 'GetObject'
 
 
-async def test_list_parameter_counting(loop, recorder):
+async def test_list_parameter_counting(event_loop, recorder):
     """
     Test special parameters that have shape of list are recorded
     as count based on `para_whitelist.json`
@@ -103,7 +105,7 @@ async def test_list_parameter_counting(loop, recorder):
     assert aws_meta['queue_name_prefix'] == queue_name_prefix
 
 
-async def test_map_parameter_grouping(loop, recorder):
+async def test_map_parameter_grouping(event_loop, recorder):
     """
     Test special parameters that have shape of map are recorded
     as a list of keys based on `para_whitelist.json`
@@ -131,9 +133,10 @@ async def test_map_parameter_grouping(loop, recorder):
     assert sorted(aws_meta['table_names']) == ['table1', 'table2']
 
 
-async def test_context_missing_not_swallow_return(loop, recorder):
+async def test_context_missing_not_swallow_return(event_loop, recorder):
     xray_recorder.configure(service='test', sampling=False,
-                            context=AsyncContext(loop=loop), context_missing='LOG_ERROR')
+                            context=AsyncContext(loop=event_loop),
+                            context_missing='LOG_ERROR')
 
     response = {'ResponseMetadata': {'RequestId': '1234', 'HTTPStatusCode': 403}}
 
@@ -146,9 +149,10 @@ async def test_context_missing_not_swallow_return(loop, recorder):
     assert actual_resp == response
 
 
-async def test_context_missing_not_suppress_exception(loop, recorder):
+async def test_context_missing_not_suppress_exception(event_loop, recorder):
     xray_recorder.configure(service='test', sampling=False,
-                            context=AsyncContext(loop=loop), context_missing='LOG_ERROR')
+                            context=AsyncContext(loop=event_loop),
+                            context_missing='LOG_ERROR')
 
     session = get_session()
     async with session.create_client('dynamodb', region_name='eu-west-2') as client:
