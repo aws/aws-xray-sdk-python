@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Pull in source code from aws-xray-sdk-python Github repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
@@ -22,7 +22,7 @@ jobs:
         run: python setup.py sdist
 
       - name: Upload SDK build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sdk-build-artifact
           path: .
@@ -33,15 +33,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
       - name: Download X-Ray SDK build artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: sdk-build-artifact
           path: ./sample-apps/flask
@@ -55,7 +55,7 @@ jobs:
         working-directory: ./sample-apps/flask
 
       - name: Upload WebApp with X-Ray SDK build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sdk-flask-build-artifact
           path: ./sample-apps/flask/deploy.zip
@@ -67,10 +67,10 @@ jobs:
 
     steps:
       - name: Checkout X-Ray SDK to get terraform source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Download WebApp with X-Ray SDK build artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: sdk-flask-build-artifact
 
@@ -85,7 +85,7 @@ jobs:
           aws-region: us-west-2
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init
         run: terraform init
@@ -109,7 +109,7 @@ jobs:
         working-directory: ./terraform
 
       - name: Upload terraform state files for destorying resources
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: terraform-state-artifact
           path: ./terraform
@@ -120,8 +120,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/setup-java@v1
+      - uses: actions/setup-java@v3
         with:
+          distribution: 'zulu'
           java-version: 14
 
       - name: Configure AWS Credentials
@@ -132,7 +133,7 @@ jobs:
           aws-region: us-west-2
 
       - name: Checkout test framework
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: aws-observability/aws-otel-test-framework
           ref: terraform
@@ -148,7 +149,7 @@ jobs:
 
     steps:
       - name: Download terraform state artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: terraform-state-artifact
 
@@ -160,7 +161,7 @@ jobs:
           aws-region: us-west-2
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v2
 
       - name: Terraform Init
         run: terraform init
