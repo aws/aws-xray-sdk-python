@@ -169,7 +169,7 @@ jobs:
       - name: set permissions to terraform plugins
         run: chmod -R a+x .terraform/*
 
-      - name: Destroy resources
-        run: terraform destroy -state="terraform.tfstate" -var-file="fixtures.us-west-2.tfvars" -auto-approve
-        env:
-          TF_VAR_resource_prefix: '${{ github.run_id }}-${{ github.run_number }}'
+#       - name: Destroy resources
+#         run: terraform destroy -state="terraform.tfstate" -var-file="fixtures.us-west-2.tfvars" -auto-approve
+#         env:
+#           TF_VAR_resource_prefix: '${{ github.run_id }}-${{ github.run_number }}'
