@@ -6,5 +6,5 @@ idna
 requests
 urllib3
 Werkzeug==2.2.3
-flask-sqlalchemy
+flask-sqlalchemy==2.5.1
 aws_xray_sdk==2.6.0
