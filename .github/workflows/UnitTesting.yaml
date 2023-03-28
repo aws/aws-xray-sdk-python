@@ -11,10 +11,6 @@ jobs:
   test:
     runs-on: ubuntu-20.04
     env:
-      py27: 2.7
-      py34: 3.4
-      py35: 3.5
-      py36: 3.6
       py37: 3.7
       py38: 3.8
       py39: 3.9
