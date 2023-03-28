@@ -3,9 +3,6 @@ certifi
 chardet
 Flask
 idna
-itsdangerous
-Jinja2
-MarkupSafe
 requests
 urllib3
 Werkzeug==2.2.3
