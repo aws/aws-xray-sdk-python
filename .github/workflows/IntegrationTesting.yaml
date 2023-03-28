@@ -2,7 +2,7 @@ name: Integration Testing
 on:
   push:
     branches:
-      - master
+      - flasktesting
 
 jobs:
   build_SDK:
