@@ -46,6 +46,7 @@ jobs:
         if: ${{ matrix.testenv == 'ext' }}
         run: |
           sudo apt-get install mysql-client
+          sudo apt install mysql-server
           sudo /etc/init.d/mysql start
 
       - name: Run tox
