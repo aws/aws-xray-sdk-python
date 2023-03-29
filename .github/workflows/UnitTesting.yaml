@@ -43,7 +43,6 @@ jobs:
           key: tox-cache-${{ matrix.python-version }}-${{ matrix.testenv }}-${{ hashFiles('tox.ini') }}
     
       - name: Start MySQL service
-        if: ${{ matrix.testenv.ext }} 
         run: |
           sudo /etc/init.d/mysql start
 
