@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [py27, py34, py35, py36, py37, py38, py39, py310, py311]
+        python-version: [py37, py38, py39, py310, py311]
         testenv: [core, ext]
     steps:
       - name: Checkout repo
@@ -41,6 +41,11 @@ jobs:
             .tox
             ~/.cache/pip
           key: tox-cache-${{ matrix.python-version }}-${{ matrix.testenv }}-${{ hashFiles('tox.ini') }}
+    
+      - name: Start MySQL service
+        if: ${{ matrix.testenv.ext }} 
+        run: |
+          sudo /etc/init.d/mysql start
 
       - name: Run tox
         run: |
