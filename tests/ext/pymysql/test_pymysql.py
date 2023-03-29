@@ -1,13 +1,17 @@
 import pymysql
 
 import pytest
-import testing.mysqld
 
 from aws_xray_sdk.core import patch
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.ext.pymysql import unpatch
 
+MYSQL_USER = "root"
+MYSQL_PASSWORD = "root"
+MYSQL_HOST = "localhost"
+MYSQL_PORT = 3306
+MYSQL_DB_NAME = "test_db"
 
 @pytest.fixture(scope='module', autouse=True)
 def patch_module():
@@ -32,46 +36,41 @@ def construct_ctx():
 
 def test_execute_dsn_kwargs():
     q = 'SELECT 1'
-    with testing.mysqld.Mysqld() as mysqld:
-        dsn = mysqld.dsn()
-        conn = pymysql.connect(database=dsn['db'],
-                              user=dsn['user'],
-                              password='',
-                              host=dsn['host'],
-                              port=dsn['port'])
-        cur = conn.cursor()
-        cur.execute(q)
+    conn = pymysql.connect(database=MYSQL_DB_NAME,
+                          user=MYSQL_USER,
+                          password=MYSQL_PASSWORD,
+                          host=MYSQL_HOST,
+                          port=MYSQL_PORT)
+    cur = conn.cursor()
+    cur.execute(q)
 
     subsegment = xray_recorder.current_segment().subsegments[-1]
     assert subsegment.name == 'execute'
     sql = subsegment.sql
     assert sql['database_type'] == 'MySQL'
-    assert sql['user'] == dsn['user']
+    assert sql['user'] == MYSQL_USER
     assert sql['driver_version'] == 'PyMySQL'
     assert sql['database_version']
 
 
 def test_execute_bad_query():
     q = "SELECT blarg"
-    with testing.mysqld.Mysqld() as mysqld:
-        dsn = mysqld.dsn()
-        conn = pymysql.connect(database=dsn['db'],
-                              user=dsn['user'],
-                              password='',
-                              host=dsn['host'],
-                              port=dsn['port'])
-
-        cur = conn.cursor()
-        try:
-            cur.execute(q)
-        except Exception:
-            pass
-
+    conn = pymysql.connect(database=MYSQL_DB_NAME,
+                          user=MYSQL_USER,
+                          password=MYSQL_PASSWORD,
+                          host=MYSQL_HOST,
+                          port=MYSQL_PORT)
+    cur = conn.cursor()
+    try:
+        cur.execute(q)
+    except Exception:
+        pass
+    
     subsegment = xray_recorder.current_segment().subsegments[-1]
     assert subsegment.name == "execute"
     sql = subsegment.sql
     assert sql['database_type'] == 'MySQL'
-    assert sql['user'] == dsn['user']
+    assert sql['user'] == MYSQL_USER
     assert sql['driver_version'] == 'PyMySQL'
     assert sql['database_version']
 
