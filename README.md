@@ -7,13 +7,17 @@ AWS X-Ray supports using OpenTelemetry Python and the AWS Distro for OpenTelemet
 
 If you want additional features when tracing your Python applications, please [open an issue on the OpenTelemetry Python Instrumentation repository](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/new?labels=feature-request&template=feature_request.md&title=X-Ray%20Compatible%20Feature%20Request).
 
+### :mega: Python Versions End-of-Support Notice
+
+AWS X-Ray SDK for Python versions `>2.11.0` has dropped support for Python 2.7, 3.4, 3.5, and 3.6.
+
 # AWS X-Ray SDK for Python
 
 ![Screenshot of the AWS X-Ray console](/images/example_servicemap.png?raw=true)
 
 ## Installing
 
-The AWS X-Ray SDK for Python is compatible with Python 2.7, 3.4, 3.5, 3.6, 3.7, 3.8, and 3.9.
+The AWS X-Ray SDK for Python is compatible with Python 3.7, 3.8, 3.9, 3.10, and 3.11.
 
 Install the SDK using the following command (the SDK's non-testing dependencies will be installed).
 
