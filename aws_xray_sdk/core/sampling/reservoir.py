@@ -2,7 +2,7 @@ import threading
 from enum import Enum
 
 
-class Reservoir(object):
+class Reservoir:
     """
     Centralized thread-safe reservoir which holds fixed sampling
     quota, borrowed count and TTL.

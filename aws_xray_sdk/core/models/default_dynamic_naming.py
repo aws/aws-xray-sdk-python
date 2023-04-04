@@ -1,7 +1,7 @@
 from ..utils.search_pattern import wildcard_match
 
 
-class DefaultDynamicNaming(object):
+class DefaultDynamicNaming:
     """
     Decides what name to use on a segment generated from an incoming request.
     By default it takes the host name and compares it to a pre-defined pattern.

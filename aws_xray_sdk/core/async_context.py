@@ -35,7 +35,7 @@ class AsyncContext(_Context):
             self._local.clear()
 
 
-class TaskLocalStorage(object):
+class TaskLocalStorage:
     """
     Simple task local storage
     """

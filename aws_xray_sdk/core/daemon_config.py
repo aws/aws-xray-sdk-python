@@ -6,7 +6,7 @@ DAEMON_ADDRESS_KEY = "AWS_XRAY_DAEMON_ADDRESS"
 DEFAULT_ADDRESS = '127.0.0.1:2000'
 
 
-class DaemonConfig(object):
+class DaemonConfig:
     """The class that stores X-Ray daemon configuration about
     the ip address and port for UDP and TCP port. It gets the address
     string from ``AWS_TRACING_DAEMON_ADDRESS`` and then from recorder's

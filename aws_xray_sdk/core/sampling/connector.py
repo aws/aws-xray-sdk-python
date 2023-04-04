@@ -13,7 +13,7 @@ from aws_xray_sdk.core.context import Context
 from aws_xray_sdk.core.utils.compat import PY2
 
 
-class ServiceConnector(object):
+class ServiceConnector:
     """
     Connector class that translates Centralized Sampling poller functions to
     actual X-Ray back-end APIs and communicates with X-Ray daemon as the

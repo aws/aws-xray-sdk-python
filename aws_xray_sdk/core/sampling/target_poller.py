@@ -6,7 +6,7 @@ import threading
 log = logging.getLogger(__name__)
 
 
-class TargetPoller(object):
+class TargetPoller:
     """
     The poller to report the current statistics of all
     centralized sampling rules and retrieve the new allocated

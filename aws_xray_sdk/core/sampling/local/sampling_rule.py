@@ -3,7 +3,7 @@ from ...exceptions.exceptions import InvalidSamplingManifestError
 from aws_xray_sdk.core.utils.search_pattern import wildcard_match
 
 
-class SamplingRule(object):
+class SamplingRule:
     """
     One SamolingRule represents one rule defined from local rule json file
     or from a dictionary. It can be either a custom rule or default rule.

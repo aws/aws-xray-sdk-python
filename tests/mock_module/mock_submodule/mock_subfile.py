@@ -10,7 +10,7 @@ def mock_no_doublepatch():
     pass
 
 
-class MockClass(object):
+class MockClass:
     def __init__(self):
         pass
 

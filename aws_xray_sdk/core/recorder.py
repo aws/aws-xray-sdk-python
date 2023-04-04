@@ -40,7 +40,7 @@ SERVICE_INFO = {
 }
 
 
-class AWSXRayRecorder(object):
+class AWSXRayRecorder:
     """
     A global AWS X-Ray recorder that will begin/end segments/subsegments
     and send them to the X-Ray daemon. This recorder is initialized during

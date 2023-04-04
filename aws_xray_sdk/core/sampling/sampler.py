@@ -14,7 +14,7 @@ from aws_xray_sdk import global_sdk_config
 log = logging.getLogger(__name__)
 
 
-class DefaultSampler(object):
+class DefaultSampler:
     """Making sampling decisions based on centralized sampling rules defined
     by X-Ray control plane APIs. It will fall back to local sampler if
     centralized sampling rules are not available.

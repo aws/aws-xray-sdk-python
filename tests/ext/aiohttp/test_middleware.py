@@ -42,7 +42,7 @@ class CustomStubbedEmitter(UDPEmitter):
             return None
 
 
-class ServerTest(object):
+class ServerTest:
     """
     Simple class to hold a copy of the event loop
     """

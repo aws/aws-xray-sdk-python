@@ -21,7 +21,7 @@ _valid_annotation_key_characters = string.ascii_letters + string.digits + '_'
 ORIGIN_TRACE_HEADER_ATTR_KEY = '_origin_trace_header'
 
 
-class Entity(object):
+class Entity:
     """
     The parent class for segment/subsegment. It holds common properties
     and methods on segment and subsegment.
