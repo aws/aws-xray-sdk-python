@@ -10,7 +10,7 @@ from aws_xray_sdk.core.utils.compat import PY35
 class StubbedEmitter(UDPEmitter):
 
     def __init__(self, daemon_address='127.0.0.1:2000'):
-        super(StubbedEmitter, self).__init__(daemon_address)
+        super().__init__(daemon_address)
         self._local = threading.local()
 
     def send_entity(self, entity):

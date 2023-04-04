@@ -16,7 +16,7 @@ class AsyncContext(_Context):
     Also overrides clear_trace_entities
     """
     def __init__(self, *args, loop=None, use_task_factory=True, **kwargs):
-        super(AsyncContext, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self._loop = loop
         if loop is None:

@@ -15,7 +15,7 @@ class XrayCommandListener(monitoring.CommandListener):
     """
 
     def __init__(self, record_full_documents):
-        super(XrayCommandListener, self).__init__()
+        super().__init__()
         self.record_full_documents = record_full_documents
 
     def started(self, event):

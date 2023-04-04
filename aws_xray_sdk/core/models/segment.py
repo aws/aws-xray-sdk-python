@@ -63,7 +63,7 @@ class Segment(Entity):
         if not name:
             raise SegmentNameMissingException("Segment name is required.")
 
-        super(Segment, self).__init__(name)
+        super().__init__(name)
 
         if not traceid:
             traceid = TraceId().to_id()
@@ -85,7 +85,7 @@ class Segment(Entity):
         Add input subsegment as a child subsegment and increment
         reference counter and total subsegments counter.
         """
-        super(Segment, self).add_subsegment(subsegment)
+        super().add_subsegment(subsegment)
         self.increment()
 
     def increment(self):
@@ -127,7 +127,7 @@ class Segment(Entity):
         """
         Remove the reference of input subsegment.
         """
-        super(Segment, self).remove_subsegment(subsegment)
+        super().remove_subsegment(subsegment)
         self.decrement_subsegments_size()
 
     def set_user(self, user):
@@ -135,7 +135,7 @@ class Segment(Entity):
         set user of a segment. One segment can only have one user.
         User is indexed and can be later queried.
         """
-        super(Segment, self)._check_ended()
+        super()._check_ended()
         self.user = user
 
     def set_service(self, service_info):
@@ -160,7 +160,7 @@ class Segment(Entity):
         Convert Segment object to dict with required properties
         that have non-empty values. 
         """ 
-        segment_dict = super(Segment, self).to_dict()
+        segment_dict = super().to_dict()
           
         del segment_dict['ref_counter']
         del segment_dict['_subsegments_counter']

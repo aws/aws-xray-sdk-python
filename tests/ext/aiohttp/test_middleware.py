@@ -29,7 +29,7 @@ class CustomStubbedEmitter(UDPEmitter):
     """
 
     def __init__(self, daemon_address='127.0.0.1:2000'):
-        super(CustomStubbedEmitter, self).__init__(daemon_address)
+        super().__init__(daemon_address)
         self.local = []
 
     def send_entity(self, entity):
