@@ -1,7 +1,6 @@
 import inspect
 
 annotation_value_types = (int, float, bool, str)
-string_types = str
 
 
 def is_classmethod(func):

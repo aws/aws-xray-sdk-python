@@ -6,7 +6,7 @@ import string
 
 import json
 
-from ..utils.compat import annotation_value_types, string_types
+from ..utils.compat import annotation_value_types
 from ..utils.conversion import metadata_to_dict
 from .throwable import Throwable
 from . import http
@@ -113,7 +113,7 @@ class Entity:
             return
 
         if key == http.STATUS:
-            if isinstance(value, string_types):
+            if isinstance(value, str):
                 value = int(value)
             self.apply_status_code(value)
 
@@ -139,7 +139,7 @@ class Entity:
         """
         self._check_ended()
 
-        if not isinstance(key, string_types):
+        if not isinstance(key, str):
             log.warning("ignoring non string type annotation key with type %s.", type(key))
             return
 
@@ -165,7 +165,7 @@ class Entity:
         """
         self._check_ended()
 
-        if not isinstance(namespace, string_types):
+        if not isinstance(namespace, str):
             log.warning("ignoring non string type metadata namespace")
             return
 
@@ -271,7 +271,7 @@ class Entity:
     def to_dict(self):
         """
         Convert Entity(Segment/Subsegment) object to dict
-        with required properties that have non-empty values. 
+        with required properties that have non-empty values.
         """
         entity_dict = {}
 

@@ -18,7 +18,6 @@ from .daemon_config import DaemonConfig
 from .plugins.utils import get_plugin_modules
 from .lambda_launcher import check_in_lambda
 from .exceptions.exceptions import SegmentNameMissingException, SegmentNotFoundException
-from .utils.compat import string_types
 from .utils import stacktrace
 
 log = logging.getLogger(__name__)
@@ -288,7 +287,7 @@ class AWSXRayRecorder:
         if not segment:
             log.warning("No segment found, cannot begin subsegment %s." % name)
             return None
-        
+
         current_entity = self.get_trace_entity()
         if not current_entity.sampled or beginWithoutSampling:
             subsegment = DummySubsegment(segment, name)
@@ -486,7 +485,7 @@ class AWSXRayRecorder:
         segment.set_aws(copy.deepcopy(self._aws_metadata))
         segment.set_service(SERVICE_INFO)
 
-        if isinstance(sampling_decision, string_types):
+        if isinstance(sampling_decision, str):
             segment.set_rule_name(sampling_decision)
 
     def _send_segment(self):
@@ -562,7 +561,7 @@ class AWSXRayRecorder:
 
     @dynamic_naming.setter
     def dynamic_naming(self, value):
-        if isinstance(value, string_types):
+        if isinstance(value, str):
             self._dynamic_naming = DefaultDynamicNaming(value, self.service)
         else:
             self._dynamic_naming = value

@@ -3,8 +3,6 @@ import os
 import binascii
 import logging
 
-from ..utils.compat import string_types
-
 log = logging.getLogger(__name__)
 
 
@@ -31,7 +29,7 @@ class Throwable:
             message = None
 
         # do not record non-string exception message
-        if isinstance(message, string_types):
+        if isinstance(message, str):
             self.message = message
 
         self.type = type(exception).__name__
