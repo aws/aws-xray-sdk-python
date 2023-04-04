@@ -23,7 +23,7 @@ Currently supported web frameworks and libraries:
 * aiohttp >=2.3
 * boto3/botocore
 * Bottle
-* Django >=1.10
+* Django >=3.2
 * Flask
 * httplib/http.client
 * mysql-connector
