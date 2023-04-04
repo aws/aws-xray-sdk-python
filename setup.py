@@ -36,10 +36,9 @@ setup(
         'Programming Language :: Python :: 3.11',
     ],
 
+    python_requires=">=3.7",
     install_requires=[
-        'enum34;python_version<"3.4"',
         'wrapt',
-        'future;python_version<"3"',
         'botocore>=1.11.3',
     ],
 
