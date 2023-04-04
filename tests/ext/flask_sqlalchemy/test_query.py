@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import pytest
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
