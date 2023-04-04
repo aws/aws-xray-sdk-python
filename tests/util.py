@@ -4,7 +4,6 @@ import threading
 from aws_xray_sdk.core.recorder import AWSXRayRecorder
 from aws_xray_sdk.core.emitters.udp_emitter import UDPEmitter
 from aws_xray_sdk.core.sampling.sampler import DefaultSampler
-from aws_xray_sdk.core.utils.compat import PY35
 
 
 class StubbedEmitter(UDPEmitter):
@@ -36,12 +35,9 @@ def get_new_stubbed_recorder():
     """
     Returns a new AWSXRayRecorder object with emitter stubbed
     """
-    if not PY35:
-        recorder = AWSXRayRecorder()
-    else:
-        from aws_xray_sdk.core.async_recorder import AsyncAWSXRayRecorder
-        recorder = AsyncAWSXRayRecorder()
+    from aws_xray_sdk.core.async_recorder import AsyncAWSXRayRecorder
 
+    recorder = AsyncAWSXRayRecorder()
     recorder.configure(emitter=StubbedEmitter(), sampler=StubbedSampler())
     return recorder
 
@@ -85,7 +81,7 @@ def find_subsegment_by_annotation(segment, key, value):
         result = _search_entity_by_annotation(entity, key, value)
         if result is not None:
             return result
-    return None 
+    return None
 
 
 def _search_entity_by_annotation(entity, key, value):
