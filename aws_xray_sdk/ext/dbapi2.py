@@ -10,7 +10,7 @@ class XRayTracedConn(wrapt.ObjectProxy):
 
     def __init__(self, conn, meta={}):
 
-        super(XRayTracedConn, self).__init__(conn)
+        super().__init__(conn)
         self._xray_meta = meta
 
     def cursor(self, *args, **kwargs):
@@ -25,7 +25,7 @@ class XRayTracedCursor(wrapt.ObjectProxy):
 
     def __init__(self, cursor, meta={}):
 
-        super(XRayTracedCursor, self).__init__(cursor)
+        super().__init__(cursor)
         self._xray_meta = meta
 
         # we preset database type if db is framework built-in

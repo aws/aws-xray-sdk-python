@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 DEFAULT_INTERVAL = 5 * 60  # 5 minutes on sampling rules fetch
 
 
-class RulePoller(object):
+class RulePoller:
 
     def __init__(self, cache, connector):
 

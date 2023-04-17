@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-# Need absolute import as botocore is also in the current folder for py27
 import json
 import pkgutil
 

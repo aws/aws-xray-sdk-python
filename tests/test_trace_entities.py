@@ -1,7 +1,6 @@
 # -*- coding: iso-8859-15 -*-
 
 import pytest
-import sys
 
 from aws_xray_sdk.core.models.segment import Segment
 from aws_xray_sdk.core.models.subsegment import Subsegment
@@ -233,10 +232,7 @@ def test_add_exception_referencing():
     subseg_cause = subseg.cause
 
     assert isinstance(subseg_cause, dict)
-    if sys.version_info.major == 2:
-        assert isinstance(seg_cause, basestring)
-    else:
-        assert isinstance(seg_cause, str)
+    assert isinstance(seg_cause, str)
     assert seg_cause == subseg_cause['exceptions'][0].id
 
 
@@ -270,7 +266,7 @@ def test_add_exception_appending_exceptions():
 def test_adding_subsegments_with_recorder():
     xray_recorder.configure(sampling=False)
     xray_recorder.clear_trace_entities()
-    
+
     segment = xray_recorder.begin_segment('parent');
     subsegment = xray_recorder.begin_subsegment('sampled-child')
     unsampled_subsegment = xray_recorder.begin_subsegment_without_sampling('unsampled-child1')

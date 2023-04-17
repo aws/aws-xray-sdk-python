@@ -1,19 +1,14 @@
 import logging
 import sys
-
-if sys.version_info >= (3, 0, 0):
-    from urllib.parse import urlparse, uses_netloc
-else:
-    from urlparse import urlparse, uses_netloc
+from urllib.parse import urlparse, uses_netloc
 
 import wrapt
+from sqlalchemy.sql.expression import ClauseElement
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.patcher import _PATCHED_MODULES
 from aws_xray_sdk.core.utils import stacktrace
 from aws_xray_sdk.ext.util import unwrap
-
-from sqlalchemy.sql.expression import ClauseElement
 
 
 def _sql_meta(engine_instance, args):

@@ -2,7 +2,7 @@ import time
 import threading
 
 
-class Reservoir(object):
+class Reservoir:
     """
     Keeps track of the number of sampled segments within
     a single second. This class is implemented to be

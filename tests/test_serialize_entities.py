@@ -258,7 +258,7 @@ def test_serialize_segment_with_exception():
 
     class TestException(Exception):
         def __init__(self, message):
-            super(TestException, self).__init__(message)
+            super().__init__(message)
 
     segment_one = Segment('test')
     

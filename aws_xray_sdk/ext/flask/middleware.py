@@ -8,7 +8,7 @@ from aws_xray_sdk.ext.util import calculate_sampling_decision, \
 from aws_xray_sdk.core.lambda_launcher import check_in_lambda, LambdaContext
 
 
-class XRayMiddleware(object):
+class XRayMiddleware:
 
     def __init__(self, app, recorder):
         self.app = app

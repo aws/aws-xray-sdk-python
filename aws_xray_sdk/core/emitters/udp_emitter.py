@@ -12,7 +12,7 @@ PROTOCOL_DELIMITER = '\n'
 DEFAULT_DAEMON_ADDRESS = '127.0.0.1:2000'
 
 
-class UDPEmitter(object):
+class UDPEmitter:
     """
     The default emitter the X-Ray recorder uses to send segments/subsegments
     to the X-Ray daemon over UDP using a non-blocking socket. If there is an

@@ -19,7 +19,7 @@ HOST_KEY = 'HTTP_HOST'
 CONTENT_LENGTH_KEY = 'content-length'
 
 
-class XRayMiddleware(object):
+class XRayMiddleware:
     """
     Middleware that wraps each incoming request to a segment.
     """

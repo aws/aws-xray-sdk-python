@@ -58,7 +58,7 @@ def test_empty_response():
     from aws_xray_sdk.ext.pynamodb.patch import pynamodb_meta_processor
     subsegment = xray_recorder.begin_subsegment('test')
 
-    class TempReq(object):
+    class TempReq:
         def __init__(self):
             self.headers = {'X-Amz-Target': 'ddb.ListTables'.encode('utf-8')}
             self.url = 'ddb.us-west-2'

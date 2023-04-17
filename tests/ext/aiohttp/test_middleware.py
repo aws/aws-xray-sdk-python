@@ -5,22 +5,18 @@ Expects pytest-aiohttp
 """
 import asyncio
 import sys
-from aws_xray_sdk import global_sdk_config
-try:
-    from unittest.mock import patch
-except ImportError:
-    # NOTE: Python 2 dependency
-    from mock import patch
+from unittest.mock import patch
 
+import pytest
 from aiohttp import web
 from aiohttp.web_exceptions import HTTPUnauthorized
-import pytest
 
-from aws_xray_sdk.core.emitters.udp_emitter import UDPEmitter
+from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.core.async_context import AsyncContext
+from aws_xray_sdk.core.emitters.udp_emitter import UDPEmitter
 from aws_xray_sdk.core.models import http
-from tests.util import get_new_stubbed_recorder
 from aws_xray_sdk.ext.aiohttp.middleware import middleware
+from tests.util import get_new_stubbed_recorder
 
 
 class CustomStubbedEmitter(UDPEmitter):
@@ -29,7 +25,7 @@ class CustomStubbedEmitter(UDPEmitter):
     """
 
     def __init__(self, daemon_address='127.0.0.1:2000'):
-        super(CustomStubbedEmitter, self).__init__(daemon_address)
+        super().__init__(daemon_address)
         self.local = []
 
     def send_entity(self, entity):
@@ -42,7 +38,7 @@ class CustomStubbedEmitter(UDPEmitter):
             return None
 
 
-class ServerTest(object):
+class ServerTest:
     """
     Simple class to hold a copy of the event loop
     """

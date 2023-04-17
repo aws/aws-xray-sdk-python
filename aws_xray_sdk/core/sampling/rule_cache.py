@@ -4,7 +4,7 @@ from operator import attrgetter
 TTL = 60 * 60  # The cache expires 1 hour after the last refresh time.
 
 
-class RuleCache(object):
+class RuleCache:
     """
     Cache sampling rules and quota retrieved by ``TargetPoller``
     and ``RulePoller``. It will not return anything if it expires.

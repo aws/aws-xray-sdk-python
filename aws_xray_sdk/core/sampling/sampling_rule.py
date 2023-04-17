@@ -4,7 +4,7 @@ from .reservoir import Reservoir
 from aws_xray_sdk.core.utils.search_pattern import wildcard_match
 
 
-class SamplingRule(object):
+class SamplingRule:
     """
     Data model for a single centralized sampling rule definition.
     """

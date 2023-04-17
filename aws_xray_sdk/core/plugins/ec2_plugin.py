@@ -1,13 +1,6 @@
 import json
 import logging
-
-from aws_xray_sdk.core.utils.compat import PY2
-
-if PY2:
-    from future.standard_library import install_aliases
-    install_aliases()
-
-from urllib.request import urlopen, Request
+from urllib.request import Request, urlopen
 
 log = logging.getLogger(__name__)
 

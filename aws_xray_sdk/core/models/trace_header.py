@@ -10,7 +10,7 @@ SELF = 'Self'
 HEADER_DELIMITER = ";"
 
 
-class TraceHeader(object):
+class TraceHeader:
     """
     The sampling decision and trace ID are added to HTTP requests in
     tracing headers named ``X-Amzn-Trace-Id``. The first X-Ray-integrated

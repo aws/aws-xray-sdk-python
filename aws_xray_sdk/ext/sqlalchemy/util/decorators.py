@@ -1,17 +1,11 @@
 import re
 import types
+from urllib.parse import urlparse, uses_netloc
+
+from sqlalchemy.engine.base import Connection
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.ext.util import strip_url
-
-from aws_xray_sdk.core.utils.compat import PY2
-
-if PY2:
-    from future.standard_library import install_aliases
-    install_aliases()
-
-from urllib.parse import urlparse, uses_netloc
-from sqlalchemy.engine.base import Connection
 
 
 def decorate_all_functions(function_decorator):

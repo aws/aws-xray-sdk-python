@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import pytest
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.ext.declarative import declarative_base

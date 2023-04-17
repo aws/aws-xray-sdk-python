@@ -4,7 +4,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class SDKConfig(object):
+class SDKConfig:
     """
     Global Configuration Class that defines SDK-level configuration properties.
 

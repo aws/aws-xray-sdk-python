@@ -10,7 +10,7 @@ def mock_no_doublepatch():
     pass
 
 
-class MockClass(object):
+class MockClass:
     def __init__(self):
         pass
 
@@ -29,7 +29,7 @@ class MockClass(object):
 
 class MockSubclass(MockClass):
     def __init__(self):
-        super(MockSubclass, self).__init__()
+        super().__init__()
 
     def mock_submethod(self):
         pass

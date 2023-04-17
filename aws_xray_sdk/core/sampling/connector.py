@@ -10,10 +10,9 @@ from botocore.client import Config
 from .sampling_rule import SamplingRule
 from aws_xray_sdk.core.models.dummy_entities import DummySegment
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.core.utils.compat import PY2
 
 
-class ServiceConnector(object):
+class ServiceConnector:
     """
     Connector class that translates Centralized Sampling poller functions to
     actual X-Ray back-end APIs and communicates with X-Ray daemon as the
@@ -137,16 +136,8 @@ class ServiceConnector(object):
         """
         Convert a offset-aware datetime to POSIX time.
         """
-        if PY2:
-            # The input datetime is from botocore unmarshalling and it is
-            # offset-aware so the timedelta of subtracting this time
-            # to 01/01/1970 using the same tzinfo gives us
-            # Unix Time (also known as POSIX Time).
-            time_delta = dt - datetime(1970, 1, 1).replace(tzinfo=dt.tzinfo)
-            return int(time_delta.total_seconds())
-        else:
-            # Added in python 3.3+ and directly returns POSIX time.
-            return int(dt.timestamp())
+        # Added in python 3.3+ and directly returns POSIX time.
+        return int(dt.timestamp())
 
     def _is_rule_valid(self, record):
         # We currently only handle v1 sampling rules.

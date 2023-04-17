@@ -1,15 +1,11 @@
-try:
-    from unittest import mock
-except ImportError:
-    # NOTE: Python 2 dependency
-    import mock
+from unittest import mock
 
 import django
-from aws_xray_sdk import global_sdk_config
-from django.test import TestCase, override_settings
-from django.conf import settings
 from django.apps import apps
+from django.conf import settings
+from django.test import TestCase, override_settings
 
+from aws_xray_sdk import global_sdk_config
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.sampling.sampler import LocalSampler
 
