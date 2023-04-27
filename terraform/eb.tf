@@ -71,4 +71,10 @@ resource "aws_elastic_beanstalk_environment" "eb_env" {
     name = "XRayEnabled"
     value = "true"
   }
+  
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name = "DisableIMDSv1"
+    value = "true"
+  }
 }
