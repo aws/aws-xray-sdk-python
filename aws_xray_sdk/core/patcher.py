@@ -47,6 +47,18 @@ _PATCHED_MODULES = set()
 
 
 def patch_all(double_patch=False):
+    """
+    The X-Ray Python SDK supports patching aioboto3, aiobotocore, boto3, botocore, pynamodb, requests, 
+    sqlite3, mysql, httplib, pymongo, pymysql, psycopg2, pg8000, sqlalchemy_core, httpx, and mysql-connector.
+
+    To patch all supported libraries::
+
+        from aws_xray_sdk.core import patch_all
+
+        patch_all()
+
+    :param bool double_patch: enable or disable patching of indirect dependencies.
+    """
     if double_patch:
         patch(SUPPORTED_MODULES, raise_errors=False)
     else:
@@ -66,6 +78,16 @@ def _is_valid_import(module):
 
 
 def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):
+    """
+    To patch specific modules::
+
+        from aws_xray_sdk.core import patch
+
+        i_want_to_patch = ('botocore') # a tuple that contains the libs you want to patch
+        patch(i_want_to_patch)
+
+    :param tuple modules_to_patch: a tuple containing the list of libraries to be patched
+    """
     enabled = global_sdk_config.sdk_enabled()
     if not enabled:
         log.debug("Skipped patching modules %s because the SDK is currently disabled." % ', '.join(modules_to_patch))
