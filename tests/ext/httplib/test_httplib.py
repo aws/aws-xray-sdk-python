@@ -1,18 +1,11 @@
+import http.client as httplib
+from urllib.parse import urlparse
+
 import pytest
-import sys
 
-from aws_xray_sdk.core import patch
-from aws_xray_sdk.core import xray_recorder
+from aws_xray_sdk.core import patch, xray_recorder
 from aws_xray_sdk.core.context import Context
-from aws_xray_sdk.ext.util import strip_url, get_hostname
-
-if sys.version_info >= (3, 0, 0):
-    import http.client as httplib
-    from urllib.parse import urlparse
-else:
-    import httplib
-    from urlparse import urlparse
-
+from aws_xray_sdk.ext.util import get_hostname, strip_url
 
 # httpbin.org is created by the same author of requests to make testing http easy.
 BASE_URL = 'httpbin.org'
@@ -25,7 +18,7 @@ def construct_ctx():
     so that later subsegment can be attached. After each test run
     it cleans up context storage again.
     """
-    from aws_xray_sdk.ext.httplib import unpatch, reset_ignored
+    from aws_xray_sdk.ext.httplib import reset_ignored, unpatch
 
     patch(('httplib',))
     xray_recorder.configure(service='test', sampling=False, context=Context())

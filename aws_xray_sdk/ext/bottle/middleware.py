@@ -7,7 +7,7 @@ from aws_xray_sdk.ext.util import calculate_sampling_decision, \
     calculate_segment_name, construct_xray_header, prepare_response_header
 
 
-class XRayMiddleware(object):
+class XRayMiddleware:
     """
     Middleware that wraps each incoming request to a segment.
     """

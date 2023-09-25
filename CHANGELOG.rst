@@ -5,6 +5,21 @@ CHANGELOG
 Unreleased
 ==========
 
+2.12.0
+==========
+* improvement: Default Context Missing Strategy set to Log Error `PR372 https://github.com/aws/aws-xray-sdk-python/pull/372`
+* bugfix: Pin tox version to <=3.27.1 to fix CI tests `PR374 https://github.com/aws/aws-xray-sdk-python/pull/374`
+* improvement: Sample app dependency update `PR373 https://github.com/aws/aws-xray-sdk-python/pull/373`
+* bugfix: Fix pynamodb tests for Python < 3.6 `PR375 https://github.com/aws/aws-xray-sdk-python/pull/375`
+* improvement: Use latest GH Actions versions in CI tests `PR365 https://github.com/aws/aws-xray-sdk-python/pull/365`
+* improvement: Simplify setup script `PR363 https://github.com/aws/aws-xray-sdk-python/pull/363`
+* bugfix: Fix deprecation warnings related to asyncio `PR364 https://github.com/aws/aws-xray-sdk-python/pull/364`
+* improvement: Run tests against Python 3.10 and 3.11 `PR376 https://github.com/aws/aws-xray-sdk-python/pull/376`
+* improvement: Sample app dependency update `PR380 https://github.com/aws/aws-xray-sdk-python/pull/380`
+* bugfix: Pin sqlalchemy version to 1.x to fix tests `PR381 https://github.com/aws/aws-xray-sdk-python/pull/381`
+* bugfix: Fix sample app dependencies incompatibility with XRay SDK `PR382 https://github.com/aws/aws-xray-sdk-python/pull/382`
+* bugfix: Start MySQL from GH Actions, upgrade Ubuntu, and remove Python versions for unit tests `PR384 https://github.com/aws/aws-xray-sdk-python/pull/384`
+
 2.11.0
 ==========
 * bugfix: Fix TypeError by patching register_default_jsonb from psycopg2 `PR350 https://github.com/aws/aws-xray-sdk-python/pull/350`

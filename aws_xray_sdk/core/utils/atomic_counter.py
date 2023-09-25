@@ -1,7 +1,7 @@
 import threading
 
 
-class AtomicCounter(object):
+class AtomicCounter:
     """
     A helper class that implements a thread-safe counter.
     """

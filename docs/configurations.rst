@@ -23,7 +23,8 @@ By default, the SDK uses sampling rules configured in your AWS account. You can 
 The input can either be an absolute path to your sampling rule
 *.json* file or a dictionary.
 
-To use only local rules for sampling, configure the recorder with a ``LocalSampler``.
+To use only local rules for sampling, configure the recorder with a ``LocalSampler``::
+
     from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
     xray_recorder.configure(sampler=LocalSampler())
 

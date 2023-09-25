@@ -1,16 +1,10 @@
 import re
-
-from aws_xray_sdk.core.models.trace_header import TraceHeader
-from aws_xray_sdk.core.models import http
+from urllib.parse import urlparse
 
 import wrapt
-import sys
 
-if sys.version_info.major >= 3:  # Python 3 and above
-    from urllib.parse import urlparse
-else:  # Python 2 and below
-    from urlparse import urlparse
-
+from aws_xray_sdk.core.models import http
+from aws_xray_sdk.core.models.trace_header import TraceHeader
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')

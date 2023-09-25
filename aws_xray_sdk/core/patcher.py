@@ -8,7 +8,7 @@ import sys
 import wrapt
 
 from aws_xray_sdk import global_sdk_config
-from .utils.compat import PY2, is_classmethod, is_instance_method
+from .utils.compat import is_classmethod, is_instance_method
 
 log = logging.getLogger(__name__)
 
@@ -55,17 +55,14 @@ def patch_all(double_patch=False):
 
 def _is_valid_import(module):
     module = module.replace('.', '/')
-    if PY2:
-        return bool(pkgutil.get_loader(module))
-    else:
-        realpath = os.path.realpath(module)
-        is_module = os.path.isdir(realpath) and (
-            os.path.isfile('{}/__init__.py'.format(module)) or os.path.isfile('{}/__init__.pyc'.format(module))
-        )
-        is_file = not is_module and (
-                os.path.isfile('{}.py'.format(module)) or os.path.isfile('{}.pyc'.format(module))
-        )
-        return is_module or is_file
+    realpath = os.path.realpath(module)
+    is_module = os.path.isdir(realpath) and (
+        os.path.isfile('{}/__init__.py'.format(module)) or os.path.isfile('{}/__init__.pyc'.format(module))
+    )
+    is_file = not is_module and (
+            os.path.isfile('{}.py'.format(module)) or os.path.isfile('{}.pyc'.format(module))
+    )
+    return is_module or is_file
 
 
 def patch(modules_to_patch, raise_errors=True, ignore_module_patterns=None):

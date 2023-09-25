@@ -22,7 +22,7 @@ class FacadeSegment(Segment):
             sampled=sampled,
         )
 
-        super(FacadeSegment, self).__init__(
+        super().__init__(
             name=name,
             entityid=entityid,
             traceid=traceid,

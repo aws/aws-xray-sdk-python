@@ -30,7 +30,7 @@ SUPPORTED_ENV_VARS = ('AWS_XRAY_DAEMON_ADDRESS',
                       )
 
 
-class XRaySettings(object):
+class XRaySettings:
     """
     A object of Django settings to easily modify certain fields.
     The precedence for configurations at different places is as follows:

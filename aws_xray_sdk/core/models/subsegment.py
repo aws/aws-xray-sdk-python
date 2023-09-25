@@ -95,7 +95,7 @@ class Subsegment(Entity):
             support `aws`, `remote` and `local`.
         :param Segment segment: The parent segment
         """
-        super(Subsegment, self).__init__(name)
+        super().__init__(name)
 
         if not segment:
             raise SegmentNotFoundException("A parent segment is required for creating subsegments.")
@@ -114,7 +114,7 @@ class Subsegment(Entity):
         reference counter and total subsegments counter of the
         parent segment.
         """
-        super(Subsegment, self).add_subsegment(subsegment)
+        super().add_subsegment(subsegment)
         self.parent_segment.increment()
 
     def remove_subsegment(self, subsegment):
@@ -124,7 +124,7 @@ class Subsegment(Entity):
 
         :param Subsegment: subsegment to remove.
         """
-        super(Subsegment, self).remove_subsegment(subsegment)
+        super().remove_subsegment(subsegment)
         self.parent_segment.decrement_subsegments_size()
 
     def close(self, end_time=None):
@@ -136,7 +136,7 @@ class Subsegment(Entity):
         :param int end_time: Epoch in seconds. If not specified
             current time will be used.
         """
-        super(Subsegment, self).close(end_time)
+        super().close(end_time)
         self.parent_segment.decrement_ref_counter()
 
     def set_sql(self, sql):
@@ -154,7 +154,7 @@ class Subsegment(Entity):
         Convert Subsegment object to dict with required properties
         that have non-empty values. 
         """    
-        subsegment_dict = super(Subsegment, self).to_dict()
+        subsegment_dict = super().to_dict()
         
         del subsegment_dict['parent_segment']
 

@@ -14,7 +14,7 @@ SUPPORTED_CONTEXT_MISSING = ('RUNTIME_ERROR', 'LOG_ERROR', 'IGNORE_ERROR')
 CXT_MISSING_STRATEGY_KEY = 'AWS_XRAY_CONTEXT_MISSING'
 
 
-class Context(object):
+class Context:
     """
     The context storage class to store trace entities(segments/subsegments).
     The default implementation uses threadlocal to store these entities.

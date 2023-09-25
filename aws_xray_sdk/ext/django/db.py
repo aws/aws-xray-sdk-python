@@ -21,7 +21,7 @@ class DjangoXRayTracedCursor(XRayTracedCursor):
         if xray_recorder.stream_sql:
             _previous_meta = copy.copy(self._xray_meta)
             self._xray_meta['sanitized_query'] = query
-        result = super(DjangoXRayTracedCursor, self).execute(query, *args, **kwargs)
+        result = super().execute(query, *args, **kwargs)
         if xray_recorder.stream_sql:
             self._xray_meta = _previous_meta
         return result
@@ -30,7 +30,7 @@ class DjangoXRayTracedCursor(XRayTracedCursor):
         if xray_recorder.stream_sql:
             _previous_meta = copy.copy(self._xray_meta)
             self._xray_meta['sanitized_query'] = query
-        result = super(DjangoXRayTracedCursor, self).executemany(query, *args, **kwargs)
+        result = super().executemany(query, *args, **kwargs)
         if xray_recorder.stream_sql:
             self._xray_meta = _previous_meta
         return result
@@ -39,7 +39,7 @@ class DjangoXRayTracedCursor(XRayTracedCursor):
         if xray_recorder.stream_sql:
             _previous_meta = copy.copy(self._xray_meta)
             self._xray_meta['sanitized_query'] = proc
-        result = super(DjangoXRayTracedCursor, self).callproc(proc, args)
+        result = super().callproc(proc, args)
         if xray_recorder.stream_sql:
             self._xray_meta = _previous_meta
         return result

@@ -11,7 +11,7 @@ local_sampling_rule = json.loads(pkgutil.get_data(__name__, 'sampling_rule.json'
 SUPPORTED_RULE_VERSION = (1, 2)
 
 
-class LocalSampler(object):
+class LocalSampler:
     """
     The local sampler that holds either custom sampling rules
     or default sampling rules defined locally. The X-Ray recorder

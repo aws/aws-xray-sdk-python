@@ -3,12 +3,10 @@ import os
 import binascii
 import logging
 
-from ..utils.compat import string_types
-
 log = logging.getLogger(__name__)
 
 
-class Throwable(object):
+class Throwable:
     """
     An object recording exception infomation under trace entity
     `cause` section. The information includes the stack trace,
@@ -31,7 +29,7 @@ class Throwable(object):
             message = None
 
         # do not record non-string exception message
-        if isinstance(message, string_types):
+        if isinstance(message, str):
             self.message = message
 
         self.type = type(exception).__name__

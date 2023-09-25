@@ -1,7 +1,7 @@
 import threading
 
 
-class DefaultStreaming(object):
+class DefaultStreaming:
     """
     The default streaming strategy. It uses the total count of a
     segment's children subsegments as a threshold. If the threshold is
