@@ -14,7 +14,7 @@ from aws_xray_sdk.ext.util import unwrap
 def _sql_meta(engine_instance, args):
     try:
         metadata = {}
-        url = urlparse(str(engine_instance.engine.url))
+        url = urlparse(engine_instance.engine.render_as_string())
         # Add Scheme to uses_netloc or // will be missing from url.
         uses_netloc.append(url.scheme)
         if url.password is None:
