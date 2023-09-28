@@ -78,6 +78,18 @@ class LambdaContext(Context):
         current_entity.add_subsegment(subsegment)
         self._local.entities.append(subsegment)
 
+    def set_trace_entity(self, trace_entity):
+        """
+        For Lambda context, we additionally store the segment in the thread local.
+        """
+        if self._is_subsegment(trace_entity):
+            segment = trace_entity.parent_segment
+        else:
+            segment = trace_entity
+
+        setattr(self._local, 'segment', segment)
+        setattr(self._local, 'entities', [trace_entity])
+
     def get_trace_entity(self):
         self._refresh_context()
         if getattr(self._local, 'entities', None):
