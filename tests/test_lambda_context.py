@@ -83,3 +83,24 @@ def test_non_initialized():
     temp_context.put_subsegment(subsegment)
 
     assert temp_context.get_trace_entity() == subsegment
+
+
+def test_set_trace_entity():
+    segment = context.get_trace_entity()
+    subsegment = Subsegment('name', 'local', segment)
+
+    context. clear_trace_entities()
+
+    # should set the parent segment in thread local
+    context.set_trace_entity(subsegment)
+    tl = context._local
+    assert tl.__getattribute__('segment') == segment
+    assert context.get_trace_entity() == subsegment
+
+    context.clear_trace_entities()
+
+    # should set the segment in thread local
+    context.set_trace_entity(segment)
+    tl = context._local
+    assert tl.__getattribute__('segment') == segment
+    assert context.get_trace_entity() == segment
