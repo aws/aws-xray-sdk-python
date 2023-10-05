@@ -16,12 +16,17 @@ To turn off sampling, use code like the following::
     from aws_xray_sdk.core import xray_recorder
     xray_recorder.configure(sampling=False)
 
-You can also configure the sampling rules::
+By default, the SDK uses sampling rules configured in your AWS account. You can also configure the backup sampling rules locally::
 
     xray_recorder.configure(sampling_rules=your_rules)
 
 The input can either be an absolute path to your sampling rule
 *.json* file or a dictionary.
+
+To use only local rules for sampling, configure the recorder with a ``LocalSampler``::
+
+    from aws_xray_sdk.core.sampling.local.sampler import LocalSampler
+    xray_recorder.configure(sampler=LocalSampler())
 
 The following code is an example of a rule configuration::
 
