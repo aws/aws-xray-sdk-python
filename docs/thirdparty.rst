@@ -6,8 +6,8 @@ Third Party Library Support
 Patching Supported Libraries
 ----------------------------
 
-The SDK supports aioboto3, aiobotocore, boto3, botocore, pynamodb, requests, sqlite3, httplib and
-mysql-connector.
+The X-Ray Python SDK supports patching aioboto3, aiobotocore, boto3, botocore, pynamodb, requests, 
+sqlite3, mysql, httplib, pymongo, pymysql, psycopg2, pg8000, sqlalchemy_core, httpx, and mysql-connector.
 
 To patch, use code like the following in the main app::
 
@@ -36,6 +36,12 @@ The following modules are availble to patch::
         'sqlite3',
         'mysql',
         'httplib',
+        'pymongo',
+        'pymysql',
+        'psycopg2',
+        'pg8000',
+        'sqlalchemy_core',
+        'httpx',
     )
 
 Patching boto3 and botocore are equivalent since boto3 depends on botocore.

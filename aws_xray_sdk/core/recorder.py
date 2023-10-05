@@ -88,6 +88,7 @@ class AWSXRayRecorder:
 
         Configure needs to run before patching thrid party libraries
         to avoid creating dangling subsegment.
+
         :param bool sampling: If sampling is enabled, every time the recorder
             creates a segment it decides whether to send this segment to
             the X-Ray daemon. This setting is not used if the recorder
