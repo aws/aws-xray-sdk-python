@@ -5,6 +5,15 @@ CHANGELOG
 Unreleased
 ==========
 
+2.13.0
+==========
+* bugfix: set_trace_entity() in lambda adds segment to thread `PR409 https://github.com/aws/aws-xray-sdk-python/pull/409`
+* bugfix: Improve API reference for patch and patch_all `PR407 https://github.com/aws/aws-xray-sdk-python/pull/407`
+* bugfix: improve doc about sampling configuration `PR406 https://github.com/aws/aws-xray-sdk-python/pull/406`
+* improvement: Disable IMDSv1 from Elastic Beanstalk `PR391 https://github.com/aws/aws-xray-sdk-python/pull/391`
+* improvement: Support passing pytest arguments via tox `PR390 https://github.com/aws/aws-xray-sdk-python/pull/390`
+* improvement: Cleanup after drop of support for Python `PR387 https://github.com/aws/aws-xray-sdk-python/pull/387`
+
 2.12.0
 ==========
 * improvement: Default Context Missing Strategy set to Log Error `PR372 https://github.com/aws/aws-xray-sdk-python/pull/372`
