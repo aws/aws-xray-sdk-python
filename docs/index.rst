@@ -29,6 +29,7 @@ Currently supported web frameworks and libraries:
 * mysql-connector
 * pg8000
 * psycopg2
+* psycopg (psycopg3)
 * pymongo
 * pymysql
 * pynamodb
