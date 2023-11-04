@@ -5,6 +5,11 @@ CHANGELOG
 Unreleased
 ==========
 
+2.12.1
+==========
+* bugfix: set_trace_entity() in lambda adds segment to thread `PR409 https://github.com/aws/aws-xray-sdk-python/pull/409`
+* bugfix: Cleanup after drop of support for Python `PR387 https://github.com/aws/aws-xray-sdk-python/pull/387`
+
 2.12.0
 ==========
 * improvement: Default Context Missing Strategy set to Log Error `PR372 https://github.com/aws/aws-xray-sdk-python/pull/372`
