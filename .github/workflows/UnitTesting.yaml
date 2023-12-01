@@ -16,13 +16,14 @@ jobs:
       py39: 3.9
       py310: '3.10'
       py311: '3.11'
+      py312: '3.12'
       DB_DATABASE: test_db
       DB_USER: root
       DB_PASSWORD: root
     strategy:
       fail-fast: false
       matrix:
-        python-version: [py37, py38, py39, py310, py311]
+        python-version: [py37, py38, py39, py310, py311, py312]
         testenv: [core, ext]
     steps:
       - name: Checkout repo
@@ -40,7 +41,7 @@ jobs:
           python-version: ${{ env[matrix.python-version] }}
 
       - name: Install tox
-        run: pip install "tox<=3.27.1" -U tox-factor
+        run: pip install "tox<=3.27.1" -U tox-factor setuptools
 
       - name: Cache tox environment
         # Preserves .tox directory between runs for faster installs
