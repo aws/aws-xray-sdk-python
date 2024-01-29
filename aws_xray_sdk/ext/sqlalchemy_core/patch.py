@@ -1,6 +1,6 @@
 import logging
 import sys
-from urllib.parse import urlparse, uses_netloc
+from urllib.parse import urlparse, uses_netloc, quote_plus
 
 import wrapt
 from sqlalchemy.sql.expression import ClauseElement
@@ -14,18 +14,21 @@ from aws_xray_sdk.ext.util import unwrap
 def _sql_meta(engine_instance, args):
     try:
         metadata = {}
-        url = urlparse(str(engine_instance.engine.url))
+        # Workaround for https://github.com/sqlalchemy/sqlalchemy/issues/10662
+        # sqlalchemy.engine.url.URL's __repr__ does not url encode username nor password.
+        # This will continue to work once sqlalchemy fixes the bug.
+        sa_url = engine_instance.engine.url
+        username = sa_url.username
+        sa_url = sa_url._replace(username=None, password=None)
+        url = urlparse(str(sa_url))
+        name = url.netloc
+        if username:
+            # Restore url encoded username
+            quoted_username = quote_plus(username)
+            url = url._replace(netloc='{}@{}'.format(quoted_username, url.netloc))
         # Add Scheme to uses_netloc or // will be missing from url.
         uses_netloc.append(url.scheme)
-        if url.password is None:
-            metadata['url'] = url.geturl()
-            name = url.netloc
-        else:
-            # Strip password from URL
-            host_info = url.netloc.rpartition('@')[-1]
-            parts = url._replace(netloc='{}@{}'.format(url.username, host_info))
-            metadata['url'] = parts.geturl()
-            name = host_info
+        metadata['url'] = url.geturl()
         metadata['user'] = url.username
         metadata['database_type'] = engine_instance.engine.name
         try:
