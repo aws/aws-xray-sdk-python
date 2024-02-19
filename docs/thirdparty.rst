@@ -24,7 +24,7 @@ To patch specific modules::
     i_want_to_patch = ('botocore') # a tuple that contains the libs you want to patch
     patch(i_want_to_patch)
 
-The following modules are availble to patch::
+The following modules are available to patch::
 
     SUPPORTED_MODULES = (
         'aioboto3',
