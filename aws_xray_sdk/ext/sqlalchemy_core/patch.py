@@ -1,4 +1,5 @@
 import logging
+import re
 import sys
 from urllib.parse import urlparse, uses_netloc
 
@@ -14,7 +15,7 @@ from aws_xray_sdk.ext.util import unwrap
 def _sql_meta(engine_instance, args):
     try:
         metadata = {}
-        url = urlparse(str(engine_instance.engine.url))
+        url = urlparse(re.match(r"Engine\((.*?)\)", str(engine_instance.engine)).group(1))
         # Add Scheme to uses_netloc or // will be missing from url.
         uses_netloc.append(url.scheme)
         if url.password is None:
