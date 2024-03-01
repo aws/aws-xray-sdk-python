@@ -55,7 +55,7 @@ resource "aws_elastic_beanstalk_application_version" "eb_app_version" {
 resource "aws_elastic_beanstalk_environment" "eb_env" {
   name                = "${var.resource_prefix}-EB-App-Env"
   application         = aws_elastic_beanstalk_application.eb_app.name
-  solution_stack_name = "64bit Amazon Linux 2 v3.1.3 running Python 3.7"
+  solution_stack_name = "64bit Amazon Linux 2 v3.5.10 running Python 3.8"
   tier = "WebServer"
   version_label = aws_elastic_beanstalk_application_version.eb_app_version.name
   cname_prefix = "${var.resource_prefix}-Eb-app-env"
