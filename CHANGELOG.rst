@@ -5,6 +5,16 @@ CHANGELOG
 Unreleased
 ==========
 
+2.13.0
+==========
+* bugfix: Fix passing multiple values in testenv.passenv in tox.ini `https://github.com/aws/aws-xray-sdk-python/pull/399`
+* improvement: Pin flask < 3.x for flask sqlalchemy tests `https://github.com/aws/aws-xray-sdk-python/pull/412`
+* improvement: Bump werkzeug from 2.2.3 to 3.0.1 in /sample-apps/flask `https://github.com/aws/aws-xray-sdk-python/pull/413`
+* improvement: Enable testing on Python 3.12 `https://github.com/aws/aws-xray-sdk-python/pull/400`
+* bugfix: Fix typo in docs `https://github.com/aws/aws-xray-sdk-python/pull/419`
+* bugfix: Fix sqlalchemy_core patch errors for unencoded special characters in db url `https://github.com/aws/aws-xray-sdk-python/pull/418`
+* bugfix: Fix EB platform version for integration test `https://github.com/aws/aws-xray-sdk-python/pull/420`
+
 2.12.1
 ==========
 * bugfix: set_trace_entity() in lambda adds segment to thread `PR409 https://github.com/aws/aws-xray-sdk-python/pull/409`
