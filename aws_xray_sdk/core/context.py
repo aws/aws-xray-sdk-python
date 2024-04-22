@@ -44,7 +44,7 @@ class Context:
         """
         End the current active segment.
 
-        :param int end_time: epoch in seconds. If not specified the current
+        :param float end_time: epoch in seconds. If not specified the current
             system time will be used.
         """
         entity = self.get_trace_entity()
@@ -75,7 +75,7 @@ class Context:
         End the current active segment. Return False if there is no
         subsegment to end.
 
-        :param int end_time: epoch in seconds. If not specified the current
+        :param float end_time: epoch in seconds. If not specified the current
             system time will be used.
         """
         subsegment = self.get_trace_entity()
