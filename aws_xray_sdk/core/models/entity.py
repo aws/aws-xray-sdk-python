@@ -64,7 +64,7 @@ class Entity:
         Close the trace entity by setting `end_time`
         and flip the in progress flag to False.
 
-        :param int end_time: Epoch in seconds. If not specified
+        :param float end_time: Epoch in seconds. If not specified
             current time will be used.
         """
         self._check_ended()
