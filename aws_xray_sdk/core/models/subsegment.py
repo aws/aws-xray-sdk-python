@@ -133,7 +133,7 @@ class Subsegment(Entity):
         and flip the in progress flag to False. Also decrement
         parent segment's ref counter by 1.
 
-        :param int end_time: Epoch in seconds. If not specified
+        :param float end_time: Epoch in seconds. If not specified
             current time will be used.
         """
         super().close(end_time)
