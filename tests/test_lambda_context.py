@@ -67,18 +67,19 @@ def test_disable():
 
 
 def test_non_initialized():
-    # Context that hasn't been initialized by lambda container should not add subsegments to the facade segment.
+    # Context that hasn't been initialized by lambda container should not add subsegments to the dummy segment.
     temp_header_var = os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
     del os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
 
     temp_context = lambda_launcher.LambdaContext()
-    facade_segment = temp_context.get_trace_entity()
-    subsegment = Subsegment("TestSubsegment", "local", facade_segment)
+    dummy_segment = temp_context.get_trace_entity()
+    subsegment = Subsegment("TestSubsegment", "local", dummy_segment)
     temp_context.put_subsegment(subsegment)
 
-    assert temp_context.get_trace_entity() == facade_segment
+    assert temp_context.get_trace_entity() == dummy_segment
 
     # "Lambda" container added metadata now. Should see subsegment now.
+    # The following put_segment call will overwrite the dummy segment in the context with an intialized facade segment that accepts a subsegment.
     os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = temp_header_var
     temp_context.put_subsegment(subsegment)
 
