@@ -3,6 +3,7 @@ import os
 from aws_xray_sdk import global_sdk_config
 import pytest
 from aws_xray_sdk.core import lambda_launcher
+from aws_xray_sdk.core.models.dummy_entities import DummySegment
 from aws_xray_sdk.core.models.subsegment import Subsegment
 
 
@@ -67,22 +68,47 @@ def test_disable():
 
 
 def test_non_initialized():
-    # Context that hasn't been initialized by lambda container should not add subsegments to the facade segment.
+    # Context that hasn't been initialized by lambda container should not add subsegments to the dummy segment.
     temp_header_var = os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
     del os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
 
     temp_context = lambda_launcher.LambdaContext()
-    facade_segment = temp_context.get_trace_entity()
-    subsegment = Subsegment("TestSubsegment", "local", facade_segment)
+    dummy_segment = temp_context.get_trace_entity()
+    subsegment = Subsegment("TestSubsegment", "local", dummy_segment)
     temp_context.put_subsegment(subsegment)
 
-    assert temp_context.get_trace_entity() == facade_segment
+    assert temp_context.get_trace_entity() == dummy_segment
 
     # "Lambda" container added metadata now. Should see subsegment now.
+    # The following put_segment call will overwrite the dummy segment in the context with an intialized facade segment that accepts a subsegment.
     os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = temp_header_var
     temp_context.put_subsegment(subsegment)
 
     assert temp_context.get_trace_entity() == subsegment
+
+def test_lambda_passthrough():
+    # Hold previous environment value
+    temp_header_var = os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
+    del os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
+
+    # Set header to lambda passthrough style header
+    os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = "Root=%s;Lineage=10:1234abcd:3" % TRACE_ID
+
+    temp_context = lambda_launcher.LambdaContext()
+    dummy_segment = temp_context.get_trace_entity()
+    subsegment = Subsegment("TestSubsegment", "local", dummy_segment)
+    temp_context.put_subsegment(subsegment)
+
+    # Resulting entity is not the same dummy segment, so simply check that it is a dummy segment
+    assert isinstance(temp_context.get_trace_entity(), DummySegment)
+
+    # Reset header value and ensure behaviour returns to normal
+    del os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY]
+    os.environ[lambda_launcher.LAMBDA_TRACE_HEADER_KEY] = temp_header_var
+    temp_context.put_subsegment(subsegment)
+
+    assert temp_context.get_trace_entity() == subsegment
+
 
 
 def test_set_trace_entity():
