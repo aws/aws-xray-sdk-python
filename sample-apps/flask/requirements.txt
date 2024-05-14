@@ -5,7 +5,7 @@ Flask==2.3.3
 idna==3.7
 requests==2.31.0
 urllib3==1.26.18
-Werkzeug==3.0.1
+Werkzeug==3.0.3
 flask-sqlalchemy==2.5.1
 SQLAlchemy==1.4
 aws_xray_sdk==2.6.0
