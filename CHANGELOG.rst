@@ -5,6 +5,14 @@ CHANGELOG
 Unreleased
 ==========
 
+2.13.1
+==========
+* improvement: Bump idna from 3.6 to 3.7 in /sample-apps/flask `https://github.com/aws/aws-xray-sdk-python/pull/425`
+* bugfix: Fix end_time param type docstring from int to float `https://github.com/aws/aws-xray-sdk-python/pull/426`
+* improvement:  Bump werkzeug from 3.0.1 to 3.0.3 in /sample-apps/flask `https://github.com/aws/aws-xray-sdk-python/pull/428`
+* improvement: [LambdaContext] Create dummy segment when trace header is incomplete `https://github.com/aws/aws-xray-sdk-python/pull/429`
+* bugfix: [LambdaContext] Fix logging to only happen inside lambda function `https://github.com/aws/aws-xray-sdk-python/pull/431`
+
 2.13.0
 ==========
 * bugfix: Fix passing multiple values in testenv.passenv in tox.ini `https://github.com/aws/aws-xray-sdk-python/pull/399`
