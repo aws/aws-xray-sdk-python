@@ -78,11 +78,13 @@ class Context:
         :param float end_time: epoch in seconds. If not specified the current
             system time will be used.
         """
-        subsegment = self.get_trace_entity()
-        if self._is_subsegment(subsegment):
-            subsegment.close(end_time)
+        entity = self.get_trace_entity()
+        if self._is_subsegment(entity):
+            entity.close(end_time)
             self._local.entities.pop()
             return True
+        elif isinstance(entity, DummySegment):
+            return False
         else:
             log.warning("No subsegment to end.")
             return False
