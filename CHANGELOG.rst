@@ -5,6 +5,10 @@ CHANGELOG
 Unreleased
 ==========
 
+2.14.0
+==========
+* bugfix: Fix warning message condition for subsegment ending `https://github.com/aws/aws-xray-sdk-python/pull/434`
+
 2.13.1
 ==========
 * improvement: Bump idna from 3.6 to 3.7 in /sample-apps/flask `https://github.com/aws/aws-xray-sdk-python/pull/425`
