@@ -22,7 +22,7 @@ class Context:
     replace the current stored entities and to clean up the storage.
 
     For any data access or data mutation, if there is no active segment present
-    if will use user-defined behavior to handle such case. By default it throws
+    it will use user-defined behavior to handle such case. By default it throws
     an runtime error.
 
     This data structure is thread-safe.
