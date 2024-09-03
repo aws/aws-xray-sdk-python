@@ -41,7 +41,7 @@ jobs:
           python-version: '3.8'
 
       - name: Download X-Ray SDK build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: sdk-build-artifact
           path: ./sample-apps/flask
@@ -70,7 +70,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download WebApp with X-Ray SDK build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: sdk-flask-build-artifact
 
@@ -149,7 +149,7 @@ jobs:
 
     steps:
       - name: Download terraform state artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: terraform-state-artifact
 
