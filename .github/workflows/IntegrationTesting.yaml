@@ -4,6 +4,10 @@ on:
     branches:
       - master
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build_SDK:
     name: Build X-Ray Python SDK
@@ -78,10 +82,9 @@ jobs:
         run: cp deploy.zip ./terraform
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_INTEG_TEST_ROLE_ARN }}
           aws-region: us-west-2
 
       - name: Setup Terraform
@@ -126,10 +129,9 @@ jobs:
           java-version: 14
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_INTEG_TEST_ROLE_ARN }}
           aws-region: us-west-2
 
       - name: Checkout test framework
