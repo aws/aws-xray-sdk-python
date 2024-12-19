@@ -4,6 +4,10 @@ on:
   schedule:
     - cron:  '*/10 * * * *'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   smoke-tests:
     name: Run smoke tests
