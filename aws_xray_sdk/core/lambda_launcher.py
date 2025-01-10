@@ -3,6 +3,7 @@ import logging
 import threading
 
 from aws_xray_sdk import global_sdk_config
+from .models.dummy_entities import DummySegment
 from .models.facade_segment import FacadeSegment
 from .models.trace_header import TraceHeader
 from .context import Context
@@ -44,7 +45,7 @@ class LambdaContext(Context):
     """
     Lambda service will generate a segment for each function invocation which
     cannot be mutated. The context doesn't keep any manually created segment
-    but instead every time ``get_trace_entity()`` gets called it refresh the facade
+    but instead every time ``get_trace_entity()`` gets called it refresh the
     segment based on environment variables set by Lambda worker.
     """
     def __init__(self):
@@ -65,18 +66,30 @@ class LambdaContext(Context):
 
     def put_subsegment(self, subsegment):
         """
-        Refresh the facade segment every time this function is invoked to prevent
+        Refresh the segment every time this function is invoked to prevent
         a new subsegment from being attached to a leaked segment/subsegment.
         """
         current_entity = self.get_trace_entity()
 
-        if not self._is_subsegment(current_entity) and current_entity.initializing:
-            if global_sdk_config.sdk_enabled():
+        if not self._is_subsegment(current_entity) and (getattr(current_entity, 'initializing', None) or isinstance(current_entity, DummySegment)):
+            if global_sdk_config.sdk_enabled() and not os.getenv(LAMBDA_TRACE_HEADER_KEY):
                 log.warning("Subsegment %s discarded due to Lambda worker still initializing" % subsegment.name)
             return
 
         current_entity.add_subsegment(subsegment)
         self._local.entities.append(subsegment)
+
+    def set_trace_entity(self, trace_entity):
+        """
+        For Lambda context, we additionally store the segment in the thread local.
+        """
+        if self._is_subsegment(trace_entity):
+            segment = trace_entity.parent_segment
+        else:
+            segment = trace_entity
+
+        setattr(self._local, 'segment', segment)
+        setattr(self._local, 'entities', [trace_entity])
 
     def get_trace_entity(self):
         self._refresh_context()
@@ -87,9 +100,9 @@ class LambdaContext(Context):
 
     def _refresh_context(self):
         """
-        Get current facade segment. To prevent resource leaking in Lambda worker,
+        Get current segment. To prevent resource leaking in Lambda worker,
         every time there is segment present, we compare its trace id to current
-        environment variables. If it is different we create a new facade segment
+        environment variables. If it is different we create a new segment
         and clean up subsegments stored.
         """
         header_str = os.getenv(LAMBDA_TRACE_HEADER_KEY)
@@ -124,8 +137,8 @@ class LambdaContext(Context):
 
     def _initialize_context(self, trace_header):
         """
-        Create a facade segment based on environment variables
-        set by AWS Lambda and initialize storage for subsegments.
+        Create a segment based on environment variables set by
+        AWS Lambda and initialize storage for subsegments.
         """
         sampled = None
         if not global_sdk_config.sdk_enabled():
@@ -136,12 +149,17 @@ class LambdaContext(Context):
         elif trace_header.sampled == 1:
             sampled = True
 
-        segment = FacadeSegment(
-            name='facade',
-            traceid=trace_header.root,
-            entityid=trace_header.parent,
-            sampled=sampled,
-        )
+        segment = None
+        if not trace_header.root or not trace_header.parent or trace_header.sampled is None:
+            segment = DummySegment()
+            log.debug("Creating NoOp/Dummy parent segment")
+        else:
+            segment = FacadeSegment(
+                name='facade',
+                traceid=trace_header.root,
+                entityid=trace_header.parent,
+                sampled=sampled,
+            )
         segment.save_origin_trace_header(trace_header)
         setattr(self._local, 'segment', segment)
         setattr(self._local, 'entities', [])

@@ -5,6 +5,32 @@ CHANGELOG
 Unreleased
 ==========
 
+2.14.0
+==========
+* bugfix: Fix warning message condition for subsegment ending `https://github.com/aws/aws-xray-sdk-python/pull/434`
+
+2.13.1
+==========
+* improvement: Bump idna from 3.6 to 3.7 in /sample-apps/flask `https://github.com/aws/aws-xray-sdk-python/pull/425`
+* bugfix: Fix end_time param type docstring from int to float `https://github.com/aws/aws-xray-sdk-python/pull/426`
+* improvement:  Bump werkzeug from 3.0.1 to 3.0.3 in /sample-apps/flask `https://github.com/aws/aws-xray-sdk-python/pull/428`
+* improvement: [LambdaContext] Create dummy segment when trace header is incomplete `https://github.com/aws/aws-xray-sdk-python/pull/429`
+* bugfix: [LambdaContext] Fix logging to only happen inside lambda function `https://github.com/aws/aws-xray-sdk-python/pull/431`
+
+2.13.0
+==========
+* bugfix: Fix passing multiple values in testenv.passenv in tox.ini `https://github.com/aws/aws-xray-sdk-python/pull/399`
+* improvement: Pin flask < 3.x for flask sqlalchemy tests `https://github.com/aws/aws-xray-sdk-python/pull/412`
+* improvement: Bump werkzeug from 2.2.3 to 3.0.1 in /sample-apps/flask `https://github.com/aws/aws-xray-sdk-python/pull/413`
+* improvement: Fix typo in docs `https://github.com/aws/aws-xray-sdk-python/pull/419`
+* bugfix: Fix sqlalchemy_core patch errors for unencoded special characters in db url `https://github.com/aws/aws-xray-sdk-python/pull/418`
+* bugfix: Fix EB platform version for integration test `https://github.com/aws/aws-xray-sdk-python/pull/420`
+
+2.12.1
+==========
+* bugfix: set_trace_entity() in lambda adds segment to thread `PR409 https://github.com/aws/aws-xray-sdk-python/pull/409`
+* bugfix: Cleanup after drop of support for Python `PR387 https://github.com/aws/aws-xray-sdk-python/pull/387`
+
 2.12.0
 ==========
 * improvement: Default Context Missing Strategy set to Log Error `PR372 https://github.com/aws/aws-xray-sdk-python/pull/372`

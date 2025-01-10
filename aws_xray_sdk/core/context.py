@@ -22,7 +22,7 @@ class Context:
     replace the current stored entities and to clean up the storage.
 
     For any data access or data mutation, if there is no active segment present
-    if will use user-defined behavior to handle such case. By default it throws
+    it will use user-defined behavior to handle such case. By default it throws
     an runtime error.
 
     This data structure is thread-safe.
@@ -44,7 +44,7 @@ class Context:
         """
         End the current active segment.
 
-        :param int end_time: epoch in seconds. If not specified the current
+        :param float end_time: epoch in seconds. If not specified the current
             system time will be used.
         """
         entity = self.get_trace_entity()
@@ -75,14 +75,16 @@ class Context:
         End the current active segment. Return False if there is no
         subsegment to end.
 
-        :param int end_time: epoch in seconds. If not specified the current
+        :param float end_time: epoch in seconds. If not specified the current
             system time will be used.
         """
-        subsegment = self.get_trace_entity()
-        if self._is_subsegment(subsegment):
-            subsegment.close(end_time)
+        entity = self.get_trace_entity()
+        if self._is_subsegment(entity):
+            entity.close(end_time)
             self._local.entities.pop()
             return True
+        elif isinstance(entity, DummySegment):
+            return False
         else:
             log.warning("No subsegment to end.")
             return False
