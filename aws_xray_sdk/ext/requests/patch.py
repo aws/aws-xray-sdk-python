@@ -9,7 +9,7 @@ def patch():
 
     wrapt.wrap_function_wrapper(
         'requests',
-        'Session.request',
+        'Session.send',
         _xray_traced_requests
     )
 
@@ -22,7 +22,7 @@ def patch():
 
 def _xray_traced_requests(wrapped, instance, args, kwargs):
 
-    url = kwargs.get('url') or args[1]
+    url = args[1].url
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
