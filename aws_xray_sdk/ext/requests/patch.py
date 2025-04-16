@@ -6,7 +6,6 @@ from aws_xray_sdk.ext.util import inject_trace_header, strip_url, get_hostname
 
 
 def patch():
-
     wrapt.wrap_function_wrapper(
         'requests',
         'Session.send',
@@ -22,7 +21,7 @@ def patch():
 
 def _xray_traced_requests(wrapped, instance, args, kwargs):
 
-    url = args[1].url
+    url = args[0].url
 
     return xray_recorder.record_subsegment(
         wrapped, instance, args, kwargs,
@@ -43,9 +42,10 @@ def _inject_header(wrapped, instance, args, kwargs):
 
 def requests_processor(wrapped, instance, args, kwargs,
                        return_value, exception, subsegment, stack):
-
-    method = kwargs.get('method') or args[0]
-    url = kwargs.get('url') or args[1]
+    
+    request = args[0]
+    method = request.method
+    url = request.url
 
     subsegment.put_http_meta(http.METHOD, method)
     subsegment.put_http_meta(http.URL, strip_url(url))
