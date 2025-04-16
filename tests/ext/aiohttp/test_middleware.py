@@ -120,14 +120,14 @@ def recorder(event_loop):
     patcher.stop()
 
 
-async def test_ok(aiohttp_client, event_loop, recorder):
+async def test_ok(aiohttp_client, recorder):
     """
     Test a normal response
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     resp = await client.get('/')
@@ -144,14 +144,14 @@ async def test_ok(aiohttp_client, event_loop, recorder):
     assert response['status'] == 200
 
 
-async def test_ok_x_forwarded_for(aiohttp_client, event_loop, recorder):
+async def test_ok_x_forwarded_for(aiohttp_client, recorder):
     """
     Test a normal response with x_forwarded_for headers
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     resp = await client.get('/', headers={'X-Forwarded-For': 'foo'})
@@ -162,14 +162,14 @@ async def test_ok_x_forwarded_for(aiohttp_client, event_loop, recorder):
     assert segment.http['request']['x_forwarded_for']
 
 
-async def test_ok_content_length(aiohttp_client, event_loop, recorder):
+async def test_ok_content_length(aiohttp_client, recorder):
     """
     Test a normal response with content length as response header
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     resp = await client.get('/?content_length=100')
@@ -179,14 +179,14 @@ async def test_ok_content_length(aiohttp_client, event_loop, recorder):
     assert segment.http['response']['content_length'] == 100
 
 
-async def test_error(aiohttp_client, event_loop, recorder):
+async def test_error(aiohttp_client, recorder):
     """
     Test a 4XX response
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     resp = await client.get('/error')
@@ -204,14 +204,14 @@ async def test_error(aiohttp_client, event_loop, recorder):
     assert response['status'] == 404
 
 
-async def test_exception(aiohttp_client, event_loop, recorder):
+async def test_exception(aiohttp_client, recorder):
     """
     Test handling an exception
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     with pytest.raises(Exception):
@@ -231,14 +231,14 @@ async def test_exception(aiohttp_client, event_loop, recorder):
     assert exception.type == 'CancelledError'
 
 
-async def test_unhauthorized(aiohttp_client, event_loop, recorder):
+async def test_unhauthorized(aiohttp_client, recorder):
     """
     Test a 401 response
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     resp = await client.get('/unauthorized')
@@ -256,7 +256,8 @@ async def test_unhauthorized(aiohttp_client, event_loop, recorder):
     assert response['status'] == 401
 
 
-async def test_response_trace_header(aiohttp_client, event_loop, recorder):
+async def test_response_trace_header(aiohttp_client, recorder):
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
     resp = await client.get('/')
     xray_header = resp.headers[http.XRAY_HEADER]
@@ -266,14 +267,14 @@ async def test_response_trace_header(aiohttp_client, event_loop, recorder):
     assert expected in xray_header
 
 
-async def test_concurrent(aiohttp_client, event_loop, recorder):
+async def test_concurrent(aiohttp_client, recorder):
     """
     Test multiple concurrent requests
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     recorder.emitter = CustomStubbedEmitter()
@@ -292,15 +293,15 @@ async def test_concurrent(aiohttp_client, event_loop, recorder):
     assert len(ids) == len(set(ids))
 
 
-async def test_disabled_sdk(aiohttp_client, event_loop, recorder):
+async def test_disabled_sdk(aiohttp_client, recorder):
     """
     Test a normal response when the SDK is disabled.
 
     :param aiohttp_client: AioHttp test client fixture
-    :param event_loop: Eventloop fixture
     :param recorder: X-Ray recorder fixture
     """
     global_sdk_config.set_sdk_enabled(False)
+    event_loop = asyncio.get_running_loop()
     client = await aiohttp_client(ServerTest.app(loop=event_loop))
 
     resp = await client.get('/')
