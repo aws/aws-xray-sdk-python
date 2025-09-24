@@ -1,0 +1,242 @@
+name: "Daily Security Scan"
+
+on:
+  schedule:
+    # Run twice daily at 6 AM and 6 PM UTC
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan-published-package:
+    name: Scan Published PyPI Package
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Setup Python 3.11
+      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+      with:
+        python-version: '3.11'
+
+    - name: Download and analyze published package
+      continue-on-error: true
+      timeout-minutes: 15
+      run: |
+        # Create temp directory for package analysis
+        mkdir -p temp-scan
+        cd temp-scan
+        
+        # Get latest version from PyPI
+        LATEST_VERSION=$(python -c "import requests; r = requests.get('https://pypi.org/pypi/aws-xray-sdk/json'); print(r.json()['info']['version'])" 2>/dev/null || echo "UNKNOWN")
+        echo "Latest version of aws-xray-sdk: $LATEST_VERSION"
+        
+        if [ "$LATEST_VERSION" != "UNKNOWN" ]; then
+          # Download the package source distribution
+          pip download --no-deps --src . aws-xray-sdk==$LATEST_VERSION || echo "Failed to download package"
+          
+          # Also try to get wheel
+          pip download --no-deps aws-xray-sdk==$LATEST_VERSION || echo "Failed to download wheel"
+          
+          echo "Downloaded aws-xray-sdk version $LATEST_VERSION"
+          ls -la
+        else
+          echo "Could not determine latest version for aws-xray-sdk"
+        fi
+
+    - name: Run security analysis on published package
+      continue-on-error: true
+      timeout-minutes: 20
+      run: |
+        cd temp-scan
+        
+        # Install security tools
+        pip install safety==3.2.8 pip-audit==2.7.3 bandit[toml]==1.7.10
+        
+        # Extract source if available
+        if ls *.tar.gz 1> /dev/null 2>&1; then
+          tar -xzf *.tar.gz
+          SOURCE_DIR=$(find . -maxdepth 1 -type d -name "aws-xray-sdk-*" | head -1)
+          
+          if [ -n "$SOURCE_DIR" ] && [ -d "$SOURCE_DIR" ]; then
+            echo "Analyzing source in $SOURCE_DIR"
+            cd "$SOURCE_DIR"
+            
+            # Run pip-audit on the package
+            pip-audit --format=sarif --output=../pip-audit-published-results.sarif . || echo "pip-audit scan completed"
+            
+            # Run Bandit on source code
+            if [ -d "aws_xray_sdk" ]; then
+              bandit -r aws_xray_sdk/ -f sarif -o ../bandit-published-results.sarif || echo "Bandit scan completed"
+            fi
+            
+            # Run Safety on any requirements
+            if [ -f "requirements.txt" ]; then
+              safety check -r requirements.txt --json --output ../safety-published-results.json || echo "Safety scan completed"
+            fi
+            
+            cd ..
+          fi
+        fi
+        
+        # If we have a wheel, analyze it too
+        if ls *.whl 1> /dev/null 2>&1; then
+          echo "Found wheel file for analysis"
+          pip install *.whl
+          pip freeze > installed-packages.txt
+          safety check --json --output safety-wheel-results.json || echo "Safety wheel scan completed"
+        fi
+
+    - name: Upload pip-audit results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+      if: always() && hashFiles('temp-scan/pip-audit-published-results.sarif') != ''
+      with:
+        sarif_file: 'temp-scan/pip-audit-published-results.sarif'
+        category: 'daily-scan-pip-audit'
+
+    - name: Upload Bandit results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+      if: always() && hashFiles('temp-scan/bandit-published-results.sarif') != ''
+      with:
+        sarif_file: 'temp-scan/bandit-published-results.sarif'
+        category: 'daily-scan-bandit'
+
+    - name: Generate summary report
+      if: always()
+      run: |
+        echo "## Daily Security Scan Results for aws-xray-sdk" >> $GITHUB_STEP_SUMMARY
+        echo "Scan completed at $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "Package: aws-xray-sdk" >> $GITHUB_STEP_SUMMARY
+        
+        # Check if vulnerabilities were found
+        PIP_AUDIT_FILE="temp-scan/pip-audit-published-results.sarif"
+        if [ -f "$PIP_AUDIT_FILE" ]; then
+          PIP_AUDIT_COUNT=$(jq '.runs[0].results | length' "$PIP_AUDIT_FILE" 2>/dev/null || echo "0")
+          echo "pip-audit vulnerabilities found: $PIP_AUDIT_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        BANDIT_FILE="temp-scan/bandit-published-results.sarif"
+        if [ -f "$BANDIT_FILE" ]; then
+          BANDIT_COUNT=$(jq '.runs[0].results | length' "$BANDIT_FILE" 2>/dev/null || echo "0")
+          echo "Bandit security issues found: $BANDIT_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Check Safety results
+        SAFETY_FILE="temp-scan/safety-published-results.json"
+        if [ -f "$SAFETY_FILE" ]; then
+          SAFETY_COUNT=$(jq '. | length' "$SAFETY_FILE" 2>/dev/null || echo "0")
+          echo "Safety vulnerabilities found: $SAFETY_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Overall status
+        TOTAL_ISSUES=$((${PIP_AUDIT_COUNT:-0} + ${BANDIT_COUNT:-0} + ${SAFETY_COUNT:-0}))
+        if [ "$TOTAL_ISSUES" -gt "0" ]; then
+          echo "⚠️ **Action Required**: $TOTAL_ISSUES security issues detected in published package" >> $GITHUB_STEP_SUMMARY
+          echo "Check the Security tab for detailed findings" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ No security issues found in published package" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  scan-current-dependencies:
+    name: Scan Current Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+    - name: Setup Python 3.11
+      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+      with:
+        python-version: '3.11'
+
+    - name: Install project and dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install tox setuptools wheel
+        pip install -e .
+
+    - name: Run comprehensive dependency scan
+      continue-on-error: true
+      run: |
+        # Install security tools
+        pip install safety==3.2.8 pip-audit==2.7.3 bandit[toml]==1.7.10
+        
+        # Generate current dependency list
+        pip freeze > current-requirements.txt
+        
+        # Run Safety scan
+        safety check --json --output safety-current-results.json || echo "Safety scan completed"
+        
+        # Run pip-audit scan
+        pip-audit --format=sarif --output=pip-audit-current-results.sarif . || echo "pip-audit scan completed"
+        
+        # Run Bandit on current codebase
+        bandit -r aws_xray_sdk/ -f sarif -o bandit-current-results.sarif || echo "Bandit scan completed"
+        
+        # Generate dependency tree
+        pip install pipdeptree==2.23.4
+        pipdeptree --json > dependency-tree.json || echo "Dependency tree generated"
+
+    - name: Upload pip-audit current scan results
+      uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+      if: always() && hashFiles('pip-audit-current-results.sarif') != ''
+      with:
+        sarif_file: pip-audit-current-results.sarif
+        category: 'daily-scan-current-pip-audit'
+
+    - name: Upload Bandit current scan results
+      uses: github/codeql-action/upload-sarif@e2b3eafc8d227b0241d48be5f425d47c2d750a13 # v3.26.10
+      if: always() && hashFiles('bandit-current-results.sarif') != ''
+      with:
+        sarif_file: bandit-current-results.sarif
+        category: 'daily-scan-current-bandit'
+
+    - name: Upload dependency reports
+      uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+      if: always()
+      with:
+        name: daily-dependency-reports
+        path: |
+          current-requirements.txt
+          safety-current-results.json
+          pip-audit-current-results.sarif
+          bandit-current-results.sarif
+          dependency-tree.json
+
+    - name: Generate dependency summary
+      if: always()
+      run: |
+        echo "## Daily Current Dependencies Scan Summary" >> $GITHUB_STEP_SUMMARY
+        echo "Scan completed at $(date)" >> $GITHUB_STEP_SUMMARY
+        
+        # Count installed packages
+        if [ -f "current-requirements.txt" ]; then
+          PACKAGE_COUNT=$(wc -l < current-requirements.txt)
+          echo "Installed packages scanned: $PACKAGE_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Safety summary
+        if [ -f "safety-current-results.json" ]; then
+          SAFETY_VULNS=$(jq '. | length' safety-current-results.json 2>/dev/null || echo "0")
+          echo "Safety vulnerabilities: $SAFETY_VULNS" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # pip-audit summary
+        if [ -f "pip-audit-current-results.sarif" ]; then
+          PIP_AUDIT_VULNS=$(jq '.runs[0].results | length' pip-audit-current-results.sarif 2>/dev/null || echo "0")
+          echo "pip-audit vulnerabilities: $PIP_AUDIT_VULNS" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Bandit summary
+        if [ -f "bandit-current-results.sarif" ]; then
+          BANDIT_ISSUES=$(jq '.runs[0].results | length' bandit-current-results.sarif 2>/dev/null || echo "0")
+          echo "Bandit security issues: $BANDIT_ISSUES" >> $GITHUB_STEP_SUMMARY
+        fi
