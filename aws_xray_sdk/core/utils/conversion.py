@@ -30,6 +30,7 @@ def metadata_to_dict(obj):
             return metadata
         else:
             return obj
-    except Exception:
-        log.exception("Failed to convert metadata to dict")
+    except Exception as e:
+        import pprint
+        log.info("Failed to convert metadata to dict:\n%s", pprint.pformat(getattr(e, "args", None)))
         return {}

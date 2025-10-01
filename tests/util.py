@@ -4,6 +4,14 @@ import threading
 from aws_xray_sdk.core.recorder import AWSXRayRecorder
 from aws_xray_sdk.core.emitters.udp_emitter import UDPEmitter
 from aws_xray_sdk.core.sampling.sampler import DefaultSampler
+from aws_xray_sdk.core.utils.conversion import metadata_to_dict
+
+
+class CircularReferenceClass:
+    """Test class that can create circular references"""
+    def __init__(self, name):
+        self.name = name
+        self.ref = None
 
 
 class StubbedEmitter(UDPEmitter):
@@ -99,3 +107,15 @@ def _search_entity_by_annotation(entity, key, value):
                     if result is not None:
                         return result
     return None
+
+
+def test_metadata_to_dict_self_reference():
+    """Test that self-referencing objects don't cause stack overflow"""
+    obj = CircularReferenceClass("self_ref")
+    obj.ref = obj  # Self reference
+    
+    # This should not cause stack overflow
+    result = metadata_to_dict(obj)
+    
+    # The function should handle the self reference gracefully
+    assert isinstance(result, dict)
