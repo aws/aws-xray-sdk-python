@@ -1,4 +1,6 @@
 name: Unit Testing
+permissions:
+  contents: read
 on:
   push:
     branches:
