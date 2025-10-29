@@ -5,6 +5,10 @@ CHANGELOG
 Unreleased
 ==========
 
+2.15.0
+==========
+* bugfix: Fix log stack overflow if metadata contains circular reference `https://github.com/aws/aws-xray-sdk-python/pull/464`
+
 2.14.0
 ==========
 * bugfix: Fix warning message condition for subsegment ending `https://github.com/aws/aws-xray-sdk-python/pull/434`
