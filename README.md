@@ -9,10 +9,6 @@
 
 We recommend that you migrate to [AWS Distro for OpenTelemetry (ADOT) or OpenTelemetry Instrumentation][xray-otel-migration-docs] to generate traces (through manual or zero-code instrumentation) from your application and send them to AWS X-Ray. OpenTelemetry is the industry-wide standard for tracing instrumentation and observability. It has a large open-source community for support and provides more instrumentations and updates. By adopting an OpenTelemetry solution, developers can leverage the latest services and innovations from AWS CloudWatch.
 
-## :mega: End-of-Support on February 25, 2027
-
-[The AWS X-Ray SDKs will reach end-of-support on **`February 25, 2027`**][xray-sdk-daemon-timeline]. After end-of-support, the X-Ray SDKs will no longer receive updates or releases. Previously published releases will continue to be available via public package managers and the source code will remain on GitHub.
-
 [xray-otel-migration-docs]: https://docs.aws.amazon.com/xray/latest/devguide/xray-sdk-migration.html
 [xray-sdk-daemon-timeline]: https://docs.aws.amazon.com/xray/latest/devguide/xray-daemon-eos.html
 
