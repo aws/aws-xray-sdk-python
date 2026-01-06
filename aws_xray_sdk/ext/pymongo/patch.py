@@ -24,6 +24,8 @@ class XrayCommandListener(monitoring.CommandListener):
 
         subsegment = xray_recorder.begin_subsegment(
             f'{event.database_name}@{host_and_port_str}', 'remote')
+        if not subsegment:
+            return
         subsegment.put_annotation('mongodb_command_name', event.command_name)
         subsegment.put_annotation('mongodb_connection_id', host_and_port_str)
         subsegment.put_annotation('mongodb_database_name', event.database_name)
@@ -34,6 +36,8 @@ class XrayCommandListener(monitoring.CommandListener):
 
     def succeeded(self, event):
         subsegment = xray_recorder.current_subsegment()
+        if not subsegment:
+            return
         subsegment.put_annotation('mongodb_duration_micros', event.duration_micros)
         if self.record_full_documents:
             subsegment.put_metadata('mongodb_reply', event.reply)
@@ -41,6 +45,8 @@ class XrayCommandListener(monitoring.CommandListener):
 
     def failed(self, event):
         subsegment = xray_recorder.current_subsegment()
+        if not subsegment:
+            return
         subsegment.add_fault_flag()
         subsegment.put_annotation('mongodb_duration_micros', event.duration_micros)
         subsegment.put_metadata('failure', event.failure)
