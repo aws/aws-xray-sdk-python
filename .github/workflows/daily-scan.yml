@@ -11,9 +11,6 @@ on:
   schedule:
     - cron: '0 18 * * *' # scheduled to run at 18:00 UTC every day
   workflow_dispatch: # be able to run the workflow on demand
-  push:
-    branches:
-      - zhaez/scanner
 
 env:
   AWS_DEFAULT_REGION: us-east-1
