@@ -123,14 +123,20 @@ jobs:
       - name: Publish high scan status
         if: always()
         run: |
-          value="${{ steps.high_scan_latest.outcome == 'success' && '0' || '1' }}"
-          aws cloudwatch put-metric-data --metric-name XRayPythonSDKSecurityScanHighSeverityFailures --dimensions failure=rate --namespace MonitorSDK --value $value --timestamp $(date +%s)
+          value="${{ steps.high_scan_latest.outcome == 'success' && '1.0' || '0.0' }}"
+          aws cloudwatch put-metric-data --namespace 'MonitorSDK' \
+            --metric-name Success \
+            --dimensions repository=${{ github.repository }},branch=${{ github.ref_name }},workflow=daily_scan_high \
+            --value $value
 
       - name: Publish low scan status
         if: always()
         run: |
-          value="${{ steps.low_scan_latest.outcome == 'success' && steps.dep_scan.outcome == 'success' && '0' || '1' }}"
-          aws cloudwatch put-metric-data --metric-name XRayPythonSDKSecurityScanLowSeverityFailures --dimensions failure=rate --namespace MonitorSDK --value $value --timestamp $(date +%s)
+          value="${{ steps.low_scan_latest.outcome == 'success' && steps.dep_scan.outcome == 'success' && '1.0' || '0.0' }}"
+          aws cloudwatch put-metric-data --namespace 'MonitorSDK' \
+            --metric-name Success \
+            --dimensions repository=${{ github.repository }},branch=${{ github.ref_name }},workflow=daily_scan_low \
+            --value $value
 
       - name: Cleanup
         if: always()
