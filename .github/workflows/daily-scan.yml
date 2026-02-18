@@ -66,30 +66,17 @@ jobs:
         id: dep_scan
         if: always()
         run: |
-          # Install dependency-check
           gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 259A55407DD6C00299E6607EFFDE55BE73A2D1ED
           VERSION=$(curl -s https://jeremylong.github.io/DependencyCheck/current.txt | head -n1 | cut -d" " -f1)
           curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip" --output dependency-check.zip
           curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip.asc" --output dependency-check.zip.asc
           gpg --verify dependency-check.zip.asc
           unzip dependency-check.zip
-          
-          # Run dependency check on entire workspace
-          ./dependency-check/bin/dependency-check.sh \
-            --failOnCVSS 0 \
-            --nvdApiKey ${{ env.NVD_API_KEY_NVD_API_KEY }} \
-            --disableOssIndex \
-            --enableExperimental \
-            -s "." \
-            --format HTML \
-            --format JSON
+          ./dependency-check/bin/dependency-check.sh --enableExperimental --failOnCVSS 0 --nvdApiKey ${{ env.NVD_API_KEY_NVD_API_KEY }} -s "."
 
       - name: Print dependency scan results on failure
-        if: always()
-        run: |
-          if [ "${{ steps.dep_scan.outcome }}" != "success" ]; then
-            less dependency-check-report.html
-          fi
+        if: ${{ steps.dep_scan.outcome != 'success' }}
+        run: less dependency-check-report.html
 
       - name: Perform high severity scan on built artifacts
         if: always()
@@ -118,7 +105,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@a03048d87541d1d9fcf2ecf528a4a65ba9bd7838 #5.0.0
         with:
           role-to-assume: ${{ secrets.AWS_INTEG_TEST_ROLE_ARN }}
-          aws-region:  ${{ env.AWS_DEFAULT_REGION }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
       - name: Publish high scan status
         if: always()
@@ -137,10 +124,3 @@ jobs:
             --metric-name Success \
             --dimensions repository=${{ github.repository }},branch=${{ github.ref_name }},workflow=daily_scan_low \
             --value $value
-
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -f ./dependency-check.zip
-          rm -f ./dependency-check.zip.asc
-          rm -rf ./dependency-check || true
