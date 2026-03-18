@@ -29,7 +29,7 @@ jobs:
         testenv: [core, ext]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
 
       - name: Start MySQL
         if: ${{ matrix.testenv == 'ext' }}
@@ -41,7 +41,7 @@ jobs:
           mysql -e "GRANT ALL PRIVILEGES ON test_dburl.* TO test_dburl_user@localhost;" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
           mysql -e "FLUSH PRIVILEGES;" -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c #v4.9.1
         with:
           python-version: ${{ env[matrix.python-version] }}
 
@@ -50,7 +50,7 @@ jobs:
 
       - name: Cache tox environment
         # Preserves .tox directory between runs for faster installs
-        uses: actions/cache@v3
+        uses: actions/cache@6f8efc29b200d32929f49075959781ed54ec270c #v3.5.0
         with:
           path: |
             .tox
@@ -60,3 +60,28 @@ jobs:
       - name: Run tox
         run: |
           tox -f ${{ matrix.python-version }}-${{ matrix.testenv }}
+
+  static-code-checks:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #5.0.0
+        with:
+          fetch-depth: 0
+      - name: Check for versioned GitHub actions
+        if: always()
+        run: |
+          # Get changed GitHub workflow/action files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}..HEAD | grep -E "^\.github/(workflows|actions)/.*\.ya?ml$" || true)
+          
+          if [ -n "$CHANGED_FILES" ]; then
+            # Check for any versioned actions, excluding comments and this validation script
+            VIOLATIONS=$(grep -Hn "uses:.*@v" $CHANGED_FILES | grep -v "grep.*uses:.*@v" | grep -v "#.*@v" || true)
+            if [ -n "$VIOLATIONS" ]; then
+              echo "Found versioned GitHub actions. Use commit SHAs instead:"
+              echo "$VIOLATIONS"
+              exit 1
+            fi
+          fi
+          
+          echo "No versioned actions found in changed files"
