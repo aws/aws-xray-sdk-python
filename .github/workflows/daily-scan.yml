@@ -81,7 +81,7 @@ jobs:
       - name: Perform high severity scan on built artifacts
         if: always()
         id: high_scan_latest
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 #v0.33.1
+        uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # v0.34.2
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -92,7 +92,7 @@ jobs:
       - name: Perform low severity scan on built artifacts
         if: always()
         id: low_scan_latest
-        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 #v0.33.1
+        uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # v0.34.2
         with:
           scan-type: 'fs'
           scan-ref: '.'
