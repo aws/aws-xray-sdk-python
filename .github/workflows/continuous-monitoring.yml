@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
       
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a #v4.3.1
         with:
           role-to-assume: ${{ secrets.AWS_INTEG_TEST_ROLE_ARN }}
           aws-region: us-east-1
       
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c #v4.9.1
         with:
           python-version: '3.x'
       
