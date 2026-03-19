@@ -33,14 +33,13 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Build Python project for scanning
+      - name: Install published package for scanning
         run: |
+          mkdir -p scan-target
           python -m venv scan-venv
           source scan-venv/bin/activate
-          # Install the published SDK package to get all runtime dependencies
           pip install aws-xray-sdk
-          # Generate requirements file for scanning
-          pip freeze > requirements.txt
+          pip freeze > scan-target/requirements.txt
  
       - name: Install Java for dependency scan
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 #v5.0.0
@@ -74,7 +73,7 @@ jobs:
           curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip.asc" --output dependency-check.zip.asc
           gpg --verify dependency-check.zip.asc
           unzip dependency-check.zip
-          ./dependency-check/bin/dependency-check.sh --enableExperimental --failOnCVSS 0 --nvdApiKey ${{ env.NVD_API_KEY_NVD_API_KEY }} --ossIndexUsername ${{ env.OSS_INDEX_USERNAME }} --ossIndexPassword ${{ env.OSS_INDEX_PASSWORD }} -s "."
+          ./dependency-check/bin/dependency-check.sh --enableExperimental --failOnCVSS 0 --nvdApiKey ${{ env.NVD_API_KEY_NVD_API_KEY }} --ossIndexUsername ${{ env.OSS_INDEX_USERNAME }} --ossIndexPassword ${{ env.OSS_INDEX_PASSWORD }} -s "scan-target/"
 
       - name: Print dependency scan results on failure
         if: ${{ steps.dep_scan.outcome != 'success' }}
