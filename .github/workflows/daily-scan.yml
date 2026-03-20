@@ -1,7 +1,7 @@
 ## Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 ## SPDX-License-Identifier: Apache-2.0
 # Performs a daily scan of:
-# * The X-Ray Python SDK source code, using Trivy
+# * The X-Ray Python SDK published artifact dependencies, using Trivy
 # * Project dependencies, using DependencyCheck
 #
 #  Publishes results to CloudWatch Metrics.
@@ -79,26 +79,26 @@ jobs:
         if: ${{ steps.dep_scan.outcome != 'success' }}
         run: less dependency-check-report.html
 
-      - name: Perform high severity scan on built artifacts
+      - name: Perform high severity scan on published artifact dependencies
         if: always()
         id: high_scan_latest
         uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # v0.34.2
         with:
           scan-type: 'fs'
-          scan-ref: '.'
+          scan-ref: 'scan-target/'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
           scanners: 'vuln'
         env:
           TRIVY_IGNOREFILE: .github/trivy/daily-scan.trivyignore.yaml
 
-      - name: Perform low severity scan on built artifacts
+      - name: Perform low severity scan on published artifact dependencies
         if: always()
         id: low_scan_latest
         uses: aquasecurity/trivy-action@97e0b3872f55f89b95b2f65b3dbab56962816478 # v0.34.2
         with:
           scan-type: 'fs'
-          scan-ref: '.'
+          scan-ref: 'scan-target/'
           severity: 'MEDIUM,LOW,UNKNOWN'
           exit-code: '1'
           scanners: 'vuln'
