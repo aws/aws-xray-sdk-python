@@ -73,7 +73,7 @@ jobs:
           curl -Ls "https://github.com/dependency-check/DependencyCheck/releases/download/v$VERSION/dependency-check-$VERSION-release.zip.asc" --output dependency-check.zip.asc
           gpg --verify dependency-check.zip.asc
           unzip dependency-check.zip
-          ./dependency-check/bin/dependency-check.sh --enableExperimental --failOnCVSS 0 --nvdApiKey ${{ env.NVD_API_KEY_NVD_API_KEY }} --ossIndexUsername ${{ env.OSS_INDEX_USERNAME }} --ossIndexPassword ${{ env.OSS_INDEX_PASSWORD }} -s "scan-target/"
+          ./dependency-check/bin/dependency-check.sh --enableExperimental --failOnCVSS 0 --nvdApiKey ${{ env.NVD_API_KEY_NVD_API_KEY }} --ossIndexUsername ${{ env.OSS_INDEX_USERNAME }} --ossIndexPassword ${{ env.OSS_INDEX_PASSWORD }} --suppression .github/dependency-check-suppressions.xml -s "scan-target/"
 
       - name: Print dependency scan results on failure
         if: ${{ steps.dep_scan.outcome != 'success' }}
@@ -89,6 +89,8 @@ jobs:
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
           scanners: 'vuln'
+        env:
+          TRIVY_IGNOREFILE: .github/trivy/daily-scan.trivyignore.yaml
 
       - name: Perform low severity scan on published artifact dependencies
         if: always()
@@ -100,6 +102,8 @@ jobs:
           severity: 'MEDIUM,LOW,UNKNOWN'
           exit-code: '1'
           scanners: 'vuln'
+        env:
+          TRIVY_IGNOREFILE: .github/trivy/daily-scan.trivyignore.yaml
 
       - name: Configure AWS Credentials for emitting metrics
         if: always()

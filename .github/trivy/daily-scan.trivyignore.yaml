@@ -1,0 +1,13 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Trivy ignore file for daily scans.
+# This file is intentionally empty. Daily scans should flag all CVEs.
+# See: https://aquasecurity.github.io/trivy/latest/docs/configuration/filtering/
+
+# Format:
+# - id: <CVE-###>
+#   statement: "<Why are we excluding?> <link to CVE where we can track status>"
+#   expired_at: <required - YYYY-MM-DD>
+
+vulnerabilities: []
