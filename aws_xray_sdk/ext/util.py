@@ -135,5 +135,5 @@ def unwrap(obj, attr):
     :param attr: attribute on `obj` to unwrap
     """
     f = getattr(obj, attr, None)
-    if f and isinstance(f, wrapt.ObjectProxy) and hasattr(f, '__wrapped__'):
+    if f and hasattr(f, '__wrapped__'):
         setattr(obj, attr, f.__wrapped__)
