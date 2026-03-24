@@ -21,5 +21,12 @@ class XRaySessionMaker(sessionmaker):
                  expire_on_commit=True,
                  info=None, **kw):
         kw['query_cls'] = XRayQuery
-        super().__init__(bind, class_, autoflush, autocommit, expire_on_commit,
-                         info, **kw)
+        super().__init__(
+            bind=bind,
+            class_=class_,
+            autoflush=autoflush,
+            autocommit=autocommit,
+            expire_on_commit=expire_on_commit,
+            info=info,
+            **kw
+        )
