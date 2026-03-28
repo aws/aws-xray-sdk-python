@@ -4,6 +4,7 @@ CHANGELOG
 
 Unreleased
 ==========
+* bugfix: Handle missing segment gracefully in pymongo patch `https://github.com/aws/aws-xray-sdk-python/pull/475`
 
 2.15.0
 ==========
