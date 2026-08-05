@@ -1,3 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+    <!--
+        False positive CPE matches on the Python `jmespath` distribution (a botocore
+        dependency). dependency-check maps pkg:pypi/jmespath to the generic
+        cpe:2.3:a:jmespath:jmespath CPE, which also covers the unrelated Ruby and PHP
+        JMESPath ports. The NVD CPE configurations for both CVEs below pin the
+        `target_software` field to those other ecosystems, so neither applies to the
+        Python package.
+    -->
+    <suppress>
+        <notes><![CDATA[
+            CVE-2022-32511 affects jmespath.rb (JMESPath for Ruby) before 1.6.1, which
+            uses JSON.load where JSON.parse is preferable. NVD scopes it to
+            cpe:2.3:a:jmespath:jmespath:*:*:*:*:*:ruby:*:* -- it does not affect the
+            Python jmespath distribution.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:pypi/jmespath@.*$</packageUrl>
+        <cve>CVE-2022-32511</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+            CVE-2026-54133 affects jmespath.php before 2.9.1, where
+            JmesPath\CompilerRuntime can execute attacker-controlled PHP code. NVD
+            scopes it to cpe:2.3:a:jmespath:jmespath:*:*:*:*:*:php:*:* -- it does not
+            affect the Python jmespath distribution.
+        ]]></notes>
+        <packageUrl regex="true">^pkg:pypi/jmespath@.*$</packageUrl>
+        <cve>CVE-2026-54133</cve>
+    </suppress>
 </suppressions>
