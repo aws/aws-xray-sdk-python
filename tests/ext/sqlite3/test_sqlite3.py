@@ -54,3 +54,16 @@ def test_invalid_syntax(db):
 
     exception = subsegment.cause['exceptions'][0]
     assert exception.type == 'OperationalError'
+
+
+def test_connection_context_manager(db):
+    with db as conn:
+        q = 'SELECT name FROM sqlite_master'
+        cur = conn.cursor()
+        cur.execute(q)
+
+    subsegment = xray_recorder.current_segment().subsegments[0]
+    assert subsegment.name == ':memory:'
+    sql = subsegment.sql
+    assert sql['database_type'] == 'sqlite3'
+    assert sql['database_version']

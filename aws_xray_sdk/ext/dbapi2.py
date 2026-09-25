@@ -13,10 +13,18 @@ class XRayTracedConn(wrapt.ObjectProxy):
         super().__init__(conn)
         self._xray_meta = meta
 
+    def __enter__(self):
+
+        value = self.__wrapped__.__enter__()
+        if value is not self.__wrapped__:
+            return value
+        return self
+
     def cursor(self, *args, **kwargs):
 
         cursor = self.__wrapped__.cursor(*args, **kwargs)
         return XRayTracedCursor(cursor, self._xray_meta)
+
 
 
 class XRayTracedCursor(wrapt.ObjectProxy):
