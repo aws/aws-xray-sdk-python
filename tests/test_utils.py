@@ -93,3 +93,45 @@ def test_inject_trace_header_sampled():
     inject_trace_header(headers, subsegment)
 
     assert 'Sampled=1' in headers['X-Amzn-Trace-Id']
+
+def test_metadata_to_dict_non_iterable_object():
+    from aws_xray_sdk.core.utils.conversion import metadata_to_dict
+
+    class MockMySQLConnection:
+        __iter__ = None
+
+        def __init__(self):
+            self.host = "localhost"
+            self.port = 3306
+            self._secret = "hidden"
+
+    conn = MockMySQLConnection()
+    result = metadata_to_dict(conn)
+    assert result == {"host": "localhost", "port": 3306}
+
+
+def test_metadata_to_dict_broken_iterable():
+    from aws_xray_sdk.core.utils.conversion import metadata_to_dict
+
+    class BrokenIterable:
+        def __iter__(self):
+            raise TypeError("iteration failed")
+
+        def __init__(self):
+            self.status = "active"
+            self._private = 123
+
+    obj = BrokenIterable()
+    result = metadata_to_dict(obj)
+    assert result == {"status": "active"}
+
+
+def test_metadata_to_dict_collection_types():
+    from aws_xray_sdk.core.utils.conversion import metadata_to_dict
+
+    assert metadata_to_dict({"k": "v"}) == {"k": "v"}
+    assert metadata_to_dict([1, "a", True]) == [1, "a", True]
+    assert metadata_to_dict((1, 2)) == [1, 2]
+    assert metadata_to_dict("text") == "text"
+    assert metadata_to_dict(42) == 42
+    assert metadata_to_dict(None) is None
