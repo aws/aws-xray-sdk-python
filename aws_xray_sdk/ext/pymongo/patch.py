@@ -1,6 +1,11 @@
 # Copyright © 2018 Clarity Movement Co. All rights reserved.
+from collections.abc import Mapping
+
 from pymongo import monitoring
 from aws_xray_sdk.core import xray_recorder
+
+# failure fields that never contain document values
+_SAFE_FAILURE_FIELDS = ('ok', 'code', 'codeName', 'errorLabels', 'errtype')
 
 
 class XrayCommandListener(monitoring.CommandListener):
@@ -10,7 +15,8 @@ class XrayCommandListener(monitoring.CommandListener):
 
     name: 'mydb@127.0.0.1:27017'
     records all available information provided by pymongo,
-    except for `command` and `reply`. They may contain business secrets.
+    except for `command`, `reply` and failure details.
+    They may contain business secrets.
     If you insist to record them, specify `record_full_documents=True`.
     """
 
@@ -43,7 +49,12 @@ class XrayCommandListener(monitoring.CommandListener):
         subsegment = xray_recorder.current_subsegment()
         subsegment.add_fault_flag()
         subsegment.put_annotation('mongodb_duration_micros', event.duration_micros)
-        subsegment.put_metadata('failure', event.failure)
+        failure = event.failure
+        if not self.record_full_documents:
+            # pymongo may report None or a list as the failure
+            failure = {k: failure[k] for k in _SAFE_FAILURE_FIELDS
+                       if isinstance(failure, Mapping) and k in failure}
+        subsegment.put_metadata('failure', failure)
         xray_recorder.end_subsegment()
 
 

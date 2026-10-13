@@ -4,6 +4,7 @@ CHANGELOG
 
 Unreleased
 ==========
+* bugfix: [pymongo] Only record `ok`, `code`, `codeName`, `errorLabels` and `errtype` of failed commands unless `record_full_documents=True`. `errmsg` and other failure fields can contain document values and are no longer recorded by default.
 
 2.15.0
 ==========
