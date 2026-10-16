@@ -87,3 +87,17 @@ Patching httplib
 httplib is a low-level python module which is used by several third party modules, so
 by enabling patching to this module you can gain patching of many modules "for free."
 Some examples of modules that depend on httplib: requests and httplib2
+
+Patching pymongo
+----------------
+
+By default the pymongo patch does not record command and reply documents, and only records
+the ``ok``, ``code``, ``codeName``, ``errorLabels`` and ``errtype`` fields of failed commands,
+because these documents may contain sensitive data. To record full documents, call the pymongo
+patch directly before patching other modules::
+
+    from aws_xray_sdk.ext.pymongo import patch
+
+    patch(record_full_documents=True)
+
+Note that this records every command, reply and failure document.
