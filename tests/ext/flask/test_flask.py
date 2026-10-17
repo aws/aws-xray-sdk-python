@@ -238,3 +238,20 @@ def test_lambda_default_ctx():
     app_client.get(path)
     segment = recorder.emitter.pop()
     assert not segment  # Segment should be none because it's created and ended by the middleware
+
+
+def test_missing_segment_in_after_request():
+    new_recorder = get_new_stubbed_recorder()
+    new_recorder.configure(service='test', sampling=False)
+    new_app = Flask(__name__)
+
+    @new_app.before_request
+    def early_before_request():
+        return 'Early response', 400
+
+    XRayMiddleware(new_app, new_recorder)
+    app_client = new_app.test_client()
+
+    response = app_client.get('/early')
+    assert response.status_code == 400
+    assert response.data == b'Early response'

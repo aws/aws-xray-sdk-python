@@ -67,10 +67,17 @@ class XRayMiddleware:
             segment.put_http_meta(http.CLIENT_IP, req.remote_addr)
 
     def _after_request(self, response):
-        if self.in_lambda_ctx:
-            segment = self._recorder.current_subsegment()
-        else:
-            segment = self._recorder.current_segment()
+        segment = None
+        try:
+            if self.in_lambda_ctx:
+                segment = self._recorder.current_subsegment()
+            else:
+                segment = self._recorder.current_segment()
+        except Exception:
+            pass
+        if not segment:
+            return response
+
         segment.put_http_meta(http.STATUS, response.status_code)
 
         origin_header = segment.get_origin_trace_header()
