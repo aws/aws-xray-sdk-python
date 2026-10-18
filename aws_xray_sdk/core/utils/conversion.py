@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import logging
 
 log = logging.getLogger(__name__)
@@ -17,12 +18,15 @@ def metadata_to_dict(obj):
             return str(obj)
         elif hasattr(obj, "_ast"):
             return metadata_to_dict(obj._ast())
-        elif hasattr(obj, "__iter__") and not isinstance(obj, str):
-            metadata = []
-            for item in obj:
-                metadata.append(metadata_to_dict(item))
-            return metadata
-        elif hasattr(obj, "__dict__"):
+        elif isinstance(obj, Iterable) and not isinstance(obj, str):
+            try:
+                metadata = []
+                for item in obj:
+                    metadata.append(metadata_to_dict(item))
+                return metadata
+            except TypeError:
+                pass
+        if hasattr(obj, "__dict__"):
             metadata = {}
             for key, value in vars(obj).items():
                 if not callable(value) and not key.startswith('_'):
