@@ -3,9 +3,7 @@ from collections.abc import Mapping
 
 from pymongo import monitoring
 from aws_xray_sdk.core import xray_recorder
-
-# failure fields that never contain document values
-_SAFE_FAILURE_FIELDS = ('ok', 'code', 'codeName', 'errorLabels', 'errtype')
+from aws_xray_sdk.core.models.throwable import _SAFE_FAILURE_FIELDS, _record_full_pymongo_documents
 
 
 class XrayCommandListener(monitoring.CommandListener):
@@ -17,12 +15,17 @@ class XrayCommandListener(monitoring.CommandListener):
     records all available information provided by pymongo,
     except for `command`, `reply` and failure details.
     They may contain business secrets.
-    If you insist to record them, specify `record_full_documents=True`.
+    If you insist to record them, specify `record_full_documents=True`,
+    which also stops the redaction of pymongo exception messages, i.e. of
+    error documents and duplicate key values, in the whole process, from
+    when the listener is created.
     """
 
     def __init__(self, record_full_documents):
         super().__init__()
         self.record_full_documents = record_full_documents
+        if record_full_documents:
+            _record_full_pymongo_documents()
 
     def started(self, event):
         host, port = event.connection_id

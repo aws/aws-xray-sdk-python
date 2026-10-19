@@ -1,3 +1,5 @@
+import json
+
 import pytest
 import requests
 
@@ -156,4 +158,16 @@ def test_strip_http_url():
     assert http_meta['request']['url'] == strip_url(url)
     assert http_meta['request']['method'].upper() == 'GET'
     assert http_meta['response']['status'] == status_code
+
+
+def test_exception_message_does_not_record_query_values(monkeypatch):
+    # the message has the path of the url when there is no proxy
+    monkeypatch.setenv('NO_PROXY', '*')
+    monkeypatch.setenv('no_proxy', '*')
+    with pytest.raises(requests.exceptions.ConnectionError):
+        requests.get('http://127.0.0.1:1/private/object.txt?X-Amz-Signature=signature&token=secret', timeout=1)
+    subsegment = xray_recorder.current_segment().subsegments[0]
+
+    message = json.loads(subsegment.serialize())['cause']['exceptions'][0]['message']
+    assert 'with url: /private/object.txt?X-Amz-Signature=REDACTED&token=REDACTED (Caused by' in message
 
