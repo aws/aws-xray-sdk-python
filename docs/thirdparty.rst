@@ -100,4 +100,23 @@ patch directly before patching other modules::
 
     patch(record_full_documents=True)
 
-Note that this records every command, reply and failure document.
+Note that this records every command, reply and failure document. A listener created with
+``record_full_documents=True`` also stops the redaction of pymongo exception messages, that is of
+error documents and duplicate key values, see `Exception messages`_, in the whole process, from when
+it is created. Url query parameters are still redacted.
+
+Exception messages
+------------------
+
+The SDK records these values in exception messages as ``REDACTED``:
+
+* the values of sensitive url query parameters, keeping the keys, for example the signature of a
+  presigned S3 url, e.g. ``/object.txt?X-Amz-Signature=REDACTED``: ``AWSAccessKeyId``, ``Signature``,
+  ``sig``, ``X-Amz-Credential``, ``X-Amz-Security-Token``, ``X-Amz-Signature``, ``X-Goog-Signature``
+  and ``token``. A value ends at the next space, ``&`` or ``#``.
+* in pymongo errors, the values of the server error document, for example the value that failed
+  document validation (``consideredValue``), except the fields recorded for failed commands and the
+  position of write errors in a bulk write, also when another pymongo error includes the document, and
+  MongoDB duplicate key values, that is the rest of the server message after ``dup key:``. The server
+  message before the document is otherwise kept, and can include other values. Once a pymongo listener
+  records full documents, see above, these values are not redacted.

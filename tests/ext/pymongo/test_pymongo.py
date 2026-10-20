@@ -4,9 +4,11 @@ import pytest
 from bson import encode
 from bson.raw_bson import RawBSONDocument
 from pymongo import monitoring
+from pymongo.errors import BulkWriteError, DuplicateKeyError, OperationFailure, WriteError
 
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.core.context import Context
+from aws_xray_sdk.core.models import throwable
 from aws_xray_sdk.ext.pymongo.patch import XrayCommandListener, patch
 
 SECRET = 'stored-secret-value'
@@ -68,6 +70,12 @@ CLIENT_FAILURE = {
     'errmsg': 'localhost:27017: connection closed',
     'errtype': 'AutoReconnect',
 }
+
+
+@pytest.fixture(autouse=True)
+def redact_exception_messages(monkeypatch):
+    # listeners that record full documents record exception messages in full in the whole process
+    monkeypatch.setattr(throwable, '_REDACTION_RULES', throwable._REDACTION_RULES)
 
 
 @pytest.fixture(autouse=True)
@@ -190,3 +198,34 @@ def test_patch_does_not_record_full_documents_by_default(monkeypatch):
         vars(monitoring).pop('_xray_enabled', None)
 
     assert [listener.record_full_documents for listener in registered] == [False]
+
+
+@pytest.mark.parametrize('new_error', [
+    lambda: OperationFailure('Document failed validation', 121, VALIDATION_FAILURE),
+    lambda: DuplicateKeyError(DUPLICATE_KEY_FAILURE['errmsg'], 11000, DUPLICATE_KEY_FAILURE),
+    # insert and update commands report validation failures as write errors
+    lambda: WriteError('Document failed validation', 121,
+                       {'index': 0, 'code': 121, 'errInfo': VALIDATION_FAILURE['errInfo']}),
+    lambda: BulkWriteError({'writeErrors': [{'index': 0, 'code': 121, 'errInfo': VALIDATION_FAILURE['errInfo'],
+                                             'op': {'token': SECRET}}]}),
+], ids=['OperationFailure', 'DuplicateKeyError', 'WriteError', 'BulkWriteError'])
+def test_exception_message_does_not_record_document_values(new_error):
+    error = new_error()
+    with pytest.raises(type(error)):
+        with xray_recorder.in_subsegment('app'):
+            raise error
+    subsegment = xray_recorder.current_segment().subsegments[0]
+
+    message = subsegment.cause['exceptions'][0].message
+    assert ", full error: {" in message and "'REDACTED'" in message
+    assert SECRET not in subsegment.serialize()
+
+
+def test_exception_message_records_document_values_with_full_documents():
+    XrayCommandListener(record_full_documents=True)
+    with pytest.raises(OperationFailure):
+        with xray_recorder.in_subsegment('app'):
+            raise OperationFailure('Document failed validation', 121, VALIDATION_FAILURE)
+    subsegment = xray_recorder.current_segment().subsegments[0]
+
+    assert SECRET in subsegment.cause['exceptions'][0].message
