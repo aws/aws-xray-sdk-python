@@ -4,8 +4,13 @@ CHANGELOG
 
 Unreleased
 ==========
-* bugfix: Record these values in exception messages as `REDACTED`: the values of sensitive url query parameters, e.g. of presigned S3 urls, and, unless a pymongo listener records full documents (`record_full_documents=True`), the values of pymongo error documents other than `ok`, `code`, `codeName`, `errorLabels`, `errtype` and the position of write errors in a bulk write, as in the failure metadata, and MongoDB duplicate key values.
+
+2.16.0
+==========
+* bugfix: Record these values in exception messages as `REDACTED`: the values of sensitive url query parameters, e.g. of presigned S3 urls, and, unless a pymongo listener records full documents (`record_full_documents=True`), the values of pymongo error documents other than `ok`, `code`, `codeName`, `errorLabels`, `errtype` and the position of write errors in a bulk write, as in the failure metadata, and MongoDB duplicate key values. `https://github.com/aws/aws-xray-sdk-python/pull/496`
 * bugfix: [pymongo] Only record `ok`, `code`, `codeName`, `errorLabels` and `errtype` of failed commands unless `record_full_documents=True`. `errmsg` and other failure fields can contain document values and are no longer recorded by default. `https://github.com/aws/aws-xray-sdk-python/pull/495`
+* bugfix: Fix unwrap() broken on wrapt 2.x due to ObjectProxy class identity mismatch `https://github.com/aws/aws-xray-sdk-python/pull/489`
+* improvement: Escape tcp daemon address in docstring to prevent broken link `https://github.com/aws/aws-xray-sdk-python/pull/494`
 
 2.15.0
 ==========
